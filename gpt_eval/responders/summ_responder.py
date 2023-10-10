@@ -1,0 +1,52 @@
+from .base_responder import BaseResponder
+import copy
+from gpt_eval.utils.prompts import SUMMARIZATION_PROMPT
+
+# maximum number of characters that will be retrieved from a dataset instance, per prompt
+MAX_CONTEXT_SIZE = 1000
+SUMMARY_PREPROMPT = "Provide a concise and accurate summary of the following text:\n"
+            
+
+class SummarizationResponder(BaseResponder):
+    def build_model_prompts(self, formatted_data):
+        docs, docs_gt = formatted_data
+        model_prompts = []
+        for doc, gt in zip(docs, docs_gt):
+            prompt = f"{SUMMARY_PREPROMPT}\"{doc[:MAX_CONTEXT_SIZE]}\"\n"
+
+            model_prompts.append({
+                'prompt':prompt,
+                'context':doc[:MAX_CONTEXT_SIZE],
+                'gt_answer':gt 
+            })
+
+        return model_prompts
+    
+
+    def get_model_responses(self, prompt_contexts):
+        model_responses = []
+        for prompt_context in prompt_contexts:
+            response = self.query_model(prompt_context['prompt'])
+            # eventually should be linked via sql tables
+            model_responses.append({
+                'response':response,
+                **prompt_context
+            })
+
+        return model_responses
+    
+    def build_eval_prompts(self, prompt_context_responses):
+        eval_prompts = []
+        for prompt_context_response in prompt_context_responses:
+            base_prompt = copy.copy(SUMMARIZATION_PROMPT)
+        
+            # Replace placeholders in the base prompt with the provided search and context
+            prompt = base_prompt.replace('[DISCUSSION]', prompt_context_response['context'])
+            prompt = prompt.replace('[SUMMARY]', prompt_context_response['response'])
+
+            eval_prompts.append({
+                'eval_prompt':prompt,
+                **prompt_context_response
+            })
+
+        return eval_prompts
