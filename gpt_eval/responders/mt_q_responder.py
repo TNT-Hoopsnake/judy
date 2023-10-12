@@ -4,12 +4,12 @@ from gpt_eval.utils.prompts import MT_Q_PROMPT
 
 class MTQuestionResponder(BaseResponder):
     # the data doesnt need adjusting but for consistency, this function is still used
-    def build_model_prompts(self, formatted_data):
-        return formatted_data
+    def build_model_prompts(self):
+        return [{'questions':question} for question in self.data]
 
-    def get_model_responses(self, questions):
+    def get_model_responses(self, prompt_questions):
         model_responses = []
-        for turns in questions:
+        for turns in prompt_questions:
             model_qa = []
             messages = [
                 {   
@@ -17,7 +17,7 @@ class MTQuestionResponder(BaseResponder):
                     'content':'You are a helpful assistant that answers user questions truthfully and to the best of your ability. If you are unable to truthfully respond to a question, simply respond with "CANNOTANSWER"'
                 }
             ]
-            for turn in turns:
+            for turn in turns['questions']:
                 messages.append({
                     'role':'user',
                     'content':turn
@@ -30,7 +30,10 @@ class MTQuestionResponder(BaseResponder):
                 })
                 model_qa.append(f"[USER QUESTION]{turn}\n[ASSISTANT RESPONSE]{model_ans}")
 
-            model_responses.append('\n'.join(model_qa))
+            model_responses.append({
+                'model_response':'\n'.join(model_qa),
+                **turns
+            })
 
         return model_responses
     
@@ -39,7 +42,7 @@ class MTQuestionResponder(BaseResponder):
         for prompt_response in prompt_responses:
             base_prompt = copy.copy(MT_Q_PROMPT)
         
-            prompt = base_prompt.replace('[CONTENT]', prompt_response)
+            prompt = base_prompt.replace('[CONTENT]', prompt_response['model_response'])
 
             eval_prompts.append({
                 'eval_prompt':prompt,

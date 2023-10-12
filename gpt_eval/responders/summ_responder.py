@@ -2,21 +2,18 @@ from .base_responder import BaseResponder
 import copy
 from gpt_eval.utils.prompts import SUMMARIZATION_PROMPT
 
-# maximum number of characters that will be retrieved from a dataset instance, per prompt
-MAX_CONTEXT_SIZE = 1000
 SUMMARY_PREPROMPT = "Provide a concise and accurate summary of the following text:\n"
             
-
 class SummarizationResponder(BaseResponder):
-    def build_model_prompts(self, formatted_data):
-        docs, docs_gt = formatted_data
+    def build_model_prompts(self):
+        docs, docs_gt = self.data
         model_prompts = []
         for doc, gt in zip(docs, docs_gt):
-            prompt = f"{SUMMARY_PREPROMPT}\"{doc[:MAX_CONTEXT_SIZE]}\"\n"
+            prompt = f"{SUMMARY_PREPROMPT}\"{doc[:self._context_char_limit]}\"\n"
 
             model_prompts.append({
                 'prompt':prompt,
-                'context':doc[:MAX_CONTEXT_SIZE],
+                'context':doc[:self._context_char_limit],
                 'gt_answer':gt 
             })
 

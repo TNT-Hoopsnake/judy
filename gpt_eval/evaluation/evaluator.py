@@ -3,14 +3,17 @@ import json
 import re
 import openai
 import os
-from gpt_eval.utils.config import (
-    API_KEY,
-    RESULTS_DIR,
-    PROXIES,
-    CRITERIA,
-)
-
 from gpt_eval.utils.prompts import SYSTEM_PROMPT
+from gpt_eval.config import RESULTS_DIR, JUDGE_CRITERIA
+
+def get_est_token_cost(eval_model, num_tokens):
+    if eval_model == 'gpt-4':
+        cost_factor = (0.03 / 1000) 
+    elif eval_model == 'gpt-3.5-turbo':
+        cost_factor = (0.0015 / 1000)
+
+    return round(num_tokens * cost_factor, 5)
+
 
 
 class Evaluator():
@@ -18,18 +21,16 @@ class Evaluator():
             self,
             model_name,
             dataset_name, # temporarily used for storing results
-            use_proxy=True,
-            evaluator_model='gpt-3.5-turbo'
+            evaluator_api_key,
+            evaluator_model='gpt-3.5-turbo',
+            use_proxy=False,
+            proxies={},
         ):
 
-        if not API_KEY:
-            raise RuntimeError("No OPENAI API key was found. Unable to run evaluation. Please create a .env file and add OPENAI_KEY")
-
-        openai.api_key = API_KEY
+        openai.api_key = evaluator_api_key
         if use_proxy:
-            openai.proxy = PROXIES
+            openai.proxy = proxies
 
-        self.use_proxy = use_proxy
         self.model_name = model_name
        
         # model evaluation responses should be saved in db table
@@ -98,10 +99,10 @@ class Evaluator():
             tuple: A tuple containing scores based on the defined criteria.
         """
         # Initialize variables to store scores
-        scores = [0] * len(CRITERIA)
+        scores = [0] * len(JUDGE_CRITERIA)
 
         # Iterate through criteria and extract their scores
-        for metric_name, index in CRITERIA.items():
+        for metric_name, index in JUDGE_CRITERIA.items():
             # Search for the metric name and its associated score
             m = re.search(f"{metric_name}: ([\d]+)", result)
 
@@ -124,7 +125,7 @@ class Evaluator():
         # Parse the evaluation metrics from the result using the criteria dictionary
         metrics = self.parse_result(eval_result)
         # Dynamically populate the model_result_dict with scores for each criterion
-        for criterion, index in CRITERIA.items():
+        for criterion, index in JUDGE_CRITERIA.items():
             model_result_dict[criterion] = metrics[index]
 
         return model_result_dict

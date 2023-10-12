@@ -1,68 +1,71 @@
 from abc import ABC, abstractmethod
 from easyllm.clients import huggingface
-from gpt_eval.data.loader import load_formatted_data
 import openai
+from gpt_eval.config import ApiTypes
 
-MODEL_MAX_TOKENS = 600
-TEMPERATURE = 0
+def get_completion_library(api_type, api_base):
+    if api_type == ApiTypes.OPENAI:
+        lib = openai
+    elif api_type == ApiTypes.TGI:
+        lib= huggingface
+    else:
+        raise ValueError(f'Unable to determine completion library for api type: {api_type}')
+    
+    lib.api_base = api_base
+    return lib
+
 
 class BaseResponder(ABC):
-    def __init__(self, model, api_base, ds_name, ds_vers=None, api_key=None):
+    def __init__(
+            self, 
+            data,
+            api_type,
+            api_base,
+            temperature,
+            max_tokens,
+            context_char_limit
+        ):
         # should eventually read these values from a config file
-        self.model = model
-        self.api_base = api_base
-        self.api_key = api_key
-        self.ds_name = ds_name
-        self.ds_vers = ds_vers    
+        self.data = data
+        self._api_type = api_type
+        self._api_base = api_base
+        self._temperature = temperature
+        self._max_tokens = max_tokens
+        self._context_char_limit = context_char_limit
 
     def query_model(self, prompt):
-        # will swap between openai vs huggingface api structure using value in config file
-        # values (eventually) from config file
-        # openai.api_key=self.api_key # should be read from env var
-        # openai.api_base=self.api_base
-        # huggingface.api_base=self.api_base
+        lib = get_completion_library(self._api_type, self._api_base)
 
-
-        # eventually replace with ChatCompletion but just use Completion for now
-        completion = huggingface.Completion.create(
-            # including model here adds it to the base url (NOT WHAT WE WANT!)
+        completion = lib.Completion.create(
             prompt=prompt,
-            max_tokens=MODEL_MAX_TOKENS,
-            temperature=TEMPERATURE,
+            max_tokens=self._max_tokens,
+            temperature=self._temperature,
         )
         output = completion['choices'][0]['text']
 
         return output
 
     def query_chat_model(self, chat_history):
-        # openai.api_key=API_KEY # should be read from env var
-        # openai.api_base=self.api_base
-        # huggingface.api_base=self.api_base
+        lib = get_completion_library(self._api_type, self._api_base)
 
-        completion = huggingface.ChatCompletion.create(
+        completion = lib.ChatCompletion.create(
             messages=chat_history,
-            max_tokens=MODEL_MAX_TOKENS,
-            temperature=TEMPERATURE,
+            max_tokens=self._max_tokens,
+            temperature=self._temperature,
         )
         output = completion['choices'][0]['message']['content']
 
         return output 
 
-    def get_evaluation_prompts(self, num_prompts):
-        # todo - use docs_gt as pseudo model response
-
-        # formatted_data will be a tuple containing different values depending on the dataset used
-        formatted_data = load_formatted_data(num_prompts, self.ds_name, self.ds_vers)
-
-        # build_model_prompts is implemented per responder class and handles the different tuple sizes output by load_formatted_data
-        prompts = self.build_model_prompts(formatted_data)
+    def get_evaluation_prompts(self):
+        prompts = self.build_model_prompts()
         responses =  self.get_model_responses(prompts)
         eval_prompts = self.build_eval_prompts(responses)
         return eval_prompts
 
 
     @abstractmethod
-    def build_model_prompts(self, formatted_data):
+    def build_model_prompts(self):
         pass
     
     @abstractmethod

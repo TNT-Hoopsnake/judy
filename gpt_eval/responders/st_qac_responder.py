@@ -2,16 +2,15 @@ from .base_responder import BaseResponder
 import copy
 from gpt_eval.utils.prompts import ST_QAC_PROMPT
 
-# maximum number of characters that will be retrieved from a dataset instance, per prompt
-MAX_CONTEXT_SIZE = 1000
 SINGLE_TURN_QUESTION_ANSWER_CONTEXT_PREPROMPT = "Using the context above, answer the following question:\n"
 
 class STQuestionAnswerContextResponder(BaseResponder):
-    def build_model_prompts(self, formatted_data):
-        questions, answers, contexts = formatted_data
+    def build_model_prompts(self):
+        questions, answers, contexts = self.data
 
         model_prompts = []
         for question, answer, context in zip(questions, answers, contexts):
+            context = context[:self._context_char_limit]
             append_char = ''
             if not question.endswith('?'):
                 append_char = '?'
