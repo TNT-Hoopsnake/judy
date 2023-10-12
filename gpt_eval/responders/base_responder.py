@@ -1,13 +1,12 @@
 from abc import ABC, abstractmethod
 from easyllm.clients import huggingface
 import openai
+from gpt_eval.config import ApiTypes
 
-
-# TODO - replace the apitype comparisons with constants
 def get_completion_library(api_type, api_base):
-    if api_type == "openai":
+    if api_type == ApiTypes.OPENAI:
         lib = openai
-    elif api_type == "tgi":
+    elif api_type == ApiTypes.TGI:
         lib= huggingface
     else:
         raise ValueError(f'Unable to determine completion library for api type: {api_type}')

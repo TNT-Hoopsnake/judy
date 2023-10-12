@@ -5,43 +5,37 @@ from pydantic import (
     confloat, 
     conlist, 
     ConfigDict,
-    TypeAdapter
+    TypeAdapter,
+    Field,
+    validator
 )
 from typing import List, Optional
 import json
-import os
-from enum import Enum
-
-DATASET_CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'dataset_config.json')
-SYSTEM_CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'system_config.json')
-EVAL_CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'eval_config.json')
-
-
-class API_TYPES(str, Enum):
-    openai="openai"
-    tgi="tgi"
-
-class SCENARIO_TYPES(str, Enum):
-    summarization="summ"
-    mt_question="mt_q"
-    st_question_answer_context="st_qac"
-    mt_question_answer_context="mt_qac"
+from .constants import (
+    ScenarioTypes, 
+    ApiTypes
+)
 
 
 class ScenarioConfig(BaseModel):
-    type: SCENARIO_TYPES
+    type: ScenarioTypes
     datasets: List[str]
 
     model_config = ConfigDict(use_enum_values=True)
 
 
+# adding "= Field(default=None)" to fields in the following models
+# enables those models to be valid while missing those fields entirely
+# this is done for most optional fields as well as fields that can be overridden
+
 class EvaluatedModel(BaseModel):
     name: str
-    api_type: API_TYPES
+    api_type: ApiTypes
     api_base: HttpUrl
-    max_tokens: Optional[PositiveInt]
-    context_char_limit: Optional[PositiveInt]
-    temperature: Optional[confloat(ge=0.0, le=2.0)]
+
+    max_tokens: Optional[PositiveInt] = Field(default=None)
+    context_char_limit: Optional[PositiveInt] = Field(default=None)
+    temperature: Optional[confloat(ge=0.0, le=2.0)] = Field(default=None)
 
     model_config = ConfigDict(use_enum_values=True)
 
@@ -62,18 +56,27 @@ class Proxies(BaseModel):
 
 class SystemConfig(BaseModel):
     judge: str
-    judge_api_key: Optional[str]
     judge_temperature: confloat(ge=0.0, le=2.0)
     use_proxy: bool
-    proxies: Optional[Proxies]
+
+    judge_api_key: Optional[str] = Field(default=None)
+    proxies: Optional[Proxies] = Field(default=None)
+
+    @validator('proxies', always=True)
+    def validate_proxies(cls, value, values):
+        use_proxy = values.get('use_proxy', False)
+        if use_proxy and value is None:
+            raise ValueError("Proxies must be provided if use_proxy is True")
+        return value
 
 
 class DatasetConfig(BaseModel):
     name: str
     source: HttpUrl
-    version: Optional[str]
-    scenarios: conlist(SCENARIO_TYPES, min_length=1)
+    scenarios: conlist(ScenarioTypes, min_length=1)
     formatter: str
+
+    version: Optional[str] = Field(default=None)
 
     model_config = ConfigDict(use_enum_values=True)
 

@@ -1,10 +1,5 @@
-from gpt_eval.responders import (
-    MTQuestionResponder, 
-    SummarizationResponder,
-    STQuestionAnswerContextResponder,
-    MTQuestionAnswerContextResponder
-)
 from gpt_eval.evaluation import Evaluator
+from gpt_eval.data.loader import load_formatted_data
 from gpt_eval.config import (
     EVAL_CONFIG_PATH, 
     DATASET_CONFIG_PATH, 
@@ -12,20 +7,15 @@ from gpt_eval.config import (
     SystemConfig, 
     EvaluationConfig, 
     DatasetConfig, 
-    load_validated_config
+    load_validated_config,
+    RESPONDER_CLASS_MAP
 )
-from gpt_eval.data.loader import load_formatted_data
-import os
+
 from dotenv import load_dotenv
+import os
+
 load_dotenv()
 
-# TODO - use constants for the key values here
-RESPONDER_CLASS_MAP = {
-    'mt_q':MTQuestionResponder,
-    'mt_qac':MTQuestionAnswerContextResponder,
-    'st_qac':STQuestionAnswerContextResponder,
-    'summ':SummarizationResponder
-}
 
 def check_scenarios_valid_for_dataset(eval_config, datasets_config):
     for scenario in eval_config.scenarios:
@@ -42,7 +32,7 @@ if __name__ == "__main__":
         system_config = load_validated_config(SYSTEM_CONFIG_PATH, SystemConfig)
         eval_config = load_validated_config(EVAL_CONFIG_PATH, EvaluationConfig)
         dataset_configs = load_validated_config(DATASET_CONFIG_PATH, DatasetConfig, is_list=True)
-        is_valid = check_scenarios_valid_for_dataset(eval_config, dataset_configs)
+        check_scenarios_valid_for_dataset(eval_config, dataset_configs)
     except Exception as e:
         print('Error while validating config')
         print(e)
@@ -53,7 +43,6 @@ if __name__ == "__main__":
         temperature = model.temperature or eval_config.temperature
         max_tokens = model.max_tokens or eval_config.max_tokens
         context_char_limit = model.context_char_limit or eval_config.context_char_limit
-
         for scenario in eval_config.scenarios:
             for dataset in scenario.datasets:
                 filtered_ds_configs = filter(lambda ds: ds.name == dataset, dataset_configs)

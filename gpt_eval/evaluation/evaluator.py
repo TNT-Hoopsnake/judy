@@ -4,6 +4,7 @@ import re
 import openai
 import os
 from gpt_eval.utils.prompts import SYSTEM_PROMPT
+from gpt_eval.config import RESULTS_DIR, JUDGE_CRITERIA
 
 def get_est_token_cost(eval_model, num_tokens):
     if eval_model == 'gpt-4':
@@ -13,17 +14,7 @@ def get_est_token_cost(eval_model, num_tokens):
 
     return round(num_tokens * cost_factor, 5)
 
-RESULTS_DIR = os.path.abspath('./results')
-CRITERIA = {
-    "Accuracy": 0,
-    "Coherence": 1,
-    "Factuality": 2,
-    "Completeness": 3,
-    "Relevance": 4,
-    "Depth": 5,
-    "Creativity": 6,
-    "Level of Detail": 7,
-}
+
 
 class Evaluator():
     def __init__(
@@ -108,10 +99,10 @@ class Evaluator():
             tuple: A tuple containing scores based on the defined criteria.
         """
         # Initialize variables to store scores
-        scores = [0] * len(CRITERIA)
+        scores = [0] * len(JUDGE_CRITERIA)
 
         # Iterate through criteria and extract their scores
-        for metric_name, index in CRITERIA.items():
+        for metric_name, index in JUDGE_CRITERIA.items():
             # Search for the metric name and its associated score
             m = re.search(f"{metric_name}: ([\d]+)", result)
 
@@ -134,7 +125,7 @@ class Evaluator():
         # Parse the evaluation metrics from the result using the criteria dictionary
         metrics = self.parse_result(eval_result)
         # Dynamically populate the model_result_dict with scores for each criterion
-        for criterion, index in CRITERIA.items():
+        for criterion, index in JUDGE_CRITERIA.items():
             model_result_dict[criterion] = metrics[index]
 
         return model_result_dict

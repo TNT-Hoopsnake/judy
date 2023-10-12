@@ -1,5 +1,5 @@
 {
-    "random_seed":1234,
+    "random_seed":965,
     "num_evals":1,
     "scenarios": [
         {
@@ -26,10 +26,7 @@
         {
             "name":"flan-t5-small",
             "api_type":"tgi",
-            "api_base":"http://localhost:8080",
-            "max_tokens":1000,
-            "context_char_limit":2000,
-            "temperature":null
+            "api_base":"http://localhost:8080"
         }
     ]
 }

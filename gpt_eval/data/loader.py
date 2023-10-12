@@ -1,10 +1,9 @@
 import os
 from datasets import load_from_disk, load_dataset
 import numpy as np
-from gpt_eval.config.validator import DatasetConfig
+from gpt_eval.config import DatasetConfig, DATASETS_DIR
 import gpt_eval.data.formatters as formatters
 
-DATASETS_DIR = os.path.join(os.path.dirname(__file__), "datasets")
 
 def load_formatted_data(ds_config: DatasetConfig, num_idxs, random_seed):
     np.random.seed(random_seed)
