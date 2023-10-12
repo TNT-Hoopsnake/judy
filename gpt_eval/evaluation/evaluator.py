@@ -3,33 +3,43 @@ import json
 import re
 import openai
 import os
-from gpt_eval.utils.config import (
-    API_KEY,
-    RESULTS_DIR,
-    PROXIES,
-    CRITERIA,
-)
-
 from gpt_eval.utils.prompts import SYSTEM_PROMPT
 
+def get_est_token_cost(eval_model, num_tokens):
+    if eval_model == 'gpt-4':
+        cost_factor = (0.03 / 1000) 
+    elif eval_model == 'gpt-3.5-turbo':
+        cost_factor = (0.0015 / 1000)
+
+    return round(num_tokens * cost_factor, 5)
+
+RESULTS_DIR = os.path.abspath('./results')
+CRITERIA = {
+    "Accuracy": 0,
+    "Coherence": 1,
+    "Factuality": 2,
+    "Completeness": 3,
+    "Relevance": 4,
+    "Depth": 5,
+    "Creativity": 6,
+    "Level of Detail": 7,
+}
 
 class Evaluator():
     def __init__(
             self,
             model_name,
             dataset_name, # temporarily used for storing results
-            use_proxy=True,
-            evaluator_model='gpt-3.5-turbo'
+            evaluator_api_key,
+            evaluator_model='gpt-3.5-turbo',
+            use_proxy=False,
+            proxies={},
         ):
 
-        if not API_KEY:
-            raise RuntimeError("No OPENAI API key was found. Unable to run evaluation. Please create a .env file and add OPENAI_KEY")
-
-        openai.api_key = API_KEY
+        openai.api_key = evaluator_api_key
         if use_proxy:
-            openai.proxy = PROXIES
+            openai.proxy = proxies
 
-        self.use_proxy = use_proxy
         self.model_name = model_name
        
         # model evaluation responses should be saved in db table

@@ -1,20 +1,20 @@
 import numpy as np
 
-def xsum_formatted_data(dataset, eval_idxs):
+def xsum_formatter(dataset, eval_idxs):
     docs_to_summarize = [dataset['train']['document'][i] for i in eval_idxs]
     docs_gt = [dataset['train']['summary'][i] for i in eval_idxs]
 
     return (docs_to_summarize, docs_gt)
 
 
-def cnn_formatted_data(dataset, eval_idxs):
+def cnn_formatter(dataset, eval_idxs):
     docs_to_summarize = [dataset['train']['article'][i] for i in eval_idxs]
     docs_gt = [dataset['train']['highlights'][i] for i in eval_idxs]
 
     return (docs_to_summarize, docs_gt)
 
 
-def msmarco_formatted_data(dataset, eval_idxs):
+def msmarco_formatter(dataset, eval_idxs):
     questions = []
     answers = []
     contexts = []
@@ -29,7 +29,7 @@ def msmarco_formatted_data(dataset, eval_idxs):
     return (questions, answers, contexts)
 
 
-def squad_formatted_data(dataset, eval_idxs):
+def squad_formatter(dataset, eval_idxs):
     answers = []
     questions = []
     contexts = []
@@ -50,13 +50,13 @@ def squad_formatted_data(dataset, eval_idxs):
 
     return (questions, answers, contexts)
 
-def mtbench_formatted_data(dataset, eval_idxs):
+def mtbench_formatter(dataset, eval_idxs):
     questions = [dataset['train']['turns'][i] for i in eval_idxs]
 
     return (questions)
 
 
-def quac_formatted_data(dataset, eval_idxs):
+def quac_formatter(dataset, eval_idxs):
     # retrieve a maximum of 2 questions per context 
     # could add option for including more. we're mostly limited by context size here
     questions = [dataset['train']['questions'][i][:2] for i in eval_idxs]
@@ -64,12 +64,3 @@ def quac_formatted_data(dataset, eval_idxs):
     contexts = [dataset['train']['background'][i] for i in eval_idxs]
 
     return (questions, answers, contexts)
-
-DATASET_MAPPER = {
-    'cnn_dailymail':cnn_formatted_data,
-    'xsum': xsum_formatted_data,
-    'squad_v2':squad_formatted_data,
-    'ms_marco':msmarco_formatted_data,
-    'mt_bench_en':mtbench_formatted_data,
-    'quac':quac_formatted_data
-}

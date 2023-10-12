@@ -1,0 +1,35 @@
+{
+    "random_seed":1234,
+    "num_evals":1,
+    "scenarios": [
+        {
+            "type":"summ",
+            "datasets":["xsum", "cnn_dailymail"]
+        },
+        {
+            "type":"st_qac",
+            "datasets":["squad_v2", "ms_marco"]
+        },
+        {
+            "type":"mt_qac",
+            "datasets":["quac"]
+        },
+        {
+            "type":"mt_q",
+            "datasets":["dim/mt_bench_en"]
+        }
+    ],
+    "max_tokens":300,
+    "context_char_limit":1000,
+    "temperature": 1,
+    "evaluated_models": [
+        {
+            "name":"flan-t5-small",
+            "api_type":"tgi",
+            "api_base":"http://localhost:8080",
+            "max_tokens":1000,
+            "context_char_limit":2000,
+            "temperature":null
+        }
+    ]
+}

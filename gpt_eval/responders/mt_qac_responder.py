@@ -3,15 +3,16 @@ import copy
 from gpt_eval.utils.prompts import MT_QAC_PROMPT
 
 class MTQuestionAnswerContextResponder(BaseResponder): 
-    def build_model_prompts(self, formatted_data):
-        questions_list, answers_list, contexts = formatted_data
+    def build_model_prompts(self):
+        questions_list, answers_list, contexts = self.data
 
         model_prompts = []
         for questions, answers, context in zip(questions_list, answers_list, contexts):
+            context = context[:self._context_char_limit]
             model_prompts.append({
                 'questions':questions,
                 'context':context,
-                'gt_answers': [a[0] for a in answers]
+                'gt_answers': answers
             })
 
         return model_prompts

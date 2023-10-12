@@ -1,24 +1,23 @@
 import os
 from datasets import load_from_disk, load_dataset
 import numpy as np
-from .formatter import DATASET_MAPPER
-from gpt_eval.utils.config import RANDOM_SEED
+from gpt_eval.config.validator import DatasetConfig
+import gpt_eval.data.formatters as formatters
 
 DATASETS_DIR = os.path.join(os.path.dirname(__file__), "datasets")
 
-# replace with env var
-np.random.seed(RANDOM_SEED)
+def load_formatted_data(ds_config: DatasetConfig, num_idxs, random_seed):
+    np.random.seed(random_seed)
 
-def load_formatted_data(num_idxs, ds_name, ds_vers=None):
-    dataset = get_dataset(ds_name, ds_vers)
-
-    format_func = DATASET_MAPPER.get(ds_name)
-    if format_func:
-        eval_idxs = get_eval_idxs(num_idxs, len(dataset['train']))
-        return format_func(dataset, eval_idxs)
-    else:
-        raise ValueError(f"Unable to map dataset ({ds_name}) to formatting function")
+    dataset = get_dataset(ds_config.name, ds_config.version)
+    try:
+        format_func = getattr(formatters, ds_config.formatter)
+    except AttributeError:
+        raise ValueError(f"Unable to map dataset ({ds_config.name}) to formatter function")
     
+    eval_idxs = get_eval_idxs(num_idxs, len(dataset['train']))
+    return format_func(dataset, eval_idxs)
+
 
 def download_dataset(dataset, version=None, force=False):
     if not os.path.exists(DATASETS_DIR):

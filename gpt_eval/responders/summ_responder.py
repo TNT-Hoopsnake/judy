@@ -8,8 +8,8 @@ SUMMARY_PREPROMPT = "Provide a concise and accurate summary of the following tex
             
 
 class SummarizationResponder(BaseResponder):
-    def build_model_prompts(self, formatted_data):
-        docs, docs_gt = formatted_data
+    def build_model_prompts(self):
+        docs, docs_gt = self.data
         model_prompts = []
         for doc, gt in zip(docs, docs_gt):
             prompt = f"{SUMMARY_PREPROMPT}\"{doc[:MAX_CONTEXT_SIZE]}\"\n"
