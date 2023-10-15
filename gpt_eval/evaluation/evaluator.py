@@ -19,8 +19,6 @@ def get_est_token_cost(eval_model, num_tokens):
 class Evaluator():
     def __init__(
             self,
-            model_name,
-            dataset_name, # temporarily used for storing results
             evaluator_api_key,
             evaluator_model='gpt-3.5-turbo',
             use_proxy=False,
@@ -30,30 +28,12 @@ class Evaluator():
         openai.api_key = evaluator_api_key
         if use_proxy:
             openai.proxy = proxies
-
-        self.model_name = model_name
-       
-        # model evaluation responses should be saved in db table
-        # linked to the original model's prompt and response
-        # this is a todo, so for now continue to save the results in json
-        model_results_path = self.setup_results_directory()
-        self.results_path = os.path.join(model_results_path, dataset_name.split('/')[-1])
+      
         self.evaluator = evaluator_model
 
         self.eval_input_tokens = []
         self.eval_output_tokens = []
 
-    def setup_results_directory(self):
-        # sanity check to ensure the top level results dir exists
-        if not os.path.exists(RESULTS_DIR):
-            os.mkdir(RESULTS_DIR)
-
-        model_results_path = os.path.join(RESULTS_DIR, self.model_name)
-
-        if not os.path.exists(model_results_path):
-            os.mkdir(model_results_path)
-
-        return model_results_path
 
     def get_evaluation_response(self, prompt):
         """
@@ -133,13 +113,13 @@ class Evaluator():
     def run_evaluation(self, prompts):
         model_results = []
         for prompt in prompts:
-            results = self.get_evaluation_results(prompt)
+            results = self.get_evaluation_results(prompt['eval_prompt'])
             model_results.append(results)
 
-        with open(os.path.join(RESULTS_DIR, f'{self.results_path}-results.json'), 'w+') as fn:
-            json.dump(model_results, fn, indent=4)
 
-        total_tokens = sum(self.eval_input_tokens) + sum(self.eval_output_tokens)
+        return model_results
+        # TODO - reimplement logging
+        # total_tokens = sum(self.eval_input_tokens) + sum(self.eval_output_tokens)
         # logger.log(logging.INFO, f"- total openai usage - cost: ${get_est_token_cost(self.evaluator, total_tokens)} - tokens - combined: {total_tokens} - prompt: {sum(self.eval_input_tokens)} - completion: {sum(self.eval_output_tokens)}")
 
 

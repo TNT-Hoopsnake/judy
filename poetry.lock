@@ -1094,6 +1094,16 @@ files = [
 ]
 
 [[package]]
+name = "sqlitedict"
+version = "2.1.0"
+description = "Persistent dict in Python, backed up by sqlite3 and pickle, multithread-safe."
+optional = false
+python-versions = "*"
+files = [
+    {file = "sqlitedict-2.1.0.tar.gz", hash = "sha256:03d9cfb96d602996f1d4c2db2856f1224b96a9c431bdd16e78032a72940f9e8c"},
+]
+
+[[package]]
 name = "tqdm"
 version = "4.66.1"
 description = "Fast, Extensible Progress Meter"
@@ -1359,4 +1369,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "c2b1e25632d56707e52e2fc0ed49ff92d5608da5a3fbb1510acb66bc02b2c7ac"
+content-hash = "1b482bfa0e76de187bf072bc4e6623172aba361366063b876ab7f09bfc2a67ec"

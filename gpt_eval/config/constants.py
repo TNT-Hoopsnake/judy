@@ -1,11 +1,5 @@
 import os
 from enum import Enum
-from gpt_eval.responders import (
-    MTQuestionResponder, 
-    SummarizationResponder,
-    STQuestionAnswerContextResponder,
-    MTQuestionAnswerContextResponder
-)
 
 RESULTS_DIR = os.path.abspath('./results')
 DATASETS_DIR = os.path.abspath('./gpt_eval/data/datasets')
@@ -27,13 +21,21 @@ class ScenarioTypes(str, Enum):
     ST_QUESTION_ANSWER_CONTEXT="st_qac"
     MT_QUESTION_ANSWER_CONTEXT="mt_qac"
 
+def get_responder_class_map():
+    # avoid circular dependencies by lazy importing the responder classes
+    from gpt_eval.responders import (
+        MTQuestionResponder, 
+        SummarizationResponder,
+        STQuestionAnswerContextResponder,
+        MTQuestionAnswerContextResponder
+    )
 
-RESPONDER_CLASS_MAP = {
-    ScenarioTypes.MT_QUESTION:MTQuestionResponder,
-    ScenarioTypes.MT_QUESTION_ANSWER_CONTEXT:MTQuestionAnswerContextResponder,
-    ScenarioTypes.ST_QUESTION_ANSWER_CONTEXT:STQuestionAnswerContextResponder,
-    ScenarioTypes.SUMMARIZATION:SummarizationResponder
-}
+    return {
+        ScenarioTypes.MT_QUESTION:MTQuestionResponder,
+        ScenarioTypes.MT_QUESTION_ANSWER_CONTEXT:MTQuestionAnswerContextResponder,
+        ScenarioTypes.ST_QUESTION_ANSWER_CONTEXT:STQuestionAnswerContextResponder,
+        ScenarioTypes.SUMMARIZATION:SummarizationResponder
+    }
 
 
 JUDGE_CRITERIA = {
