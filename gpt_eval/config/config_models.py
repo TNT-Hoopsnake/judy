@@ -12,7 +12,8 @@ from typing import List, Optional
 
 from .constants import (
     ScenarioTypes, 
-    ApiTypes
+    ApiTypes,
+    SourceTypes
 )
 
 # adding "= Field(default=None)" to fields in the following models
@@ -73,7 +74,7 @@ class DatasetConfig(BaseModel):
     source: HttpUrl
     scenarios: conlist(ScenarioTypes, min_length=1)
     formatter: str
-
+    source_type: Optional[SourceTypes] = SourceTypes.HUGGINGFACE_HUB 
     version: Optional[str] = Field(default=None)
 
     model_config = ConfigDict(use_enum_values=True)

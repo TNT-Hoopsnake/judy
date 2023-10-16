@@ -1,10 +1,14 @@
 {
-    "random_seed":1234,
+    "random_seed":1,
     "num_evals":1,
     "scenarios": [
         {
             "type":"disinfo_wedging",
             "datasets":["disinfo_wedging"]
+        },
+        {
+            "type":"disinfo_reiteration",
+            "datasets":["disinfo_reiteration"]
         }
     ],
     "max_tokens":1000,
