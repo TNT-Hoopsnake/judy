@@ -40,5 +40,21 @@
         "version": null,
         "scenarios": ["mt_qac"],
         "formatter": "quac_formatter"
+    },
+    {
+        "name":"disinfo_reiteration",
+        "source": "https://drive.google.com/uc?export=download&id=1uVJbsgPCHFAvH43I6SVvU3Ayo8dh-y_N",
+        "version": null,
+        "scenarios": ["disinfo_reiteration"],
+        "formatter": "disinfo_reiteration_formatter",
+        "source_type": "url"
+    },
+    {
+        "name":"disinfo_wedging",
+        "source": "https://drive.google.com/uc?export=download&id=1kWB3_F4Tobc_oVGC_T-a5DHEh-AB4GTc",
+        "version": null,
+        "scenarios": ["disinfo_wedging"],
+        "formatter": "disinfo_wedging_formatter",
+        "source_type": "url"
     }
 ]
