@@ -1,18 +1,5 @@
 from abc import ABC, abstractmethod
-from easyllm.clients import huggingface
-import openai
-from gpt_eval.config import ApiTypes
-
-def get_completion_library(api_type, api_base):
-    if api_type == ApiTypes.OPENAI:
-        lib = openai
-    elif api_type == ApiTypes.TGI:
-        lib= huggingface
-    else:
-        raise ValueError(f'Unable to determine completion library for api type: {api_type}')
-    
-    lib.api_base = api_base
-    return lib
+from gpt_eval.utils import get_completion_library
 
 
 class BaseResponder(ABC):
@@ -25,8 +12,8 @@ class BaseResponder(ABC):
             max_tokens,
             context_char_limit
         ):
-        # should eventually read these values from a config file
         self.data = data
+        # config file values
         self._api_type = api_type
         self._api_base = api_base
         self._temperature = temperature
