@@ -12,7 +12,8 @@ from pydantic import (
 from typing import List, Optional
 import json
 from .constants import (
-    ScenarioTypes, 
+    ScenarioTypes,
+    SourceTypes, 
     ApiTypes
 )
 
@@ -75,6 +76,7 @@ class DatasetConfig(BaseModel):
     source: HttpUrl
     scenarios: conlist(ScenarioTypes, min_length=1)
     formatter: str
+    source_type: Optional[SourceTypes] = SourceTypes.HUGGINGFACE_HUB
 
     version: Optional[str] = Field(default=None)
 

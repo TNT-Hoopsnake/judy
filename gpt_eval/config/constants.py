@@ -21,6 +21,10 @@ class ScenarioTypes(str, Enum):
     ST_QUESTION_ANSWER_CONTEXT="st_qac"
     MT_QUESTION_ANSWER_CONTEXT="mt_qac"
 
+class SourceTypes(str, Enum):
+    HUGGINGFACE_HUB="hub"
+    URL="url"
+
 def get_responder_class_map():
     # avoid circular dependencies by lazy importing the responder classes
     from gpt_eval.responders import (
