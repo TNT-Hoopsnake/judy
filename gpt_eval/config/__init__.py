@@ -1,8 +1,7 @@
 from .validator import (
-    SystemConfig,
-    EvaluationConfig,
-    DatasetConfig,
-    load_validated_config
+    load_and_validate_configs,
+    load_validated_config,
+    check_scenarios_valid_for_dataset
 )
 
 from .constants import (
@@ -14,5 +13,12 @@ from .constants import (
     ApiTypes,
     ScenarioTypes,
     get_responder_class_map,
+    get_config_definitions,
     JUDGE_CRITERIA
+)
+
+from .config_models import (
+    EvaluationConfig,
+    DatasetConfig,
+    SystemConfig
 )

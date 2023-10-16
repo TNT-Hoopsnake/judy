@@ -1,5 +1,5 @@
 {
-    "random_seed":123,
+    "random_seed":1234,
     "num_evals":1,
     "scenarios": [
         {
