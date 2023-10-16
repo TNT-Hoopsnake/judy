@@ -20,6 +20,8 @@ class ScenarioTypes(str, Enum):
     MT_QUESTION="mt_q"
     ST_QUESTION_ANSWER_CONTEXT="st_qac"
     MT_QUESTION_ANSWER_CONTEXT="mt_qac"
+    DISINFO_WEDGING="disinfo_wedging"
+    DISINFO_REITERATION="disinfo_reiteration"
 
 class SourceTypes(str, Enum):
     HUGGINGFACE_HUB="hub"
@@ -31,14 +33,18 @@ def get_responder_class_map():
         MTQuestionResponder, 
         SummarizationResponder,
         STQuestionAnswerContextResponder,
-        MTQuestionAnswerContextResponder
+        MTQuestionAnswerContextResponder,
+        DisinfoReiterationResponder,
+        DisinfoWedgingResponder
     )
 
     return {
         ScenarioTypes.MT_QUESTION:MTQuestionResponder,
         ScenarioTypes.MT_QUESTION_ANSWER_CONTEXT:MTQuestionAnswerContextResponder,
         ScenarioTypes.ST_QUESTION_ANSWER_CONTEXT:STQuestionAnswerContextResponder,
-        ScenarioTypes.SUMMARIZATION:SummarizationResponder
+        ScenarioTypes.SUMMARIZATION:SummarizationResponder,
+        ScenarioTypes.DISINFO_REITERATION:DisinfoReiterationResponder,
+        ScenarioTypes.DISINFO_WEDGING:DisinfoWedgingResponder
     }
 
 

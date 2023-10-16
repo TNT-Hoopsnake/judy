@@ -13,6 +13,7 @@ from .constants import (
     RESULTS_DIR,
     ApiTypes,
     ScenarioTypes,
+    SourceTypes,
     get_responder_class_map,
     JUDGE_CRITERIA
 )
