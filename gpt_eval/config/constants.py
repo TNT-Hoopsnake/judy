@@ -28,7 +28,7 @@ class SourceTypes(str, Enum):
     URL="url"
 
 def get_responder_class_map():
-    # avoid circular dependencies by lazy importing the responder classes
+    # avoid circular dependencies
     from gpt_eval.responders import (
         MTQuestionResponder, 
         SummarizationResponder,
@@ -47,6 +47,34 @@ def get_responder_class_map():
         ScenarioTypes.DISINFO_WEDGING:DisinfoWedgingResponder
     }
 
+
+def get_config_definitions():
+    # avoid circular dependencies
+    from gpt_eval.config.config_models import (
+        SystemConfig,
+        EvaluationConfig,
+        DatasetConfig
+    )
+    return [
+        {
+            'cls':SystemConfig,
+            'path':SYSTEM_CONFIG_PATH,
+            'is_list':False,
+            'key':'system'
+        },
+        {
+            'cls':EvaluationConfig,
+            'path':EVAL_CONFIG_PATH,
+            'is_list':False,
+            'key':'eval'
+        },
+        {
+            'cls':DatasetConfig,
+            'path':DATASET_CONFIG_PATH,
+            'is_list':True,
+            'key':'datasets'
+        }
+    ]
 
 JUDGE_CRITERIA = {
     "Accuracy": 0,

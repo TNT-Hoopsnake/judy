@@ -32,3 +32,11 @@ def save_evaluation_results(model_name, dataset_name, data):
         json.dump(data, fn, indent=4)
 
 
+def get_dataset_config(ds_name, ds_config_list):
+    filtered_ds_configs = filter(lambda ds: ds.name == ds_name, ds_config_list)
+    ds_config = next(filtered_ds_configs, None)
+    # sanity check
+    if not ds_config:
+        raise ValueError('Unable to determine dataset config')
+    
+    return ds_config

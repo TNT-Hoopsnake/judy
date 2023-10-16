@@ -1,32 +1,16 @@
 from gpt_eval.evaluation import Evaluator
 from gpt_eval.data.loader import load_formatted_data
 from gpt_eval.config import (
-    EVAL_CONFIG_PATH, 
-    DATASET_CONFIG_PATH, 
-    SYSTEM_CONFIG_PATH,
-    SystemConfig, 
-    EvaluationConfig, 
-    DatasetConfig, 
-    load_validated_config,
-    get_responder_class_map
+    get_responder_class_map,
+    load_and_validate_configs,
+    get_config_definitions
 )
 from gpt_eval.cache import build_cache_key, get_cache, set_cache, calculate_content_hash
-from gpt_eval.utils import save_evaluation_results
+from gpt_eval.utils import save_evaluation_results, get_dataset_config, get_dataset_config
 from dotenv import load_dotenv
 import os
 
 load_dotenv()
-
-
-def check_scenarios_valid_for_dataset(eval_config, datasets_config):
-    for scenario in eval_config.scenarios:
-        for dataset_name in scenario.datasets:
-            dataset_config = next((config for config in datasets_config if config.name == dataset_name), None)
-            if not dataset_config:
-                raise ValueError(f"Dataset '{dataset_name}' is not configured.")
-            if scenario.type not in dataset_config.scenarios:
-                raise ValueError(f"Scenario type '{scenario.type}' is not valid for dataset '{dataset_name}'.")
-
 
 
 def get_evaluation_results(eval_prompts, cache_key, model, system_config):
@@ -49,7 +33,7 @@ def get_evaluation_results(eval_prompts, cache_key, model, system_config):
 
 def get_formatted_data(cache_key, ds_config, eval_config):
     if data := get_cache(cache_key, 'data'):
-            print('Formatted data retrieved from cache')
+        print('Formatted data retrieved from cache')
     else:
         print('Formatted data not present in cache')
 
@@ -90,28 +74,17 @@ def get_evaluation_prompts(cache_key, model, ds_config, eval_config, scenario_ty
     return eval_prompts
 
 
-def get_dataset_config(ds_name, ds_config_list):
-    filtered_ds_configs = filter(lambda ds: ds.name == ds_name, ds_config_list)
-    ds_config = next(filtered_ds_configs, None)
-    # sanity check
-    if not ds_config:
-        raise ValueError('Unable to determine dataset config')
-    
-    return ds_config
-
-
 if __name__ == "__main__":
-    try:
-        system_config = load_validated_config(SYSTEM_CONFIG_PATH, SystemConfig)
-        eval_config = load_validated_config(EVAL_CONFIG_PATH, EvaluationConfig)
-        dataset_configs = load_validated_config(DATASET_CONFIG_PATH, DatasetConfig, is_list=True)
-        check_scenarios_valid_for_dataset(eval_config, dataset_configs)
-    except Exception as e:
-        print('Error while validating config')
-        print(e)
-        exit(1)
+    config_definitions = get_config_definitions()
+    configs = load_and_validate_configs(config_definitions)
+
+    eval_config = configs['eval']
+    dataset_configs = configs['datasets']
+    system_config = configs['system']
 
     for model in eval_config.evaluated_models:
+        # use the model specific values if they exist
+        # else use the general eval values
         model.temperature = model.temperature or eval_config.temperature
         model.max_tokens = model.max_tokens or eval_config.max_tokens
         model.context_char_limit = model.context_char_limit or eval_config.context_char_limit
