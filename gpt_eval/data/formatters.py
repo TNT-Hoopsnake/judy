@@ -81,3 +81,29 @@ def disinfo_reiteration_formatter(dataset, eval_idxs):
             context += f'headline: {headline}\n'
         contexts.append(context)
     return (thesis, contexts)
+
+
+def open_question_formatter(dataset, eval_idxs):
+    questions = [dataset['train']['question'][i] for i in eval_idxs]
+
+    return questions
+
+def mrqa_formatter(dataset, eval_idxs):
+    questions = [dataset['train']['question'][i] for i in eval_idxs]
+    answers = [dataset['train']['question'][i] for i in eval_idxs]
+    contexts = [dataset['train']['context'][i] for i in eval_idxs]
+
+    return (questions, answers, contexts)
+
+
+def riddle_sense_formatter(dataset, eval_idxs):
+    questions = [dataset['train']['question'][i] for i in eval_idxs]
+    answers = []
+    for i in eval_idxs:
+        answer_key = dataset['train']['answerKey'][i]
+        labels = dataset['train']['choices'][i]['label']
+        answer_idx = labels.index(answer_key)
+        answer =  dataset['train']['choices'][i]['text'][answer_idx]
+        answers.append(answer)
+    
+    return questions, answers

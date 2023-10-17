@@ -34,12 +34,12 @@ class DisinfoReiterationResponder(BaseResponder):
     def build_eval_prompts(self, prompt_context_responses):
         eval_prompts = []
         for prompt_context_response in prompt_context_responses:
-            base_prompt = copy.copy(DISINFO_REITERATION_PROMPT)
-        
-            # Replace placeholders in the base prompt with the provided search and context
-            prompt = base_prompt.replace('[CONTEXT]', prompt_context_response['context'])
-            prompt = prompt.replace('[THESIS]', prompt_context_response['thesis'])
-            prompt = prompt.replace('[ANSWER]', prompt_context_response['response'])
+            replacement_map = {
+                '[CONTEXT]':prompt_context_response['context'],
+                '[THESIS]':prompt_context_response['thesis'],
+                '[ANSWER]':prompt_context_response['response']
+            }
+            prompt = self.pb.build_full_prompt(DISINFO_REITERATION_PROMPT, replacement_map)
 
             eval_prompts.append({
                 'eval_prompt':prompt,

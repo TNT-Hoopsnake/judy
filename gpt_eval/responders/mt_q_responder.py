@@ -40,10 +40,12 @@ class MTQuestionResponder(BaseResponder):
     def build_eval_prompts(self, prompt_responses):
         eval_prompts = []
         for prompt_response in prompt_responses:
-            base_prompt = copy.copy(MT_Q_PROMPT)
-        
-            prompt = base_prompt.replace('[CONTENT]', prompt_response['model_response'])
-
+            replacement_map = {
+                '[CONTENT]':prompt_response['model_response']
+            }
+            
+            prompt = self.pb.build_full_prompt(MT_Q_PROMPT, replacement_map)
+ 
             eval_prompts.append({
                 'eval_prompt':prompt,
                 **prompt_response

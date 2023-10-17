@@ -78,3 +78,9 @@ class DatasetConfig(BaseModel):
     version: Optional[str] = Field(default=None)
 
     model_config = ConfigDict(use_enum_values=True)
+
+
+class MetricConfig(BaseModel):
+    name: str
+    desc: str
+    scenarios: conlist(ScenarioTypes, min_length=1)

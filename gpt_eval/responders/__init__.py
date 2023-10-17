@@ -4,3 +4,5 @@ from .mt_q_responder import MTQuestionResponder
 from .mt_qac_responder import MTQuestionAnswerContextResponder
 from .disinfo_reiteration_responder import DisinfoReiterationResponder
 from .disinfo_wedging_responder import DisinfoWedgingResponder
+from .st_q_responder import STQuestionResponder
+from .st_qa_responder import STQuestionAnswerResponder

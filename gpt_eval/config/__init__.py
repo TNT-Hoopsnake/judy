@@ -14,12 +14,12 @@ from .constants import (
     ScenarioTypes,
     SourceTypes,
     get_responder_class_map,
-    get_config_definitions,
-    JUDGE_CRITERIA
+    get_config_definitions
 )
 
 from .config_models import (
     EvaluationConfig,
     DatasetConfig,
-    SystemConfig
+    SystemConfig,
+    MetricConfig
 )

@@ -35,11 +35,11 @@ class SummarizationResponder(BaseResponder):
     def build_eval_prompts(self, prompt_context_responses):
         eval_prompts = []
         for prompt_context_response in prompt_context_responses:
-            base_prompt = copy.copy(SUMMARIZATION_PROMPT)
-        
-            # Replace placeholders in the base prompt with the provided search and context
-            prompt = base_prompt.replace('[DISCUSSION]', prompt_context_response['context'])
-            prompt = prompt.replace('[SUMMARY]', prompt_context_response['response'])
+            replacement_map = {
+                '[DISCUSSION]':prompt_context_response['context'],
+                '[SUMMARY]':prompt_context_response['response'],
+            }
+            prompt = self.pb.build_full_prompt(SUMMARIZATION_PROMPT, replacement_map)
 
             eval_prompts.append({
                 'eval_prompt':prompt,

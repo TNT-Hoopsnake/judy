@@ -39,12 +39,14 @@ class STQuestionAnswerContextResponder(BaseResponder):
     def build_eval_prompts(self, prompt_context_responses):
         eval_prompts = []
         for prompt_context_response in prompt_context_responses:
-            base_prompt = copy.copy(ST_QAC_PROMPT)
-            
-            prompt = base_prompt.replace('[QUESTION]', prompt_context_response['question'])
-            prompt = prompt.replace('[ANSWER]', prompt_context_response['response'])
-            prompt = prompt.replace('[CONTEXT]', prompt_context_response['context'])
+            replacement_map = {
+                '[QUESTION]':prompt_context_response['question'],
+                '[ANSWER]':prompt_context_response['response'],
+                '[CONTEXT]':prompt_context_response['context'],
+            }
 
+            prompt = self.pb.build_full_prompt(ST_QAC_PROMPT, replacement_map)
+            
             eval_prompts.append({
                 'eval_prompt':prompt,
                 **prompt_context_response
