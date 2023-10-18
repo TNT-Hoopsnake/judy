@@ -14,7 +14,8 @@ from .constants import (
     ScenarioTypes, 
     ApiTypes,
     SourceTypes,
-    DatasetSplits
+    DatasetSplits,
+    ModelFamilyTypes
 )
 
 # adding "= Field(default=None)" to fields in the following models
@@ -35,6 +36,7 @@ class EvaluatedModel(BaseModel):
     max_tokens: Optional[PositiveInt] = Field(default=None)
     context_char_limit: Optional[PositiveInt] = Field(default=None)
     temperature: Optional[confloat(ge=0.0, le=2.0)] = Field(default=None)
+    family: ModelFamilyTypes = ModelFamilyTypes.GENERIC
 
     model_config = ConfigDict(use_enum_values=True)
 

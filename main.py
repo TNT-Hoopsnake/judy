@@ -59,11 +59,7 @@ def get_evaluation_prompts(cache_key, model, prompt_builder, ds_config, eval_con
         responder = responder_cls(
             data=data,
             prompt_builder=prompt_builder,
-            api_type=model.api_type,
-            api_base=str(model.api_base), # pydantic httpurl field - must be coerced into string
-            temperature=model.temperature,
-            max_tokens=model.max_tokens,
-            context_char_limit=model.context_char_limit
+            model_config=model,
         )
         eval_prompts = responder.get_evaluation_prompts()
 
