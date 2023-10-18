@@ -13,7 +13,8 @@ from typing import List, Optional
 from .constants import (
     ScenarioTypes, 
     ApiTypes,
-    SourceTypes
+    SourceTypes,
+    DatasetSplits
 )
 
 # adding "= Field(default=None)" to fields in the following models
@@ -76,7 +77,7 @@ class DatasetConfig(BaseModel):
     formatter: str
     source_type: Optional[SourceTypes] = SourceTypes.HUGGINGFACE_HUB 
     version: Optional[str] = Field(default=None)
-
+    split: DatasetSplits = DatasetSplits.TRAIN
     model_config = ConfigDict(use_enum_values=True)
 
 

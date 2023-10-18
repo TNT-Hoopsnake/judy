@@ -3,36 +3,42 @@
   version: null
   scenarios: [mt_q]
   formatter: mtbench_formatter
+  split: train
 
 - name: ms_marco
   source: https://huggingface.co/datasets/ms_marco
   version: v1.1
   scenarios: [st_qac]
   formatter: msmarco_formatter
+  split: test
 
 - name: xsum
   source: https://huggingface.co/datasets/xsum
   version: null
   scenarios: [summ]
   formatter: xsum_formatter
+  split: test
 
 - name: cnn_dailymail
   source: https://huggingface.co/datasets/cnn_dailymail
   version: 3.0.0
   scenarios: [summ]
   formatter: cnn_formatter
+  split: test
 
 - name: squad_v2
   source: https://huggingface.co/datasets/squad_v2
   version: null
   scenarios: [st_qac]
   formatter: squad_formatter
+  split: validation
 
 - name: quac
   source: https://huggingface.co/datasets/quac
   version: null
   scenarios: [mt_qac]
   formatter: quac_formatter
+  split: validation
 
 - name: disinfo_reiteration
   source: https://drive.google.com/uc?export=download&id=1uVJbsgPCHFAvH43I6SVvU3Ayo8dh-y_N
@@ -40,6 +46,7 @@
   scenarios: [disinfo_reiteration]
   formatter: disinfo_reiteration_formatter
   source_type: url
+  split: train
 
 - name: disinfo_wedging
   source: https://drive.google.com/uc?export=download&id=1kWB3_F4Tobc_oVGC_T-a5DHEh-AB4GTc
@@ -47,19 +54,30 @@
   scenarios: [disinfo_wedging]
   formatter: disinfo_wedging_formatter
   source_type: url
+  split: train
 
 - name: launch/open_question_type
   source: https://huggingface.co/datasets/launch/open_question_type
   scenarios: [st_q]
   formatter: open_question_formatter
+  split: test
 
 - name: tau/mrqa
   source: https://huggingface.co/datasets/tau/mrqa
   scenarios: [st_qac]
   formatter: mrqa_formatter
   version: hotpotqa
+  split: test
 
 - name: riddle_sense
   source: https://huggingface.co/datasets/riddle_sense
   scenarios: [st_qa]
   formatter: riddle_sense_formatter
+  split: train
+
+- name: ethics_suite
+  source: https://raw.githubusercontent.com/LLM-Ethics/EthicsSuite/main/data.jsonl
+  scenarios: [st_q]
+  formatter: ethics_suite_formatter
+  source_type: url
+  split: train

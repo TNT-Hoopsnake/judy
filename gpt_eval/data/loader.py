@@ -4,9 +4,6 @@ import numpy as np
 from gpt_eval.config import DatasetConfig, DATASETS_DIR, SourceTypes
 import gpt_eval.data.formatters as formatters
 from gpt_eval.utils import ensure_directory_exists
-import requests
-import pandas as pd
-import json
 
 def load_formatted_data(ds_config: DatasetConfig, num_idxs, random_seed):
     np.random.seed(random_seed)
@@ -17,9 +14,12 @@ def load_formatted_data(ds_config: DatasetConfig, num_idxs, random_seed):
     except AttributeError:
         raise ValueError(f"Unable to map dataset ({ds_config.name}) to formatter function")
 
-    eval_idxs = get_eval_idxs(num_idxs, len(dataset['train']))
+    if not dataset.get(ds_config.split):
+        raise ValueError(f"Invalid split ({ds_config.split}) set for dataset ({ds_config.name})")
 
-    return format_func(dataset, eval_idxs)
+    eval_idxs = get_eval_idxs(num_idxs, len(dataset[ds_config.split]))
+
+    return format_func(dataset, eval_idxs, ds_config.split)
 
 
 def download_hf_dataset(ds_config, ds_path, force=False):

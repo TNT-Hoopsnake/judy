@@ -8,7 +8,7 @@ scenarios:
     datasets: [riddle_sense]
 
   - type: st_q
-    datasets: [launch/open_question_type]
+    datasets: [ethics_suite, launch/open_question_type]
 
   - type: disinfo_wedging
     datasets: [disinfo_wedging]
