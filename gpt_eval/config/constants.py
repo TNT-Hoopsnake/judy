@@ -35,6 +35,11 @@ class SourceTypes(str, Enum):
     HUGGINGFACE_HUB="hub"
     URL="url"
 
+class DatasetSplits(str, Enum):
+    TRAIN="train"
+    TEST="test"
+    VALIDATION="validation"
+
 def get_responder_class_map():
     # avoid circular dependencies
     from gpt_eval.responders import (
