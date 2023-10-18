@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
-from gpt_eval.utils import get_completion_library
-
+from gpt_eval.utils import get_completion_library, Retry
 
 class BaseResponder(ABC):
     def __init__(
             self, 
             data,
+            prompt_builder,
             api_type,
             api_base,
             temperature,
@@ -13,6 +13,7 @@ class BaseResponder(ABC):
             context_char_limit
         ):
         self.data = data
+        self.pb = prompt_builder
         # config file values
         self._api_type = api_type
         self._api_base = api_base
@@ -20,6 +21,7 @@ class BaseResponder(ABC):
         self._max_tokens = max_tokens
         self._context_char_limit = context_char_limit
 
+    @Retry()
     def query_model(self, prompt):
         lib = get_completion_library(self._api_type, self._api_base)
 
@@ -32,6 +34,7 @@ class BaseResponder(ABC):
 
         return output
 
+    @Retry()
     def query_chat_model(self, chat_history):
         lib = get_completion_library(self._api_type, self._api_base)
 

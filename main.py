@@ -6,24 +6,21 @@ from gpt_eval.config import (
     get_config_definitions
 )
 from gpt_eval.cache import build_cache_key, get_cache, set_cache, calculate_content_hash
-from gpt_eval.utils import save_evaluation_results, get_dataset_config, get_dataset_config
+from gpt_eval.utils import save_evaluation_results, get_dataset_config, get_dataset_config, PromptBuilder
 from dotenv import load_dotenv
-import os
 
 load_dotenv()
 
 
-def get_evaluation_results(eval_prompts, cache_key, model, system_config):
+def get_evaluation_results(eval_prompts, cache_key, model, system_config, metrics):
     eval_results_cache_key = f"{calculate_content_hash(eval_prompts)}-{model.name}"
     if eval_results := get_cache(cache_key, eval_results_cache_key):
         print('Evaluation results retrieved from cache')
     else:
         print('Evaluation results not present in cache')
         evaluator = Evaluator(
-            evaluator_api_key=system_config.judge_api_key or os.getenv('OPENAI_KEY'),
-            evaluator_model=system_config.judge,
-            use_proxy=system_config.use_proxy,
-            proxies=system_config.proxies
+            system_config=system_config,
+            metrics=metrics
         )
         eval_results = evaluator.run_evaluation(eval_prompts)
         set_cache(cache_key, eval_results_cache_key, eval_results)
@@ -43,7 +40,7 @@ def get_formatted_data(cache_key, ds_config, eval_config):
     return data
 
 
-def get_evaluation_prompts(cache_key, model, ds_config, eval_config, scenario_type):
+def get_evaluation_prompts(cache_key, model, prompt_builder, ds_config, eval_config, scenario_type):
     eval_prompts_cache_key = f'eval_prompts-{model.name}'
 
     if eval_prompts := get_cache(cache_key, eval_prompts_cache_key):
@@ -61,6 +58,7 @@ def get_evaluation_prompts(cache_key, model, ds_config, eval_config, scenario_ty
         
         responder = responder_cls(
             data=data,
+            prompt_builder=prompt_builder,
             api_type=model.api_type,
             api_base=str(model.api_base), # pydantic httpurl field - must be coerced into string
             temperature=model.temperature,
@@ -74,6 +72,10 @@ def get_evaluation_prompts(cache_key, model, ds_config, eval_config, scenario_ty
     return eval_prompts
 
 
+def get_metrics_for_scenario(scenario, metric_configs):
+    metrics = [config for config in metric_configs if scenario in config.scenarios]
+    return metrics
+
 if __name__ == "__main__":
     config_definitions = get_config_definitions()
     configs = load_and_validate_configs(config_definitions)
@@ -81,6 +83,7 @@ if __name__ == "__main__":
     eval_config = configs['eval']
     dataset_configs = configs['datasets']
     system_config = configs['system']
+    metric_configs = configs['metrics']
 
     for model in eval_config.evaluated_models:
         # use the model specific values if they exist
@@ -90,6 +93,9 @@ if __name__ == "__main__":
         model.context_char_limit = model.context_char_limit or eval_config.context_char_limit
 
         for scenario in eval_config.scenarios:
+            metrics = get_metrics_for_scenario(scenario.type, metric_configs)
+            prompt_builder = PromptBuilder(scenario.type, metrics)
+
             for dataset_name in scenario.datasets:
                 ds_config = get_dataset_config(dataset_name, dataset_configs)
 
@@ -98,6 +104,7 @@ if __name__ == "__main__":
                 eval_prompts = get_evaluation_prompts(
                     cache_key,
                     model,
+                    prompt_builder,
                     ds_config,
                     eval_config,
                     scenario.type
@@ -107,7 +114,14 @@ if __name__ == "__main__":
                     eval_prompts,
                     cache_key,
                     model,
-                    system_config
+                    system_config,
+                    metrics
                 )
 
-                save_evaluation_results(model.name, dataset_name, evaluation_results)
+                all_results = []
+                for prompt, result in zip(eval_prompts, evaluation_results):
+                    all_results.append({
+                        **prompt,
+                        **result
+                    })
+                save_evaluation_results(model.name, dataset_name, all_results)

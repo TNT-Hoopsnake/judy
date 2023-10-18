@@ -4,7 +4,7 @@ import re
 import openai
 import os
 from gpt_eval.utils.prompts import SYSTEM_PROMPT
-from gpt_eval.config import RESULTS_DIR, JUDGE_CRITERIA
+from gpt_eval.utils import Retry
 
 def get_est_token_cost(eval_model, num_tokens):
     if eval_model == 'gpt-4':
@@ -14,27 +14,32 @@ def get_est_token_cost(eval_model, num_tokens):
 
     return round(num_tokens * cost_factor, 5)
 
+DEFAULT_OPENAI_API_BASE = "https://api.openai.com/v1"
 
-
-class Evaluator():
+class Evaluator:
     def __init__(
             self,
-            evaluator_api_key,
-            evaluator_model='gpt-3.5-turbo',
-            use_proxy=False,
-            proxies={},
+            system_config,
+            metrics
         ):
 
-        openai.api_key = evaluator_api_key
-        if use_proxy:
-            openai.proxy = proxies
-      
-        self.evaluator = evaluator_model
+        openai.api_key = system_config.judge_api_key or os.getenv('OPENAI_KEY')
+        # ensure the openai api_base points to the correct address
+        # this can be updated by responders so it is necessary to set it here
+        openai.api_base = DEFAULT_OPENAI_API_BASE
+        if system_config.use_proxy:
+            openai.proxy = {
+                'http': str(system_config.proxies.http),
+                'https': str(system_config.proxies.https)
+            }
 
+        self.metrics = metrics
+        self.evaluator = system_config.judge
+        self.evaluator_temperature = system_config.judge_temperature
         self.eval_input_tokens = []
         self.eval_output_tokens = []
 
-
+    @Retry()
     def get_evaluation_response(self, prompt):
         """
         Get an evaluation from a chatbot model using a given text prompt.
@@ -46,7 +51,8 @@ class Evaluator():
             str: The generated evaluation response.
 
         """
-        
+        # TODO - add error handling to this request
+
         # Create a chat completion using the specified model and prompt
         completion = openai.ChatCompletion.create(
             model=self.evaluator,
@@ -60,7 +66,7 @@ class Evaluator():
                     "content": prompt
                 }
             ],
-            temperature=0
+            temperature=self.evaluator_temperature
         )
         # logger.log(logging.INFO, f"openai request - completion tokens: {completion.usage.completion_tokens} - prompt_tokens: {completion.usage.prompt_tokens} - total: {completion.usage.total_tokens}")
         self.eval_input_tokens.append(completion.usage.prompt_tokens)
@@ -79,17 +85,29 @@ class Evaluator():
             tuple: A tuple containing scores based on the defined criteria.
         """
         # Initialize variables to store scores
-        scores = [0] * len(JUDGE_CRITERIA)
+        scores = [0] * len(self.metrics)
 
         # Iterate through criteria and extract their scores
-        for metric_name, index in JUDGE_CRITERIA.items():
+        for i, metric in enumerate(self.metrics):
             # Search for the metric name and its associated score
-            m = re.search(f"{metric_name}: ([\d]+)", result)
+            m = re.search(f"{metric.name}: ([\d]+)", result, re.IGNORECASE)
 
             # If the metric is found, update the corresponding variable with its score
             if m is not None:
                 score = m.group(1)
-                scores[index] = score
+                try:
+                    score = int(score)
+                    # scoring method can be changed arbitrarily
+                    # eg: user might want to assign 1 as the highest score
+                    # we still need to ensure the evaluated score is within range
+                    min_score = min(metric.min, metric.max)
+                    max_score = max(metric.min, metric.max)
+                    if not min_score <= score <= max_score:
+                        raise ValueError('Evaluated score was out of range')
+                except Exception as e:
+                    print(f"WARNING - Evaluator provided an invalid score for '{metric.name}' ({score})")
+                    print(e)
+                scores[i] = score
 
         return tuple(scores)
 
@@ -103,10 +121,10 @@ class Evaluator():
         }
 
         # Parse the evaluation metrics from the result using the criteria dictionary
-        metrics = self.parse_result(eval_result)
+        metric_scores = self.parse_result(eval_result)
         # Dynamically populate the model_result_dict with scores for each criterion
-        for criterion, index in JUDGE_CRITERIA.items():
-            model_result_dict[criterion] = metrics[index]
+        for i, metric in enumerate(self.metrics):
+            model_result_dict[metric.name] = metric_scores[i]
 
         return model_result_dict
     

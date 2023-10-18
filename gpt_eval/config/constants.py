@@ -1,14 +1,20 @@
 import os
 from enum import Enum
 
+REQUEST_RETRY_MAX_ATTEMPTS = 3
+REQUEST_RETRY_WAIT_TIME = 10
+REQUEST_RETRY_BACKOFF = 2
+
 RESULTS_DIR = os.path.abspath('./results')
 DATASETS_DIR = os.path.abspath('./gpt_eval/data/datasets')
 
+def get_file_in_cwd(filename):
+    return os.path.join(os.path.dirname(__file__), filename)
 
-DATASET_CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'dataset_config.json')
-SYSTEM_CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'system_config.json')
-EVAL_CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'eval_config.json')
-
+DATASET_CONFIG_PATH = get_file_in_cwd('dataset_config.yaml')
+SYSTEM_CONFIG_PATH = get_file_in_cwd('system_config.yaml')
+EVAL_CONFIG_PATH = get_file_in_cwd('eval_config.yaml')
+METRIC_CONFIG_PATH = get_file_in_cwd('metric_config.yaml')
 
 class ApiTypes(str, Enum):
     OPENAI="openai"
@@ -18,8 +24,16 @@ class ApiTypes(str, Enum):
 class ScenarioTypes(str, Enum):
     SUMMARIZATION="summ"
     MT_QUESTION="mt_q"
+    ST_QUESTION="st_q"
+    ST_QUESTION_ANSWER="st_qa"
     ST_QUESTION_ANSWER_CONTEXT="st_qac"
     MT_QUESTION_ANSWER_CONTEXT="mt_qac"
+    DISINFO_WEDGING="disinfo_wedging"
+    DISINFO_REITERATION="disinfo_reiteration"
+
+class SourceTypes(str, Enum):
+    HUGGINGFACE_HUB="hub"
+    URL="url"
 
 def get_responder_class_map():
     # avoid circular dependencies
@@ -27,14 +41,22 @@ def get_responder_class_map():
         MTQuestionResponder, 
         SummarizationResponder,
         STQuestionAnswerContextResponder,
-        MTQuestionAnswerContextResponder
+        MTQuestionAnswerContextResponder,
+        DisinfoReiterationResponder,
+        DisinfoWedgingResponder,
+        STQuestionResponder,
+        STQuestionAnswerResponder
     )
 
     return {
         ScenarioTypes.MT_QUESTION:MTQuestionResponder,
         ScenarioTypes.MT_QUESTION_ANSWER_CONTEXT:MTQuestionAnswerContextResponder,
         ScenarioTypes.ST_QUESTION_ANSWER_CONTEXT:STQuestionAnswerContextResponder,
-        ScenarioTypes.SUMMARIZATION:SummarizationResponder
+        ScenarioTypes.SUMMARIZATION:SummarizationResponder,
+        ScenarioTypes.DISINFO_REITERATION:DisinfoReiterationResponder,
+        ScenarioTypes.DISINFO_WEDGING:DisinfoWedgingResponder,
+        ScenarioTypes.ST_QUESTION:STQuestionResponder,
+        ScenarioTypes.ST_QUESTION_ANSWER:STQuestionAnswerResponder
     }
 
 
@@ -43,7 +65,8 @@ def get_config_definitions():
     from gpt_eval.config.config_models import (
         SystemConfig,
         EvaluationConfig,
-        DatasetConfig
+        DatasetConfig,
+        MetricConfig
     )
     return [
         {
@@ -63,16 +86,11 @@ def get_config_definitions():
             'path':DATASET_CONFIG_PATH,
             'is_list':True,
             'key':'datasets'
+        },
+        {
+            'cls':MetricConfig,
+            'path':METRIC_CONFIG_PATH,
+            'is_list':True,
+            'key':'metrics'
         }
     ]
-
-JUDGE_CRITERIA = {
-    "Accuracy": 0,
-    "Coherence": 1,
-    "Factuality": 2,
-    "Completeness": 3,
-    "Relevance": 4,
-    "Depth": 5,
-    "Creativity": 6,
-    "Level of Detail": 7,
-}

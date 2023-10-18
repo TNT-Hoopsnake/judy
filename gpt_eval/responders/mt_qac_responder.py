@@ -62,12 +62,12 @@ class MTQuestionAnswerContextResponder(BaseResponder):
     def build_eval_prompts(self, prompt_context_responses):
         eval_prompts = []
         for prompt_context_response in prompt_context_responses:
-
-            base_prompt = copy.copy(MT_QAC_PROMPT)
-
-            prompt = base_prompt.replace('[ANSWER]', prompt_context_response['expected_answers'])
-            prompt = prompt.replace('[CONTEXT]', prompt_context_response['context'])
-            prompt = prompt.replace('[CONTENT]', prompt_context_response['model_responses'])
+            replacement_map = {
+                '[ANSWER]':prompt_context_response['expected_answers'],
+                '[CONTEXT]':prompt_context_response['context'],
+                '[CONTENT]':prompt_context_response['model_responses']
+            }
+            prompt = self.pb.build_full_prompt(MT_QAC_PROMPT, replacement_map)
 
             eval_prompts.append({
                 'eval_prompt':prompt,

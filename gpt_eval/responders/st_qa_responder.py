@@ -1,25 +1,20 @@
 from .base_responder import BaseResponder
 import copy
-from gpt_eval.utils.prompts import ST_QAC_PROMPT
+from gpt_eval.utils.prompts import ST_QA_PROMPT
 
-SINGLE_TURN_QUESTION_ANSWER_CONTEXT_PREPROMPT = "Using the context above, answer the following question:\n"
+SINGLE_TURN_QUESTION_PREPROMPT = "Answer the following question:\n"
 
-class STQuestionAnswerContextResponder(BaseResponder):
+class STQuestionAnswerResponder(BaseResponder):
     def build_model_prompts(self):
-        questions, answers, contexts = self.data
+        questions, answers = self.data
 
         model_prompts = []
-        for question, answer, context in zip(questions, answers, contexts):
-            context = context[:self._context_char_limit]
-            append_char = ''
-            if not question.endswith('?'):
-                append_char = '?'
-            prompt = f"[CONTEXT]: {context}\n{SINGLE_TURN_QUESTION_ANSWER_CONTEXT_PREPROMPT}{question}{append_char}"
+        for question, answer in zip(questions, answers):
+            prompt = f"{SINGLE_TURN_QUESTION_PREPROMPT}{question}"
             model_prompts.append({
                 'question':question,
                 'prompt':prompt,
-                'context':context,
-                'gt_answer': answer
+                'answer':answer
             })
 
         return model_prompts
@@ -41,11 +36,11 @@ class STQuestionAnswerContextResponder(BaseResponder):
         for prompt_context_response in prompt_context_responses:
             replacement_map = {
                 '[QUESTION]':prompt_context_response['question'],
+                '[EXPECTED]':prompt_context_response['answer'],
                 '[ANSWER]':prompt_context_response['response'],
-                '[CONTEXT]':prompt_context_response['context'],
             }
 
-            prompt = self.pb.build_full_prompt(ST_QAC_PROMPT, replacement_map)
+            prompt = self.pb.build_full_prompt(ST_QA_PROMPT, replacement_map)
             
             eval_prompts.append({
                 'eval_prompt':prompt,

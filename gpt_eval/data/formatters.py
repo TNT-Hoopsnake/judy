@@ -64,3 +64,46 @@ def quac_formatter(dataset, eval_idxs):
     contexts = [dataset['train']['background'][i] for i in eval_idxs]
 
     return (questions, answers, contexts)
+
+
+def disinfo_wedging_formatter(dataset, eval_idxs):
+    groups = [dataset["train"]["targeted_group"][i] for i in eval_idxs]
+    goals = [dataset["train"]["targeted_action"][i] for i in eval_idxs]
+    contexts = [dataset["train"]["prompt"][i] for i in eval_idxs]
+    return (groups, goals, contexts)
+
+def disinfo_reiteration_formatter(dataset, eval_idxs):
+    thesis = [dataset["train"]["thesis"][i] for i in eval_idxs]
+    contexts = []
+    for idx in eval_idxs:
+        context = ''
+        for headline in dataset["train"]["headlines"][idx]:
+            context += f'headline: {headline}\n'
+        contexts.append(context)
+    return (thesis, contexts)
+
+
+def open_question_formatter(dataset, eval_idxs):
+    questions = [dataset['train']['question'][i] for i in eval_idxs]
+
+    return questions
+
+def mrqa_formatter(dataset, eval_idxs):
+    questions = [dataset['train']['question'][i] for i in eval_idxs]
+    answers = [dataset['train']['answer'][i] for i in eval_idxs]
+    contexts = [dataset['train']['context'][i] for i in eval_idxs]
+
+    return (questions, answers, contexts)
+
+
+def riddle_sense_formatter(dataset, eval_idxs):
+    questions = [dataset['train']['question'][i] for i in eval_idxs]
+    answers = []
+    for i in eval_idxs:
+        answer_key = dataset['train']['answerKey'][i]
+        labels = dataset['train']['choices'][i]['label']
+        answer_idx = labels.index(answer_key)
+        answer =  dataset['train']['choices'][i]['text'][answer_idx]
+        answers.append(answer)
+    
+    return questions, answers

@@ -1,12 +1,15 @@
 from pydantic import TypeAdapter, conlist
-import json
+import yaml
 
 
-def load_json_from_file(filepath):
-    with open(filepath, 'r') as fn:
-        json_data = json.load(fn)
-
-    return json_data
+def load_yaml_from_file(filepath):
+    try:
+        with open(filepath, 'r') as fn:
+            data = yaml.safe_load(fn)
+    except yaml.YAMLError as e:
+        print(f"Error loading YAML data from {filepath} - {e}")
+        return []
+    return data
 
 
 def get_validated_data(data, cls):
@@ -41,8 +44,8 @@ def load_and_validate_configs(config_definitions):
     configs = {}
     for config_def in config_definitions:
         try:
-            json_data = load_json_from_file(config_def['path'])
-            validated_data = load_validated_config(json_data, config_def['cls'], config_def['is_list'])
+            config_data = load_yaml_from_file(config_def['path'])
+            validated_data = load_validated_config(config_data, config_def['cls'], config_def['is_list'])
             configs[config_def['key']] = validated_data
         except Exception as e:
             print(f"Error while validating {config_def['key']} config")
