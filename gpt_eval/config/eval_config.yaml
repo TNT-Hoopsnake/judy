@@ -1,5 +1,5 @@
-random_seed: 555
-num_evals: 3
+random_seed: 1
+num_evals: 1
 max_tokens: 1000
 context_char_limit: 1000
 temperature: 1.1
@@ -7,28 +7,29 @@ scenarios:
   - type: st_qa
     datasets: [riddle_sense]
 
-  # - type: st_q
-  #   datasets: [launch/open_question_type]
-  # - type: disinfo_wedging
-  #   datasets: [disinfo_wedging]
+  - type: st_q
+    datasets: [launch/open_question_type]
 
-  # - type: disinfo_reiteration
-  #   datasets: [disinfo_reiteration]
+  - type: disinfo_wedging
+    datasets: [disinfo_wedging]
 
-  # - type: summ
-  #   datasets: [xsum, cnn_dailymail]
+  - type: disinfo_reiteration
+    datasets: [disinfo_reiteration]
 
-  # - type: st_qac
-  #   datasets: [squad_v2, ms_marco]
+  - type: summ
+    datasets: [xsum, cnn_dailymail]
 
-  # - type: mt_qac
-  #   datasets: [quac]
+  - type: st_qac
+    datasets: [squad_v2, ms_marco, tau/mrqa]
 
-  # - type: mt_q
-  #   datasets: [dim/mt_bench_en]
+  - type: mt_qac
+    datasets: [quac]
+
+  - type: mt_q
+    datasets: [dim/mt_bench_en]
 
 evaluated_models:
   - name: flan-t5-small
     api_type: tgi
     api_base: http://localhost:8080
-    temperature: 0.5
+    temperature: 0.8

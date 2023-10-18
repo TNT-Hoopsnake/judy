@@ -1,10 +1,9 @@
-from .prompts import SYSTEM_PROMPT, BASE_PROMPT
+from .prompts import BASE_PROMPT
 
 class PromptBuilder:
     def __init__(self, scenario_type, metric_configs):
         self.scenario_type = scenario_type
         self.metric_configs = metric_configs
-        self.system_prompt = SYSTEM_PROMPT
 
 
     @property
@@ -12,7 +11,7 @@ class PromptBuilder:
         metric_descriptions = []
         metric_formats = []
         for metric in self.metric_configs:
-            metric_descriptions.append(f"\t{metric.name}: {metric.desc}\n")
+            metric_descriptions.append(f"\t{metric.name} (Min Score: {metric.min}, Max Score: {metric.max}): {metric.desc}\n")
             metric_formats.append(f"\t{metric.name}: X\n")
 
         metric_description = '\n'.join(metric_descriptions)

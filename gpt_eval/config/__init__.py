@@ -14,7 +14,10 @@ from .constants import (
     ScenarioTypes,
     SourceTypes,
     get_responder_class_map,
-    get_config_definitions
+    get_config_definitions,
+    REQUEST_RETRY_MAX_ATTEMPTS,
+    REQUEST_RETRY_BACKOFF,
+    REQUEST_RETRY_WAIT_TIME
 )
 
 from .config_models import (

@@ -90,7 +90,7 @@ def open_question_formatter(dataset, eval_idxs):
 
 def mrqa_formatter(dataset, eval_idxs):
     questions = [dataset['train']['question'][i] for i in eval_idxs]
-    answers = [dataset['train']['question'][i] for i in eval_idxs]
+    answers = [dataset['train']['answer'][i] for i in eval_idxs]
     contexts = [dataset['train']['context'][i] for i in eval_idxs]
 
     return (questions, answers, contexts)

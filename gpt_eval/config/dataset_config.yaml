@@ -53,10 +53,11 @@
   scenarios: [st_q]
   formatter: open_question_formatter
 
-- name: mrqa
-  source: https://huggingface.co/datasets/mrqa
+- name: tau/mrqa
+  source: https://huggingface.co/datasets/tau/mrqa
   scenarios: [st_qac]
   formatter: mrqa_formatter
+  version: hotpotqa
 
 - name: riddle_sense
   source: https://huggingface.co/datasets/riddle_sense

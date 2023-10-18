@@ -38,23 +38,20 @@ def download_hf_dataset(ds_config, ds_path, force=False):
     return dataset
 
 
-
 def download_url_dataset(ds_config, ds_path, force=False):
-    file_path = os.path.join(ds_path, f"{ds_config.name}.jsonl")
-
-    if force or not os.path.exists(file_path):
+    if force or not os.path.exists(ds_path):
         try:
-            ensure_directory_exists(ds_path)
-            resp = requests.get(ds_config.source)
-            resp.raise_for_status()
-            with open(file_path, 'wb') as file:
-                file.write(resp.content)
-
+            dataset = load_dataset(
+                "json", 
+                data_files={"train":str(ds_config.source)}
+            )
+            dataset.save_to_disk(ds_path)
         except Exception as e:
+            print(f'Error while downloading dataset from URL ({ds_config.name})')
             print(e)
-            print('oh no')
-
-    dataset = load_dataset("json", data_files=file_path)
+    else:
+        print(f"Dataset ({ds_config.name}) already exists. Set force=True to redownload")
+        dataset = load_from_disk(ds_path)
 
     return dataset
 

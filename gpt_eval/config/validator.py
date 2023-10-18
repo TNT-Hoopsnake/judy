@@ -3,9 +3,12 @@ import yaml
 
 
 def load_yaml_from_file(filepath):
-    with open(filepath, 'r') as fn:
-        data = yaml.safe_load(fn)
-
+    try:
+        with open(filepath, 'r') as fn:
+            data = yaml.safe_load(fn)
+    except yaml.YAMLError as e:
+        print(f"Error loading YAML data from {filepath} - {e}")
+        return []
     return data
 
 

@@ -4,6 +4,7 @@ import re
 import openai
 import os
 from gpt_eval.utils.prompts import SYSTEM_PROMPT
+from gpt_eval.utils import Retry
 
 def get_est_token_cost(eval_model, num_tokens):
     if eval_model == 'gpt-4':
@@ -13,7 +14,7 @@ def get_est_token_cost(eval_model, num_tokens):
 
     return round(num_tokens * cost_factor, 5)
 
-
+DEFAULT_OPENAI_API_BASE = "https://api.openai.com/v1"
 
 class Evaluator:
     def __init__(
@@ -23,8 +24,14 @@ class Evaluator:
         ):
 
         openai.api_key = system_config.judge_api_key or os.getenv('OPENAI_KEY')
+        # ensure the openai api_base points to the correct address
+        # this can be updated by responders so it is necessary to set it here
+        openai.api_base = DEFAULT_OPENAI_API_BASE
         if system_config.use_proxy:
-            openai.proxy = system_config.proxies
+            openai.proxy = {
+                'http': str(system_config.proxies.http),
+                'https': str(system_config.proxies.https)
+            }
 
         self.metrics = metrics
         self.evaluator = system_config.judge
@@ -32,7 +39,7 @@ class Evaluator:
         self.eval_input_tokens = []
         self.eval_output_tokens = []
 
-
+    @Retry()
     def get_evaluation_response(self, prompt):
         """
         Get an evaluation from a chatbot model using a given text prompt.
@@ -83,11 +90,23 @@ class Evaluator:
         # Iterate through criteria and extract their scores
         for i, metric in enumerate(self.metrics):
             # Search for the metric name and its associated score
-            m = re.search(f"{metric.name}: ([\d]+)", result)
+            m = re.search(f"{metric.name}: ([\d]+)", result, re.IGNORECASE)
 
             # If the metric is found, update the corresponding variable with its score
             if m is not None:
                 score = m.group(1)
+                try:
+                    score = int(score)
+                    # scoring method can be changed arbitrarily
+                    # eg: user might want to assign 1 as the highest score
+                    # we still need to ensure the evaluated score is within range
+                    min_score = min(metric.min, metric.max)
+                    max_score = max(metric.min, metric.max)
+                    if not min_score <= score <= max_score:
+                        raise ValueError('Evaluated score was out of range')
+                except Exception as e:
+                    print(f"WARNING - Evaluator provided an invalid score for '{metric.name}' ({score})")
+                    print(e)
                 scores[i] = score
 
         return tuple(scores)

@@ -84,3 +84,5 @@ class MetricConfig(BaseModel):
     name: str
     desc: str
     scenarios: conlist(ScenarioTypes, min_length=1)
+    min: int = 0
+    max: int = 10

@@ -8,6 +8,8 @@ import json
 def get_completion_library(api_type, api_base):
     if api_type == ApiTypes.OPENAI:
         lib = openai
+        # openai lib requires api_key to be set, even if we're not accessing the actual OAI api
+        openai.api_key=""
     elif api_type == ApiTypes.TGI:
         lib= huggingface
     else:

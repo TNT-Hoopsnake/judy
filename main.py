@@ -118,4 +118,10 @@ if __name__ == "__main__":
                     metrics
                 )
 
-                save_evaluation_results(model.name, dataset_name, evaluation_results)
+                all_results = []
+                for prompt, result in zip(eval_prompts, evaluation_results):
+                    all_results.append({
+                        **prompt,
+                        **result
+                    })
+                save_evaluation_results(model.name, dataset_name, all_results)
