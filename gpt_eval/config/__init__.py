@@ -13,6 +13,7 @@ from .constants import (
     ApiTypes,
     ScenarioTypes,
     SourceTypes,
+    ModelFamilyTypes,
     get_responder_class_map,
     get_config_definitions,
     REQUEST_RETRY_MAX_ATTEMPTS,
@@ -24,5 +25,6 @@ from .config_models import (
     EvaluationConfig,
     DatasetConfig,
     SystemConfig,
-    MetricConfig
+    MetricConfig,
+    EvaluatedModel
 )

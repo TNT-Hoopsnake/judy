@@ -33,3 +33,4 @@ evaluated_models:
     api_type: tgi
     api_base: http://localhost:8080
     temperature: 0.8
+    family: generic

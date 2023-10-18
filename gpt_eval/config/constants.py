@@ -40,6 +40,16 @@ class DatasetSplits(str, Enum):
     TEST="test"
     VALIDATION="validation"
 
+class ModelFamilyTypes(str, Enum):
+    LLAMA2="llama2"
+    FALCON="chatml_falcon"
+    STARCHAT="chatml_starchat"
+    OPEN_ASSISTANT="open_assistant"
+    STABLE_BELUGA="stablebeluga"
+    VICUNA="vicuna"
+    WIZARD="wizardlm"
+    GENERIC="generic"
+
 def get_responder_class_map():
     # avoid circular dependencies
     from gpt_eval.responders import (
