@@ -14,8 +14,11 @@ openai = "^0.28.1"
 python-dotenv = "^1.0.0"
 sqlitedict = "^2.1.0"
 pytest = "^7.4.2"
-
+click = "^8.1.7"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+gpt-eval = "gpt_eval.cli.run:run_eval"

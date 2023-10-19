@@ -9,7 +9,6 @@ from .constants import (
     DATASET_CONFIG_PATH,
     EVAL_CONFIG_PATH,
     DATASETS_DIR,
-    RESULTS_DIR,
     ApiTypes,
     ScenarioTypes,
     SourceTypes,

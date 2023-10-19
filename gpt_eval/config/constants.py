@@ -1,20 +1,20 @@
 import os
+import pathlib
 from enum import Enum
 
 REQUEST_RETRY_MAX_ATTEMPTS = 3
 REQUEST_RETRY_WAIT_TIME = 10
 REQUEST_RETRY_BACKOFF = 2
 
-RESULTS_DIR = os.path.abspath('./results')
-DATASETS_DIR = os.path.abspath('./gpt_eval/data/datasets')
+USER_DIR = pathlib.Path.home() / ".gpt-eval"
+USER_CONFIG_DIR = USER_DIR / "config"
+USER_CACHE_DIR = USER_DIR / "cache"
+DATASETS_DIR = USER_DIR / "datasets"
 
-def get_file_in_cwd(filename):
-    return os.path.join(os.path.dirname(__file__), filename)
-
-DATASET_CONFIG_PATH = get_file_in_cwd('dataset_config.yaml')
-SYSTEM_CONFIG_PATH = get_file_in_cwd('system_config.yaml')
-EVAL_CONFIG_PATH = get_file_in_cwd('eval_config.yaml')
-METRIC_CONFIG_PATH = get_file_in_cwd('metric_config.yaml')
+DATASET_CONFIG_PATH = USER_CONFIG_DIR / 'dataset_config.yaml'
+SYSTEM_CONFIG_PATH = USER_CONFIG_DIR / 'system_config.yaml'
+EVAL_CONFIG_PATH = USER_CONFIG_DIR / 'eval_config.yaml'
+METRIC_CONFIG_PATH = USER_CONFIG_DIR / 'metric_config.yaml'
 
 class ApiTypes(str, Enum):
     OPENAI="openai"
