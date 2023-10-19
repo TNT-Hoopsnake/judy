@@ -111,7 +111,7 @@ def run_eval(scenario, model, dataset, name, output):
 
     output_dir = pathlib.Path(output)
     if not output_dir.is_dir():
-        raise FileExistsError(f"Output directory does not exist: {output}")
+        raise FileNotFoundError(f"Output directory does not exist: {output}")
     results_dir = output_dir / name
 
     models, scenarios, datasets = set(), set(), set()
