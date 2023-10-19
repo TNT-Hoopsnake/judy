@@ -1,4 +1,5 @@
 import click
+import pathlib
 from dotenv import load_dotenv
 from gpt_eval.evaluation import Evaluator
 from gpt_eval.data.loader import load_formatted_data
@@ -91,7 +92,9 @@ class EvalCommandLine:
 @click.option("--dataset", default=None, help="Only run datasets matching this tag")
 @click.option("--scenario", default=None, help="Only run scenarios matching this tag")
 @click.option("--model", default=None, help="Only run models matching this tag")
-def run_eval(scenario, model, dataset):
+@click.option("--name", default="default", help="A unique identifier to group the evaluation results. Overrides existing results with the same name.")
+@click.option("--output", help="The path to a directory to save evaluation results.", type=click.Path(), required=True)
+def run_eval(scenario, model, dataset, name, output):
     """Run evaluations for models using a judge model."""
     cli = EvalCommandLine()
     config_definitions = get_config_definitions()
@@ -105,6 +108,13 @@ def run_eval(scenario, model, dataset):
     dataset_configs = configs['datasets']
     system_config = configs['system']
     metric_configs = configs['metrics']
+
+    output_dir = pathlib.Path(output)
+    if not output_dir.is_dir():
+        raise FileExistsError(f"Output directory does not exist: {output}")
+    results_dir = output_dir / name
+
+    models, scenarios, datasets = set(), set(), set()
 
     for model in eval_config.evaluated_models:
         if not EvalCommandLine.matches_tag(model, model_tag):
@@ -153,4 +163,8 @@ def run_eval(scenario, model, dataset):
                         **prompt,
                         **result
                     })
-                save_evaluation_results(model.name, dataset_name, all_results)
+                save_evaluation_results(model.name, dataset_name, all_results, results_dir)
+                models.add(model.name)
+                scenarios.add(scenario.type)
+                datasets.add(dataset_name)
+    click.echo(f"Successfully evaluated {len(models)} models on {len(scenarios)} scenarios using {len(datasets)} datasets")

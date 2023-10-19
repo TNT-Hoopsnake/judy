@@ -2,7 +2,6 @@ from gpt_eval.config import ApiTypes
 from easyllm.clients import huggingface
 import openai
 import os
-from gpt_eval.config import RESULTS_DIR
 import json
 
 def get_completion_library(api_type, api_base):
@@ -24,10 +23,10 @@ def ensure_directory_exists(dir_path):
 
     return dir_path
 
-def save_evaluation_results(model_name, dataset_name, data):
-    ensure_directory_exists(RESULTS_DIR)
+def save_evaluation_results(model_name, dataset_name, data, results_dir):
+    ensure_directory_exists(results_dir)
     
-    model_results_dir = ensure_directory_exists(os.path.join(RESULTS_DIR, model_name))
+    model_results_dir = ensure_directory_exists(os.path.join(results_dir, model_name))
     clean_ds_name = dataset_name.split('/')[-1]
 
     with open(os.path.join(model_results_dir, f'{clean_ds_name}-results.json'), 'w+') as fn:

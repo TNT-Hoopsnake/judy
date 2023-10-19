@@ -6,8 +6,6 @@ REQUEST_RETRY_MAX_ATTEMPTS = 3
 REQUEST_RETRY_WAIT_TIME = 10
 REQUEST_RETRY_BACKOFF = 2
 
-RESULTS_DIR = os.path.abspath('./results')
-
 USER_DIR = pathlib.Path.home() / ".gpt-eval"
 USER_CONFIG_DIR = USER_DIR / "config"
 USER_CACHE_DIR = USER_DIR / "cache"
