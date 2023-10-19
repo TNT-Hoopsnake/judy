@@ -81,7 +81,7 @@ def get_config_definitions():
         SystemConfig,
         EvaluationConfig,
         DatasetConfig,
-        MetricConfig
+        MetricGroupConfig
     )
     return [
         {
@@ -103,7 +103,7 @@ def get_config_definitions():
             'key':'datasets'
         },
         {
-            'cls':MetricConfig,
+            'cls':MetricGroupConfig,
             'path':METRIC_CONFIG_PATH,
             'is_list':True,
             'key':'metrics'

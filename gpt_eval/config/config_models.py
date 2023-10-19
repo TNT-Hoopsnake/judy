@@ -89,6 +89,14 @@ class DatasetConfig(BaseModel):
 class MetricConfig(BaseModel):
     name: str
     desc: str
+    scenarios: List[ScenarioTypes] = Field(default=None)
+    min: int = Field(default=None)
+    max: int = Field(default=None)
+
+class MetricGroupConfig(BaseModel):
+    name: str
     scenarios: conlist(ScenarioTypes, min_length=1)
     min: int = 0
     max: int = 10
+    metrics: conlist(MetricConfig, min_length=1)
+

@@ -24,6 +24,6 @@ from .config_models import (
     EvaluationConfig,
     DatasetConfig,
     SystemConfig,
-    MetricConfig,
+    MetricGroupConfig,
     EvaluatedModel
 )
