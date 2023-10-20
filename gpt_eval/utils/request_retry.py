@@ -17,13 +17,16 @@ class Retry:
             wait_time, backoff, attempts = self.wait_time, self.backoff, 0
             while attempts < self.max_attempts:
                 print(f"Running {self.func.__name__}, attempt {attempts+1}")
-                function_result = self.func(*args, **kwargs)
-                if function_result:
-                    return function_result
-                print(f"Waiting {wait_time} seconds before the next attempt")
-                time.sleep(wait_time)
-                wait_time *= backoff
-                attempts += 1
+                try:
+                    function_result = self.func(*args, **kwargs)
+                    if function_result:
+                        return function_result
+                except Exception as e:
+                    print(f"WARNING - REQUEST FAILED FOR {self.func.__name__} - {e}")
+                    print(f"Waiting {wait_time} seconds before the next attempt")
+                    time.sleep(wait_time)
+                    wait_time *= backoff
+                    attempts += 1
 
         if callable(args[0]):
             self.func = args[0]

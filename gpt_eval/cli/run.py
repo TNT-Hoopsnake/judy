@@ -76,7 +76,16 @@ class EvalCommandLine:
 
     @staticmethod
     def get_metrics_for_scenario(scenario, metric_configs):
-        metrics = [config for config in metric_configs if scenario in config.scenarios]
+        metrics = []
+        for metric_group in metric_configs:
+            for metric_config in metric_group.metrics:
+                # override group values with metric specific values
+                metric_config.scenarios = metric_config.scenarios or metric_group.scenarios
+                metric_config.min = metric_config.min or metric_group.min
+                metric_config.max = metric_config.max or metric_group.max
+                if scenario in metric_config.scenarios:
+                    metrics.append(metric_config)
+
         return metrics
 
     @staticmethod
