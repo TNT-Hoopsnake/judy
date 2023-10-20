@@ -109,13 +109,13 @@ class EvalCommandLine:
 def run_eval(scenario, model, dataset, name, output, dataset_config, eval_config, metric_config):
     """Run evaluations for models using a judge model."""
     cli = EvalCommandLine()
-    if eval_config and not eval_config.is_file():
+    if eval_config and not pathlib.Path(eval_config).is_file():
         raise FileNotFoundError(f"Eval config file does not exist: {eval_config}")
 
-    if dataset_config and not dataset_config.is_file():
+    if dataset_config and not pathlib.Path(dataset_config).is_file():
         raise FileNotFoundError(f"Eval config file does not exist: {dataset_config}")
 
-    if metric_config and not metric_config.is_file():
+    if metric_config and not pathlib.Path(metric_config).is_file():
         raise FileNotFoundError(f"Eval config file does not exist: {metric_config}")
 
     config_definitions = get_config_definitions(eval_config, dataset_config, metric_config)
