@@ -42,8 +42,16 @@ class EvaluatedModel(BaseModel):
 
     model_config = ConfigDict(use_enum_values=True)
 
+class Proxies(BaseModel):
+    http: HttpUrl
+    https: HttpUrl
 
 class EvaluationConfig(BaseModel):
+    judge: str
+    judge_temperature: confloat(ge=0.0, le=2.0)
+    judge_api_key: Optional[str] = Field(default=None)
+    use_proxy: bool
+    proxies: Optional[Proxies] = Field(default=None)
     random_seed: Optional[int]
     num_evals: PositiveInt
     scenarios: conlist(ScenarioConfig, min_length=1)
@@ -51,20 +59,6 @@ class EvaluationConfig(BaseModel):
     context_char_limit: PositiveInt
     temperature: confloat(ge=0.0, le=2.0)
     evaluated_models: conlist(EvaluatedModel, min_length=1)
-
-
-class Proxies(BaseModel):
-    http: HttpUrl
-    https: HttpUrl
-
-
-class SystemConfig(BaseModel):
-    judge: str
-    judge_temperature: confloat(ge=0.0, le=2.0)
-    use_proxy: bool
-
-    judge_api_key: Optional[str] = Field(default=None)
-    proxies: Optional[Proxies] = Field(default=None)
 
     @validator('proxies', always=True)
     def validate_proxies(cls, value, values):

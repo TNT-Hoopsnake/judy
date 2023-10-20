@@ -3,7 +3,7 @@ import hashlib
 from gpt_eval.config.constants import USER_CACHE_DIR
 from gpt_eval.config import (
     EVAL_CONFIG_PATH,
-    SYSTEM_CONFIG_PATH
+    METRIC_CONFIG_PATH
 )
 
 class SqliteCache:
@@ -50,6 +50,6 @@ class SqliteCache:
         return self.cache.get(key, None)
 
     def build_cache_key(self, ds_name, scenario_type):
-        config_hash = self.calculate_merkle_tree_hash([EVAL_CONFIG_PATH, SYSTEM_CONFIG_PATH])
+        config_hash = self.calculate_merkle_tree_hash([EVAL_CONFIG_PATH, METRIC_CONFIG_PATH])
         cache_key = f"{config_hash}-{scenario_type}-{ds_name}"
         return cache_key
