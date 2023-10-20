@@ -26,7 +26,7 @@ class ScenarioConfig(BaseModel):
     type: ScenarioTypes
     datasets: List[str]
     model_config = ConfigDict(use_enum_values=True)
-    tags: List[str] = Field(default=None)
+    tags: Optional[List[str]] = Field(default=None)
 
 
 class EvaluatedModel(BaseModel):
@@ -38,7 +38,7 @@ class EvaluatedModel(BaseModel):
     context_char_limit: Optional[PositiveInt] = Field(default=None)
     temperature: Optional[confloat(ge=0.0, le=2.0)] = Field(default=None)
     family: ModelFamilyTypes = ModelFamilyTypes.GENERIC
-    tags: List[str] = Field(default=None)
+    tags: Optional[List[str]] = Field(default=None)
 
     model_config = ConfigDict(use_enum_values=True)
 
@@ -77,15 +77,15 @@ class DatasetConfig(BaseModel):
     version: Optional[str] = Field(default=None)
     split: DatasetSplits = DatasetSplits.TRAIN
     model_config = ConfigDict(use_enum_values=True)
-    tags: List[str] = Field(default=None)
+    tags: Optional[List[str]] = Field(default=None)
 
 
 class MetricConfig(BaseModel):
     name: str
     desc: str
-    scenarios: List[ScenarioTypes] = Field(default=None)
-    min: int = Field(default=None)
-    max: int = Field(default=None)
+    scenarios: Optional[List[ScenarioTypes]] = Field(default=None)
+    min: Optional[int] = Field(default=None)
+    max: Optional[int] = Field(default=None)
 
 class MetricGroupConfig(BaseModel):
     name: str
