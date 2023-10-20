@@ -11,7 +11,14 @@ from gpt_eval.config import (
 
 from gpt_eval.cache import SqliteCache
 from gpt_eval.cli.install import setup_user_dir
-from gpt_eval.utils import save_evaluation_results, get_dataset_config, get_dataset_config, PromptBuilder, dump_configs, ensure_directory_exists
+from gpt_eval.utils import (
+    save_evaluation_results, 
+    get_dataset_config, 
+    PromptBuilder, 
+    dump_configs, 
+    dump_metadata,
+    ensure_directory_exists
+)
 
 class EvalCommandLine:
 
@@ -136,7 +143,8 @@ def run_eval(scenario, model, dataset, name, output, dataset_config, eval_config
     ensure_directory_exists(results_dir)
     
     dump_configs(results_dir, configs)
-
+    dump_metadata(results_dir, dataset, scenario, model)
+    
     models, scenarios, datasets = set(), set(), set()
 
     for model in eval_config.evaluated_models:

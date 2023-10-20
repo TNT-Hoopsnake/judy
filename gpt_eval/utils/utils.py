@@ -3,6 +3,17 @@ from easyllm.clients import huggingface
 import openai
 import os
 import json
+from datetime import datetime
+
+def dump_metadata(dir_path, dataset_tags, scenario_tags, model_tags):
+    with open(dir_path / 'metadata.json', 'w+') as fn:
+        data = {
+            'dataset_tags':dataset_tags,
+            'scenario_tags':scenario_tags,
+            'model_tags':model_tags,
+            'timestamp':datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        }
+        json.dump(data, fn, indent=4)
 
 def dump_configs(dir_path, configs):
     with open(dir_path / 'config.json', 'w+') as fn:
