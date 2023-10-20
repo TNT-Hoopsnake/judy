@@ -1,7 +1,0 @@
-judge: gpt-3.5-turbo
-judge_api_key: null
-judge_temperature: 0.1
-use_proxy: false
-proxies:
-  http: http://sample-proxy
-  https: http://sample-proxy

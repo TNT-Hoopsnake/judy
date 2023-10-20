@@ -1,18 +1,19 @@
-import os
 import pathlib
 from enum import Enum
+from typing import Optional
+from platformdirs import user_config_dir, user_cache_dir, user_data_dir
 
 REQUEST_RETRY_MAX_ATTEMPTS = 3
 REQUEST_RETRY_WAIT_TIME = 10
 REQUEST_RETRY_BACKOFF = 2
 
-USER_DIR = pathlib.Path.home() / ".gpt-eval"
-USER_CONFIG_DIR = USER_DIR / "config"
-USER_CACHE_DIR = USER_DIR / "cache"
-DATASETS_DIR = USER_DIR / "datasets"
+APP_NAME = 'gpt-eval'
+APP_AUTHOR = 'tnt'
+USER_CONFIG_DIR = pathlib.Path(user_config_dir(APP_NAME))
+USER_CACHE_DIR = pathlib.Path(user_cache_dir(APP_NAME, APP_AUTHOR))
+DATASETS_DIR = pathlib.Path(user_data_dir(APP_NAME, APP_AUTHOR))
 
 DATASET_CONFIG_PATH = USER_CONFIG_DIR / 'dataset_config.yaml'
-SYSTEM_CONFIG_PATH = USER_CONFIG_DIR / 'system_config.yaml'
 EVAL_CONFIG_PATH = USER_CONFIG_DIR / 'eval_config.yaml'
 METRIC_CONFIG_PATH = USER_CONFIG_DIR / 'metric_config.yaml'
 
@@ -75,36 +76,29 @@ def get_responder_class_map():
     }
 
 
-def get_config_definitions():
+def get_config_definitions(eval_config: Optional[pathlib.Path], dataset_config: Optional[pathlib.Path], metric_config: Optional[pathlib.Path]):
     # avoid circular dependencies
     from gpt_eval.config.config_models import (
-        SystemConfig,
         EvaluationConfig,
         DatasetConfig,
         MetricGroupConfig
     )
     return [
         {
-            'cls':SystemConfig,
-            'path':SYSTEM_CONFIG_PATH,
-            'is_list':False,
-            'key':'system'
-        },
-        {
             'cls':EvaluationConfig,
-            'path':EVAL_CONFIG_PATH,
+            'path':eval_config or EVAL_CONFIG_PATH,
             'is_list':False,
             'key':'eval'
         },
         {
             'cls':DatasetConfig,
-            'path':DATASET_CONFIG_PATH,
+            'path':dataset_config or DATASET_CONFIG_PATH,
             'is_list':True,
             'key':'datasets'
         },
         {
             'cls':MetricGroupConfig,
-            'path':METRIC_CONFIG_PATH,
+            'path':metric_config or METRIC_CONFIG_PATH,
             'is_list':True,
             'key':'metrics'
         }

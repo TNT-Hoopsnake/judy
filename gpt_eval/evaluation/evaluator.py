@@ -19,23 +19,23 @@ DEFAULT_OPENAI_API_BASE = "https://api.openai.com/v1"
 class Evaluator:
     def __init__(
             self,
-            system_config,
+            eval_config,
             metrics
         ):
 
-        openai.api_key = system_config.judge_api_key or os.getenv('OPENAI_KEY')
+        openai.api_key = eval_config.judge_api_key or os.getenv('OPENAI_KEY')
         # ensure the openai api_base points to the correct address
         # this can be updated by responders so it is necessary to set it here
         openai.api_base = DEFAULT_OPENAI_API_BASE
-        if system_config.use_proxy:
+        if eval_config.use_proxy:
             openai.proxy = {
-                'http': str(system_config.proxies.http),
-                'https': str(system_config.proxies.https)
+                'http': str(eval_config.proxies.http),
+                'https': str(eval_config.proxies.https)
             }
 
         self.metrics = metrics
-        self.evaluator = system_config.judge
-        self.evaluator_temperature = system_config.judge_temperature
+        self.evaluator = eval_config.judge
+        self.evaluator_temperature = eval_config.judge_temperature
         self.eval_input_tokens = []
         self.eval_output_tokens = []
 

@@ -5,9 +5,9 @@ from .validator import (
 )
 
 from .constants import (
-    SYSTEM_CONFIG_PATH,
     DATASET_CONFIG_PATH,
     EVAL_CONFIG_PATH,
+    METRIC_CONFIG_PATH,
     DATASETS_DIR,
     ApiTypes,
     ScenarioTypes,
@@ -23,7 +23,6 @@ from .constants import (
 from .config_models import (
     EvaluationConfig,
     DatasetConfig,
-    SystemConfig,
     MetricGroupConfig,
     EvaluatedModel
 )

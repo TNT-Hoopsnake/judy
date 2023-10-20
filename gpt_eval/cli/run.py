@@ -20,14 +20,14 @@ class EvalCommandLine:
         setup_user_dir()
         self.cache = SqliteCache()
 
-    def get_evaluation_results(self, eval_prompts, cache_key, model, system_config, metrics):
+    def get_evaluation_results(self, eval_prompts, cache_key, model, eval_config, metrics):
         eval_results_cache_key = f"{self.cache.calculate_content_hash(eval_prompts)}-{model.name}"
         if eval_results := self.cache.get(cache_key, eval_results_cache_key):
             print('Evaluation results retrieved from cache')
         else:
             print('Evaluation results not present in cache')
             evaluator = Evaluator(
-                system_config=system_config,
+                eval_config=eval_config,
                 metrics=metrics
             )
             eval_results = evaluator.run_evaluation(eval_prompts)
@@ -98,15 +98,27 @@ class EvalCommandLine:
         return False
 
 @click.command()
-@click.option("--dataset", default=None, help="Only run datasets matching this tag")
-@click.option("--scenario", default=None, help="Only run scenarios matching this tag")
-@click.option("--model", default=None, help="Only run models matching this tag")
-@click.option("--name", default="default", help="A unique identifier to group the evaluation results. Overrides existing results with the same name.")
-@click.option("--output", help="The path to a directory to save evaluation results.", type=click.Path(), required=True)
-def run_eval(scenario, model, dataset, name, output):
+@click.option("-t", "--dataset", default=None, help="Only run datasets matching this tag")
+@click.option("-s", "--scenario", default=None, help="Only run scenarios matching this tag")
+@click.option("-m", "--model", default=None, help="Only run models matching this tag")
+@click.option("-n", "--name", default="default", help="A unique identifier to group the evaluation results. Overrides existing results with the same name.")
+@click.option("-o", "--output", help="The path to a directory to save evaluation results.", type=click.Path(), required=True)
+@click.option("-d", "--dataset-config", help="The path to the dataset config file.", default=None, type=click.Path())
+@click.option("-e", "--eval-config", help="The path to the eval config file.", default=None, type=click.Path())
+@click.option("-m", "--metric-config", help="The path to the metric config file.", default=None, type=click.Path())
+def run_eval(scenario, model, dataset, name, output, dataset_config, eval_config, metric_config):
     """Run evaluations for models using a judge model."""
     cli = EvalCommandLine()
-    config_definitions = get_config_definitions()
+    if eval_config and not eval_config.is_file():
+        raise FileNotFoundError(f"Eval config file does not exist: {eval_config}")
+
+    if dataset_config and not dataset_config.is_file():
+        raise FileNotFoundError(f"Eval config file does not exist: {dataset_config}")
+
+    if metric_config and not metric_config.is_file():
+        raise FileNotFoundError(f"Eval config file does not exist: {metric_config}")
+
+    config_definitions = get_config_definitions(eval_config, dataset_config, metric_config)
     configs = load_and_validate_configs(config_definitions)
 
     model_tag = model
@@ -115,7 +127,6 @@ def run_eval(scenario, model, dataset, name, output):
 
     eval_config = configs['eval']
     dataset_configs = configs['datasets']
-    system_config = configs['system']
     metric_configs = configs['metrics']
 
     output_dir = pathlib.Path(output)
@@ -162,7 +173,7 @@ def run_eval(scenario, model, dataset, name, output):
                     eval_prompts,
                     cache_key,
                     model,
-                    system_config,
+                    eval_config,
                     metrics
                 )
 
