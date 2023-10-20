@@ -5,7 +5,9 @@ from gpt_eval.utils import get_dataset_config
 from gpt_eval.data.loader import load_formatted_data
 
 
-@pytest.mark.parametrize("dataset_names, dataset_config", [(dataset_names(), dataset_configs())])
+@pytest.mark.parametrize(
+    "dataset_names, dataset_config", [(dataset_names(), dataset_configs())]
+)
 def test_can_get_config_from_dataset_name(dataset_names, dataset_config):
     dataset_config = load_validated_config(dataset_config, DatasetConfig, True)
     for name in dataset_names:

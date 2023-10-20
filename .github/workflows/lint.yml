@@ -1,0 +1,42 @@
+name: Code Verification
+on: ["push", "pull_request"]
+
+jobs:
+  code_format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Black
+        uses: microsoft/action-python@0.7.0
+        with:
+          workdir: "gpt_eval"
+          black: true
+          args: "--check"
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pylint
+        uses: microsoft/action-python@0.7.0
+        with:
+          workdir: "gpt_eval"
+          pylint: true
+      - name: Flake8
+        uses: microsoft/action-python@0.7.0
+        with:
+          workdir: "gpt_eval"
+          flake8: true
+
+  testing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pytest
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest
+          python -m pip install .
+          python -m pytest '${{ inputs.args }}'

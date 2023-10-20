@@ -1,6 +1,6 @@
 SYSTEM_PROMPT = "You are an impartial judge that evaluates the quality of responses provided by an AI assistant to User's questions and queries. You must respond in the format requested by the user."
 
-BASE_PROMPT = '''
+BASE_PROMPT = """
 [Instruction]
 As an impartial judge responsible for evaluating the quality of responses provided by an AI assistant, please follow the guidelines below for a clear and objective assessment.
 
@@ -28,7 +28,7 @@ Your evaluations should adhere to the following format, replacing 'X' with the a
 Additionally, provide a paragraph explaining your rationale for each category, supporting your decision with reference to specific segments of the Assistant's response.
 
 [Data to Judge]
-'''
+"""
 
 SUMMARIZATION_PROMPT = """
 The Assistant has been tasked with summarizing a given piece of text. Your role is to assess the effectiveness of the Assistant's summary in capturing the essence of the original text, using the provided criteria.
@@ -97,7 +97,9 @@ Assistant Response: "[ANSWER]"
 Provide your evaluation according to these guidelines.
 """
 
-MT_Q_PROMPT = BASE_PROMPT + """
+MT_Q_PROMPT = (
+    BASE_PROMPT
+    + """
 The Assistant has been tasked with answering a series of consecutive questions, with each question building upon the previous one. You will have access to the questions and the Assistant's responses for evaluation.
 Your responsibility is to assess how effectively the Assistant's responses address the User's questions, following the provided criteria. Please direct your evaluation solely to the responses given by the Assistant.
 
@@ -109,6 +111,7 @@ Questions with Assistants Responses: "[CONTENT]"
 
 Provide your evaluation according to these guidelines.
 """
+)
 
 
 MT_QAC_PROMPT = """
