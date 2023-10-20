@@ -11,7 +11,7 @@ from gpt_eval.config import (
 
 from gpt_eval.cache import SqliteCache
 from gpt_eval.cli.install import setup_user_dir
-from gpt_eval.utils import save_evaluation_results, get_dataset_config, get_dataset_config, PromptBuilder
+from gpt_eval.utils import save_evaluation_results, get_dataset_config, get_dataset_config, PromptBuilder, dump_configs, ensure_directory_exists
 
 class EvalCommandLine:
 
@@ -133,6 +133,9 @@ def run_eval(scenario, model, dataset, name, output, dataset_config, eval_config
     if not output_dir.is_dir():
         raise FileNotFoundError(f"Output directory does not exist: {output}")
     results_dir = output_dir / name
+    ensure_directory_exists(results_dir)
+    
+    dump_configs(results_dir, configs)
 
     models, scenarios, datasets = set(), set(), set()
 

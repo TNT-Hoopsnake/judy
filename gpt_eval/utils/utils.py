@@ -4,6 +4,17 @@ import openai
 import os
 import json
 
+def dump_configs(dir_path, configs):
+    with open(dir_path / 'config.json', 'w+') as fn:
+        data = {}
+        for key, config in configs.items():
+            if isinstance(config, list):
+                data[key] = [c.model_dump(mode='json') for c in config]
+            else:
+                data[key] = config.model_dump(mode='json')
+
+        json.dump(data, fn, indent=4)
+
 def get_completion_library(api_type, api_base):
     if api_type == ApiTypes.OPENAI:
         lib = openai
@@ -23,9 +34,7 @@ def ensure_directory_exists(dir_path):
 
     return dir_path
 
-def save_evaluation_results(model_name, dataset_name, data, results_dir):
-    ensure_directory_exists(results_dir)
-    
+def save_evaluation_results(model_name, dataset_name, data, results_dir):    
     model_results_dir = ensure_directory_exists(os.path.join(results_dir, model_name))
     clean_ds_name = dataset_name.split('/')[-1]
 
