@@ -46,7 +46,7 @@ def get_dataset(ds_config: DatasetConfig, force: bool = False) -> Dataset | Data
             elif ds_config.source_type == SourceTypes.URL:
                 dataset = load_dataset(
                     "json",
-                    data_files={"train": str(ds_config.source)},
+                    data_files={ds_config.split: str(ds_config.source)},
                     split=ds_config.split,
                 )
             dataset.save_to_disk(ds_path)

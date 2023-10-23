@@ -199,8 +199,8 @@ def run_eval(
     models, scenarios, datasets = set(), set(), set()
 
     for eval_model in eval_config.evaluated_models:
-        if not EvalCommandLine.matches_tag(model, model_tag):
-            click.echo(f"Skipping model {model.name} - does not match tag")
+        if not EvalCommandLine.matches_tag(eval_model, model_tag):
+            click.echo(f"Skipping model {eval_model.name} - does not match tag")
             continue
         # use the model specific values if they exist
         # else use the general eval values
