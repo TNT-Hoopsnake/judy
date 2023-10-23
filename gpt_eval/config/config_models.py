@@ -1,26 +1,29 @@
-from pydantic import (
-    BaseModel, 
-    HttpUrl, 
-    PositiveInt, 
-    confloat, 
-    conlist, 
-    ConfigDict,
-    Field,
-    validator
-)
 from typing import List, Optional
 
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    HttpUrl,
+    PositiveInt,
+    confloat,
+    conlist,
+    validator,
+)
+
 from .constants import (
-    ScenarioTypes, 
     ApiTypes,
-    SourceTypes,
     DatasetSplits,
-    ModelFamilyTypes
+    ModelFamilyTypes,
+    ScenarioTypes,
+    SourceTypes,
+    JudgeModels,
 )
 
 # adding "= Field(default=None)" to fields in the following models
 # enables those models to be valid while missing those fields entirely
 # this is done for most optional fields as well as fields that can be overridden
+
 
 class ScenarioConfig(BaseModel):
     type: ScenarioTypes
@@ -42,12 +45,14 @@ class EvaluatedModel(BaseModel):
 
     model_config = ConfigDict(use_enum_values=True)
 
+
 class Proxies(BaseModel):
     http: HttpUrl
     https: HttpUrl
 
+
 class EvaluationConfig(BaseModel):
-    judge: str
+    judge: JudgeModels
     judge_temperature: confloat(ge=0.0, le=2.0)
     judge_api_key: Optional[str] = Field(default=None)
     use_proxy: bool
@@ -60,9 +65,9 @@ class EvaluationConfig(BaseModel):
     temperature: confloat(ge=0.0, le=2.0)
     evaluated_models: conlist(EvaluatedModel, min_length=1)
 
-    @validator('proxies', always=True)
-    def validate_proxies(cls, value, values):
-        use_proxy = values.get('use_proxy', False)
+    @validator("proxies", always=True)
+    def validate_proxies(cls, value, values):  # pylint: disable=no-self-argument
+        use_proxy = values.get("use_proxy", False)
         if use_proxy and value is None:
             raise ValueError("Proxies must be provided if use_proxy is True")
         return value
@@ -73,7 +78,7 @@ class DatasetConfig(BaseModel):
     source: HttpUrl
     scenarios: conlist(ScenarioTypes, min_length=1)
     formatter: str
-    source_type: Optional[SourceTypes] = SourceTypes.HUGGINGFACE_HUB 
+    source_type: Optional[SourceTypes] = SourceTypes.HUGGINGFACE_HUB
     version: Optional[str] = Field(default=None)
     split: DatasetSplits = DatasetSplits.TRAIN
     model_config = ConfigDict(use_enum_values=True)
@@ -87,10 +92,10 @@ class MetricConfig(BaseModel):
     min: int = Field(default=None)
     max: int = Field(default=None)
 
+
 class MetricGroupConfig(BaseModel):
     name: str
     scenarios: conlist(ScenarioTypes, min_length=1)
     min: int = 0
     max: int = 10
     metrics: conlist(MetricConfig, min_length=1)
-

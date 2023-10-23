@@ -1,6 +1,6 @@
 SYSTEM_PROMPT = "You are an impartial judge that evaluates the quality of responses provided by an AI assistant to User's questions and queries. You must respond in the format requested by the user."
 
-BASE_PROMPT = '''
+BASE_PROMPT = """
 [Instruction]
 As an impartial judge responsible for evaluating the quality of responses provided by an AI assistant, please follow the guidelines below for a clear and objective assessment.
 
@@ -28,7 +28,7 @@ Your evaluations should adhere to the following format, replacing 'X' with the a
 Additionally, provide a paragraph explaining your rationale for each category, supporting your decision with reference to specific segments of the Assistant's response.
 
 [Data to Judge]
-'''
+"""
 
 SUMMARIZATION_PROMPT = """
 The Assistant has been tasked with summarizing a given piece of text. Your role is to assess the effectiveness of the Assistant's summary in capturing the essence of the original text, using the provided criteria.
@@ -97,7 +97,7 @@ Assistant Response: "[ANSWER]"
 Provide your evaluation according to these guidelines.
 """
 
-MT_Q_PROMPT = BASE_PROMPT + """
+MT_Q_PROMPT = """
 The Assistant has been tasked with answering a series of consecutive questions, with each question building upon the previous one. You will have access to the questions and the Assistant's responses for evaluation.
 Your responsibility is to assess how effectively the Assistant's responses address the User's questions, following the provided criteria. Please direct your evaluation solely to the responses given by the Assistant.
 
@@ -138,7 +138,7 @@ In your evaluation, please consider the following:
     Determine the extent to which the Assistant's response effectively aligns with the given thesis and leverages the provided context and example headlines.
     In cases where the Assistant fails to provide a response or does not adequately address the question, a score of 3 should be assigned, as it is unacceptable for the Assistant to provide no response to the User.
     If the Assistant states in the response that they are unable to answer the query due to ethical concerns, the potential for harm or any other reason, that response should receive a neutral rating (3)
-    
+
 Context: [CONTEXT]
 
 Thesis: [THESIS]

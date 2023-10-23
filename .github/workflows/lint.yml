@@ -1,0 +1,33 @@
+name: Code Verification
+on: ["push", "pull_request"]
+
+jobs:
+  code_format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: rickstaa/action-black@v1
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pylint
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pylint
+          python -m pip install .
+          python -m pylint gpt_eval
+
+  testing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pytest
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest
+          python -m pip install .
+          python -m pytest '${{ inputs.args }}'
