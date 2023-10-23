@@ -1,15 +1,17 @@
 from abc import ABC, abstractmethod
-
+from typing import List
 from easyllm.prompt_utils import PROMPT_MAPPING
 from easyllm.prompt_utils.base import buildBasePrompt
 from easyllm.schema.base import ChatMessage
 
 from gpt_eval.config import ApiTypes
+from gpt_eval.utils import PromptBuilder
+from gpt_eval.config.config_models import EvaluatedModel
 from gpt_eval.utils import Retry, get_completion_library
 
 
 class BaseResponder(ABC):
-    def __init__(self, data, prompt_builder, model_config):
+    def __init__(self, data, prompt_builder: PromptBuilder, model_config: EvaluatedModel):
         self.data = data
         self.pb = prompt_builder
         # config file values
@@ -26,7 +28,7 @@ class BaseResponder(ABC):
         return self.query_chat_model(chat_history)
 
     @Retry()
-    def query_chat_model(self, chat_history):
+    def query_chat_model(self, chat_history: List[dict] ):
         lib = get_completion_library(self._api_type, self._api_base)
 
         messages = [ChatMessage(**message) for message in chat_history]
@@ -65,9 +67,9 @@ class BaseResponder(ABC):
         pass
 
     @abstractmethod
-    def get_model_responses(self, prompt_contexts):
+    def get_model_responses(self, prompt_contexts: List[dict]):
         pass
 
     @abstractmethod
-    def build_eval_prompts(self, prompt_context_responses):
+    def build_eval_prompts(self, prompt_context_responses: List[dict]):
         pass

@@ -17,6 +17,7 @@ from .constants import (
     ModelFamilyTypes,
     ScenarioTypes,
     SourceTypes,
+    JudgeModels
 )
 
 # adding "= Field(default=None)" to fields in the following models
@@ -51,7 +52,7 @@ class Proxies(BaseModel):
 
 
 class EvaluationConfig(BaseModel):
-    judge: str
+    judge: JudgeModels
     judge_temperature: confloat(ge=0.0, le=2.0)
     judge_api_key: Optional[str] = Field(default=None)
     use_proxy: bool

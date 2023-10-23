@@ -16,10 +16,11 @@ from gpt_eval.utils import PromptBuilder, get_dataset_config, save_evaluation_re
 
 
 class EvalCommandLine:
-    def __init__(self):
+    def __init__(self, force):
         load_dotenv()
         setup_user_dir()
         self.cache = SqliteCache()
+        self.force = force
 
     def get_evaluation_results(
         self, eval_prompts, cache_key, model, eval_config, metrics
@@ -44,7 +45,7 @@ class EvalCommandLine:
             print("Formatted data not present in cache")
 
             data = load_formatted_data(
-                ds_config, eval_config.num_evals, eval_config.random_seed
+                ds_config, eval_config.num_evals, eval_config.random_seed, self.force
             )
             self.cache.set(cache_key, "data", data)
 
@@ -147,11 +148,19 @@ class EvalCommandLine:
     default=None,
     type=click.Path(),
 )
+@click.option(
+    "-f",
+    "--force",
+    is_flag=True,
+    show_default=True,
+    default=False,
+    help="Force datasets to be re-downloaded",
+)
 def run_eval(
-    scenario, model, dataset, name, output, dataset_config, eval_config, metric_config
+    scenario, model, dataset, name, output, dataset_config, eval_config, metric_config, force
 ):
     """Run evaluations for models using a judge model."""
-    cli = EvalCommandLine()
+    cli = EvalCommandLine(force)
     if eval_config and not pathlib.Path(eval_config).is_file():
         raise FileNotFoundError(f"Eval config file does not exist: {eval_config}")
 

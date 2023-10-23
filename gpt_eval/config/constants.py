@@ -55,6 +55,9 @@ class ModelFamilyTypes(str, Enum):
     WIZARD = "wizardlm"
     GENERIC = "generic"
 
+class JudgeModels(str, Enum):
+    GPT4 = "gpt-4"
+    GPT35 = "gpt-3.5-turbo"
 
 def get_responder_class_map():
     # avoid circular dependencies
