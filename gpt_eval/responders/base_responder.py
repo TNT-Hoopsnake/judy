@@ -1,17 +1,19 @@
 from abc import ABC, abstractmethod
-from gpt_eval.utils import get_completion_library, Retry
-from easyllm.prompt_utils.base import buildBasePrompt
+from typing import List
 from easyllm.prompt_utils import PROMPT_MAPPING
+from easyllm.prompt_utils.base import buildBasePrompt
 from easyllm.schema.base import ChatMessage
+
 from gpt_eval.config import ApiTypes
+from gpt_eval.utils import PromptBuilder
+from gpt_eval.config.config_models import EvaluatedModel
+from gpt_eval.utils import Retry, get_completion_library
+
 
 class BaseResponder(ABC):
     def __init__(
-            self, 
-            data,
-            prompt_builder,
-            model_config
-        ):
+        self, data, prompt_builder: PromptBuilder, model_config: EvaluatedModel
+    ):
         self.data = data
         self.pb = prompt_builder
         # config file values
@@ -23,17 +25,12 @@ class BaseResponder(ABC):
         self._context_char_limit = model_config.context_char_limit
 
     def query_model(self, prompt):
-        chat_history = [
-            {
-                'role':'user',
-                'content': prompt
-            }
-        ]
+        chat_history = [{"role": "user", "content": prompt}]
 
         return self.query_chat_model(chat_history)
 
     @Retry()
-    def query_chat_model(self, chat_history):
+    def query_chat_model(self, chat_history: List[dict]):
         lib = get_completion_library(self._api_type, self._api_base)
 
         messages = [ChatMessage(**message) for message in chat_history]
@@ -57,34 +54,24 @@ class BaseResponder(ABC):
             max_tokens=self._max_tokens,
             temperature=self._temperature,
         )
-        output = completion['choices'][0]['text']
+        output = completion["choices"][0]["text"]
 
-        return output 
+        return output
 
     def get_evaluation_prompts(self):
         prompts = self.build_model_prompts()
-        responses =  self.get_model_responses(prompts)
+        responses = self.get_model_responses(prompts)
         eval_prompts = self.build_eval_prompts(responses)
         return eval_prompts
-
 
     @abstractmethod
     def build_model_prompts(self):
         pass
-    
+
     @abstractmethod
-    def get_model_responses(self, prompts):
+    def get_model_responses(self, prompt_contexts: List[dict]):
         pass
 
     @abstractmethod
-    def build_eval_prompts(self, model_response, original):
+    def build_eval_prompts(self, prompt_context_responses: List[dict]):
         pass
-
-    
-
-
-    
-
-
-
-
