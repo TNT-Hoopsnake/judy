@@ -6,28 +6,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Black
-        uses: microsoft/action-python@0.7.0
-        with:
-          workdir: "gpt_eval"
-          black: true
-          args: "--check"
+      - uses: rickstaa/action-black@v1
 
   lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Pylint
-        uses: microsoft/action-python@0.7.0
-        with:
-          workdir: "gpt_eval"
-          pylint: true
-      - name: Flake8
-        uses: microsoft/action-python@0.7.0
-        with:
-          workdir: "gpt_eval"
-          flake8: true
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pylint
+          python -m pip install .
+          python -m pylint gpt_eval
 
   testing:
     runs-on: ubuntu-latest

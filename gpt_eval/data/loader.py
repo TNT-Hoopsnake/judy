@@ -7,7 +7,9 @@ from gpt_eval.config import DATASETS_DIR, DatasetConfig, SourceTypes
 from gpt_eval.utils import ensure_directory_exists
 
 
-def load_formatted_data(ds_config: DatasetConfig, num_idxs: int, random_seed: int, force: bool = False):
+def load_formatted_data(
+    ds_config: DatasetConfig, num_idxs: int, random_seed: int, force: bool = False
+):
     np.random.seed(random_seed)
 
     dataset = get_dataset(ds_config, force)
@@ -27,8 +29,9 @@ def load_formatted_data(ds_config: DatasetConfig, num_idxs: int, random_seed: in
 
     return format_func(dataset, eval_idxs, ds_config.split)
 
+
 @Retry
-def get_dataset(ds_config: DatasetConfig, force: bool=False) -> Dataset | DatasetDict:
+def get_dataset(ds_config: DatasetConfig, force: bool = False) -> Dataset | DatasetDict:
     ensure_directory_exists(DATASETS_DIR)
     ds_path = os.path.join(DATASETS_DIR, ds_config.name.split("/")[-1])
     if force or not os.path.exists(ds_path):
@@ -38,19 +41,26 @@ def get_dataset(ds_config: DatasetConfig, force: bool=False) -> Dataset | Datase
                     ds_config.name,
                     ds_config.version,
                     split=ds_config.split,
-                    streaming=False
+                    streaming=False,
                 )
             elif ds_config.source_type == SourceTypes.URL:
-                dataset = load_dataset("json", data_files={"train": str(ds_config.source)}, split=ds_config.split)
+                dataset = load_dataset(
+                    "json",
+                    data_files={"train": str(ds_config.source)},
+                    split=ds_config.split,
+                )
             dataset.save_to_disk(ds_path)
         except Exception as e:
-            raise FileNotFoundError(f"Error while downloading dataset from URL ({ds_config.name})") from e
+            raise FileNotFoundError(
+                f"Error while downloading dataset from URL ({ds_config.name})"
+            ) from e
     else:
         print(
             f"Dataset ({ds_config.name}) already exists. Set force=True to redownload"
         )
         dataset = load_from_disk(ds_path)
     return dataset
+
 
 def get_eval_idxs(num_idxs: int, max_idx: int):
     return np.random.randint(low=0, high=max_idx, size=num_idxs)

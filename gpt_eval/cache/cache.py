@@ -34,7 +34,9 @@ class SqliteCache:
         tree_hashes = leaf_hashes
         while len(tree_hashes) > 1:
             tree_hashes = [
-                hashlib.sha256((tree_hashes[i] + tree_hashes[i + 1]).encode()).hexdigest()
+                hashlib.sha256(
+                    (tree_hashes[i] + tree_hashes[i + 1]).encode()
+                ).hexdigest()
                 for i in range(0, len(tree_hashes), 2)
             ]
 

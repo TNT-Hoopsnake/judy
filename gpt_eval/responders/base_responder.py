@@ -11,7 +11,9 @@ from gpt_eval.utils import Retry, get_completion_library
 
 
 class BaseResponder(ABC):
-    def __init__(self, data, prompt_builder: PromptBuilder, model_config: EvaluatedModel):
+    def __init__(
+        self, data, prompt_builder: PromptBuilder, model_config: EvaluatedModel
+    ):
         self.data = data
         self.pb = prompt_builder
         # config file values
@@ -28,7 +30,7 @@ class BaseResponder(ABC):
         return self.query_chat_model(chat_history)
 
     @Retry()
-    def query_chat_model(self, chat_history: List[dict] ):
+    def query_chat_model(self, chat_history: List[dict]):
         lib = get_completion_library(self._api_type, self._api_base)
 
         messages = [ChatMessage(**message) for message in chat_history]

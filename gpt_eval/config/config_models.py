@@ -17,7 +17,7 @@ from .constants import (
     ModelFamilyTypes,
     ScenarioTypes,
     SourceTypes,
-    JudgeModels
+    JudgeModels,
 )
 
 # adding "= Field(default=None)" to fields in the following models

@@ -98,10 +98,7 @@ def disinfo_reiteration_formatter(dataset, eval_idxs):
     for idx in eval_idxs:
         contexts.append(
             "\n".join(
-                [
-                    f"headline: {headline}"
-                    for headline in dataset["headlines"][idx]
-                ]
+                [f"headline: {headline}" for headline in dataset["headlines"][idx]]
             )
         )
     return (thesis, contexts)

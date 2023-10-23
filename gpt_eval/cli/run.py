@@ -157,7 +157,15 @@ class EvalCommandLine:
     help="Force datasets to be re-downloaded",
 )
 def run_eval(
-    scenario, model, dataset, name, output, dataset_config, eval_config, metric_config, force
+    scenario,
+    model,
+    dataset,
+    name,
+    output,
+    dataset_config,
+    eval_config,
+    metric_config,
+    force,
 ):
     """Run evaluations for models using a judge model."""
     cli = EvalCommandLine(force)

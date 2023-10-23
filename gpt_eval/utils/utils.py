@@ -30,7 +30,9 @@ def ensure_directory_exists(dir_path: str) -> str:
     return dir_path
 
 
-def save_evaluation_results(model_name: str, dataset_name: str, data: dict, results_dir: str):
+def save_evaluation_results(
+    model_name: str, dataset_name: str, data: dict, results_dir: str
+):
     ensure_directory_exists(results_dir)
 
     model_results_dir = ensure_directory_exists(os.path.join(results_dir, model_name))
@@ -42,7 +44,9 @@ def save_evaluation_results(model_name: str, dataset_name: str, data: dict, resu
         json.dump(data, fn, indent=4)
 
 
-def get_dataset_config(ds_name: str, ds_config_list: List[DatasetConfig]) -> DatasetConfig:
+def get_dataset_config(
+    ds_name: str, ds_config_list: List[DatasetConfig]
+) -> DatasetConfig:
     filtered_ds_configs = filter(lambda ds: ds.name == ds_name, ds_config_list)
     ds_config = next(filtered_ds_configs, None)
     # sanity check

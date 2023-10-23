@@ -2,6 +2,7 @@ from typing import Dict, List
 from gpt_eval.config.config_models import MetricConfig
 from .prompts import BASE_PROMPT
 
+
 class PromptBuilder:
     def __init__(self, scenario_type: str, metric_configs: List[MetricConfig]):
         self.scenario_type = scenario_type
@@ -25,7 +26,9 @@ class PromptBuilder:
 
         return prompt
 
-    def build_full_prompt(self, scenario_prompt: str, replacement_map: Dict[str, str]) -> str:
+    def build_full_prompt(
+        self, scenario_prompt: str, replacement_map: Dict[str, str]
+    ) -> str:
         prompt = self.base_prompt
         prompt += scenario_prompt
         for replace_key, replace_val in replacement_map.items():
