@@ -8,11 +8,14 @@ from gpt_eval.utils import ensure_directory_exists
 
 
 def load_formatted_data(
-    ds_config: DatasetConfig, num_idxs: int, random_seed: int, force: bool = False
+    ds_config: DatasetConfig,
+    num_idxs: int,
+    random_seed: int,
+    ignore_cache: bool = False,
 ):
     np.random.seed(random_seed)
 
-    dataset = get_dataset(ds_config, force)
+    dataset = get_dataset(ds_config, ignore_cache)
     if isinstance(dataset, DatasetDict):
         dataset = dataset.get(ds_config.split)
         if not dataset.get(ds_config.split):
@@ -27,14 +30,16 @@ def load_formatted_data(
         ) from exc
     eval_idxs = get_eval_idxs(num_idxs, len(dataset))
 
-    return format_func(dataset, eval_idxs, ds_config.split)
+    return format_func(dataset, eval_idxs)
 
 
 @Retry
-def get_dataset(ds_config: DatasetConfig, force: bool = False) -> Dataset | DatasetDict:
+def get_dataset(
+    ds_config: DatasetConfig, ignore_cache: bool = False
+) -> Dataset | DatasetDict:
     ensure_directory_exists(DATASETS_DIR)
     ds_path = os.path.join(DATASETS_DIR, ds_config.name.split("/")[-1])
-    if force or not os.path.exists(ds_path):
+    if ignore_cache or not os.path.exists(ds_path):
         try:
             if ds_config.source_type == SourceTypes.HUGGINGFACE_HUB:
                 dataset = load_dataset(
@@ -56,7 +61,7 @@ def get_dataset(ds_config: DatasetConfig, force: bool = False) -> Dataset | Data
             ) from e
     else:
         print(
-            f"Dataset ({ds_config.name}) already exists. Set force=True to redownload"
+            f"Dataset ({ds_config.name}) already exists. Set ignore_cache=True to redownload"
         )
         dataset = load_from_disk(ds_path)
     return dataset

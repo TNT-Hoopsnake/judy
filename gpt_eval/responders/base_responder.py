@@ -69,9 +69,9 @@ class BaseResponder(ABC):
         pass
 
     @abstractmethod
-    def get_model_responses(self, prompt_contexts: List[dict]):
+    def get_model_responses(self, prompt_contexts: List[dict]) -> List[dict]:
         pass
 
     @abstractmethod
-    def build_eval_prompts(self, prompt_context_responses: List[dict]):
+    def build_eval_prompts(self, prompt_context_responses: List[dict]) -> List[dict]:
         pass

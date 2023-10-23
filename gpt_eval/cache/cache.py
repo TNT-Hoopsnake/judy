@@ -10,7 +10,7 @@ class SqliteCache:
     def __init__(self):
         self.cache = SqliteDict(USER_CACHE_DIR / "cache.db", autocommit=True)
 
-    def calculate_content_hash(self, content: bytes) -> str:
+    def calculate_content_hash(self, content: Any) -> str:
         encoded_content = str(content).encode()
         return hashlib.sha256(encoded_content).hexdigest()
 

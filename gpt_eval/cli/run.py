@@ -1,4 +1,5 @@
 import pathlib
+from typing import List
 
 import click
 from dotenv import load_dotenv
@@ -9,6 +10,13 @@ from gpt_eval.config import (
     get_config_definitions,
     get_responder_class_map,
     load_and_validate_configs,
+    EvaluatedModel,
+    DatasetConfig,
+    ScenarioConfig,
+    ScenarioTypes,
+    MetricGroupConfig,
+    EvaluationConfig,
+    MetricConfig,
 )
 from gpt_eval.data.loader import load_formatted_data
 from gpt_eval.evaluation import Evaluator
@@ -16,53 +24,90 @@ from gpt_eval.utils import PromptBuilder, get_dataset_config, save_evaluation_re
 
 
 class EvalCommandLine:
-    def __init__(self, force):
+    def __init__(self):
         load_dotenv()
         setup_user_dir()
         self.cache = SqliteCache()
-        self.force = force
 
     def get_evaluation_results(
-        self, eval_prompts, cache_key, model, eval_config, metrics
+        self,
+        eval_prompts: List[dict],
+        cache_key: str,
+        model: str,
+        eval_config: EvaluationConfig,
+        metrics: List[MetricConfig],
+        ignore_cache: bool,
     ):
+        eval_results = None
         eval_results_cache_key = (
             f"{self.cache.calculate_content_hash(eval_prompts)}-{model.name}"
         )
-        if eval_results := self.cache.get(cache_key, eval_results_cache_key):
+        if ignore_cache:
+            print("Skipping cache")
+        else:
+            eval_results = self.cache.get(cache_key, eval_results_cache_key)
+            if not eval_results:
+                print("Evaluation results not present in cache")
+
+        if eval_results:
             print("Evaluation results retrieved from cache")
         else:
-            print("Evaluation results not present in cache")
             evaluator = Evaluator(eval_config=eval_config, metrics=metrics)
             eval_results = evaluator.run_evaluation(eval_prompts)
             self.cache.set(cache_key, eval_results_cache_key, eval_results)
 
         return eval_results
 
-    def get_formatted_data(self, cache_key, ds_config, eval_config):
-        if data := self.cache.get(cache_key, "data"):
+    def get_formatted_data(
+        self,
+        cache_key: str,
+        ds_config: DatasetConfig,
+        eval_config: EvaluationConfig,
+        ignore_cache: bool,
+    ):
+        data = None
+        if ignore_cache:
+            print("Skipping cache")
+        else:
+            data = self.cache.get(cache_key, "data")
+            if not data:
+                print("Formatted data not present in cache")
+
+        if data:
             print("Formatted data retrieved from cache")
         else:
-            print("Formatted data not present in cache")
-
             data = load_formatted_data(
-                ds_config, eval_config.num_evals, eval_config.random_seed, self.force
+                ds_config, eval_config.num_evals, eval_config.random_seed, ignore_cache
             )
             self.cache.set(cache_key, "data", data)
 
         return data
 
     def get_evaluation_prompts(
-        self, cache_key, model, prompt_builder, ds_config, eval_config, scenario_type
-    ):
+        self,
+        cache_key: str,
+        model: str,
+        prompt_builder: PromptBuilder,
+        ds_config: DatasetConfig,
+        eval_config: EvaluationConfig,
+        scenario_type: ScenarioTypes,
+        ignore_cache: bool,
+    ) -> List[dict]:
         eval_prompts_cache_key = f"eval_prompts-{model.name}"
-
-        if eval_prompts := self.cache.get(cache_key, eval_prompts_cache_key):
-            print("Evaluation prompts retrieved from cache")
-
+        eval_prompts = None
+        if ignore_cache:
+            print("Skipping cache")
         else:
-            print("Evaluation prompts not present in cache")
+            eval_prompts = self.cache.get(cache_key, eval_prompts_cache_key)
+            if not eval_prompts:
+                print("Evaluation prompts not present in cache")
 
-            data = self.get_formatted_data(cache_key, ds_config, eval_config)
+        if eval_prompts:
+            print("Evaluation prompts retrieved from cache")
+        else:
+            data = self.get_formatted_data(
+                cache_key, ds_config, eval_config, ignore_cache
+            )
 
             responder_cls = get_responder_class_map().get(scenario_type)
             # sanity check
@@ -81,7 +126,9 @@ class EvalCommandLine:
         return eval_prompts
 
     @staticmethod
-    def get_metrics_for_scenario(scenario, metric_configs):
+    def get_metrics_for_scenario(
+        scenario: ScenarioTypes, metric_configs: List[MetricGroupConfig]
+    ):
         metrics = []
         for metric_group in metric_configs:
             for metric_config in metric_group.metrics:
@@ -97,7 +144,9 @@ class EvalCommandLine:
         return metrics
 
     @staticmethod
-    def matches_tag(config, tag):
+    def matches_tag(
+        config: ScenarioConfig | EvaluatedModel | DatasetConfig, tag: str
+    ) -> bool:
         if not tag or not hasattr(config, "tags"):
             return True
         config_tags = config.tags or []
@@ -150,11 +199,11 @@ class EvalCommandLine:
 )
 @click.option(
     "-f",
-    "--force",
+    "--ignore-cache",
     is_flag=True,
     show_default=True,
     default=False,
-    help="Force datasets to be re-downloaded",
+    help="Ignore cache and force datasets to be re-downloaded and prompts to be re-evaluated",
 )
 def run_eval(
     scenario,
@@ -165,10 +214,10 @@ def run_eval(
     dataset_config,
     eval_config,
     metric_config,
-    force,
+    ignore_cache,
 ):
     """Run evaluations for models using a judge model."""
-    cli = EvalCommandLine(force)
+    cli = EvalCommandLine()
     if eval_config and not pathlib.Path(eval_config).is_file():
         raise FileNotFoundError(f"Eval config file does not exist: {eval_config}")
 
@@ -226,6 +275,7 @@ def run_eval(
                         f"Skipping dataset {ds_config.name} - does not match tag"
                     )
                     continue
+
                 cache_key = cli.cache.build_cache_key(dataset_name, eval_scenario.type)
 
                 eval_prompts = cli.get_evaluation_prompts(
@@ -235,10 +285,16 @@ def run_eval(
                     ds_config,
                     eval_config,
                     eval_scenario.type,
+                    ignore_cache,
                 )
 
                 evaluation_results = cli.get_evaluation_results(
-                    eval_prompts, cache_key, eval_model, eval_config, metrics
+                    eval_prompts,
+                    cache_key,
+                    eval_model,
+                    eval_config,
+                    metrics,
+                    ignore_cache,
                 )
 
                 all_results = []

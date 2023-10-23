@@ -3,6 +3,8 @@ from .config_models import (
     EvaluatedModel,
     EvaluationConfig,
     MetricGroupConfig,
+    ScenarioConfig,
+    MetricConfig,
 )
 from .constants import (
     DATASET_CONFIG_PATH,
