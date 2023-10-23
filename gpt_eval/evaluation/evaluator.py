@@ -83,7 +83,7 @@ class Evaluator:
         # Iterate through criteria and extract their scores
         for i, metric in enumerate(self.metrics):
             # Search for the metric name and its associated score
-            m = re.search(r"{metric.name}: ([\d]+)", result, re.IGNORECASE)
+            m = re.search(rf"{metric.name}: ([\d]+)", result, re.IGNORECASE)
 
             # If the metric is found, update the corresponding variable with its score
             if m is not None:
