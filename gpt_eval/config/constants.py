@@ -15,7 +15,7 @@ DATASETS_DIR = pathlib.Path(user_data_dir(APP_NAME, APP_AUTHOR))
 
 DATASET_CONFIG_PATH = USER_CONFIG_DIR / "dataset_config.yaml"
 EVAL_CONFIG_PATH = USER_CONFIG_DIR / "eval_config.yaml"
-METRIC_CONFIG_PATH = USER_CONFIG_DIR / "metric_config.yaml"
+RUN_CONFIG_PATH = USER_CONFIG_DIR / "run_config.yaml"
 
 
 class ApiTypes(str, Enum):
@@ -89,13 +89,13 @@ def get_responder_class_map():
 def get_config_definitions(
     eval_config: Optional[pathlib.Path],
     dataset_config: Optional[pathlib.Path],
-    metric_config: Optional[pathlib.Path],
+    run_config: Optional[pathlib.Path],
 ):
     # avoid circular dependencies
     from gpt_eval.config.config_models import (
         EvaluationConfig,
         DatasetConfig,
-        MetricGroupConfig,
+        RunConfig,
     )
 
     return [
@@ -112,9 +112,9 @@ def get_config_definitions(
             "key": "datasets",
         },
         {
-            "cls": MetricGroupConfig,
-            "path": metric_config or METRIC_CONFIG_PATH,
-            "is_list": True,
-            "key": "metrics",
+            "cls": RunConfig,
+            "path": run_config or RUN_CONFIG_PATH,
+            "is_list": False,
+            "key": "run",
         },
     ]

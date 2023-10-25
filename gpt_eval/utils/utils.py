@@ -38,9 +38,9 @@ def save_evaluation_results(
 
 
 def get_dataset_config(
-    ds_name: str, ds_config_list: List[DatasetConfig]
+    ds_id: str, ds_config_list: List[DatasetConfig]
 ) -> DatasetConfig:
-    filtered_ds_configs = filter(lambda ds: ds.name == ds_name, ds_config_list)
+    filtered_ds_configs = filter(lambda ds: ds.id == ds_id, ds_config_list)
     ds_config = next(filtered_ds_configs, None)
     # sanity check
     if not ds_config:

@@ -5,12 +5,13 @@ from .config_models import (
     MetricGroupConfig,
     ScenarioConfig,
     MetricConfig,
+    RunConfig,
 )
 from .constants import (
     DATASET_CONFIG_PATH,
     DATASETS_DIR,
     EVAL_CONFIG_PATH,
-    METRIC_CONFIG_PATH,
+    RUN_CONFIG_PATH,
     REQUEST_RETRY_BACKOFF,
     REQUEST_RETRY_MAX_ATTEMPTS,
     REQUEST_RETRY_WAIT_TIME,

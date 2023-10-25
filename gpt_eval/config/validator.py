@@ -35,14 +35,14 @@ def check_scenarios_valid_for_dataset(eval_config, datasets_config):
     for scenario in eval_config.scenarios:
         for dataset_name in scenario.datasets:
             dataset_config = next(
-                (config for config in datasets_config if config.name == dataset_name),
+                (config for config in datasets_config if config.id == dataset_name),
                 None,
             )
             if not dataset_config:
                 raise ValueError(f"Dataset '{dataset_name}' is not configured.")
-            if scenario.type not in dataset_config.scenarios:
+            if scenario.id not in dataset_config.scenarios:
                 raise ValueError(
-                    f"Scenario type '{scenario.type}' is not valid for dataset '{dataset_name}'."
+                    f"Scenario type '{scenario.id}' is not valid for dataset '{dataset_name}'."
                 )
 
 

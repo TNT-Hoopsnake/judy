@@ -20,13 +20,13 @@ def load_formatted_data(
         dataset = dataset.get(ds_config.split)
         if not dataset.get(ds_config.split):
             raise ValueError(
-                f"Invalid split ({ds_config.split}) set for dataset ({ds_config.name})"
+                f"Invalid split ({ds_config.split}) set for dataset ({ds_config.id})"
             )
     try:
         format_func = getattr(formatters, ds_config.formatter)
     except AttributeError as exc:
         raise ValueError(
-            f"Unable to map dataset ({ds_config.name}) to formatter function"
+            f"Unable to map dataset ({ds_config.id}) to formatter function"
         ) from exc
     eval_idxs = get_eval_idxs(num_idxs, len(dataset))
 
@@ -38,12 +38,12 @@ def get_dataset(
     ds_config: DatasetConfig, ignore_cache: bool = False
 ) -> Dataset | DatasetDict:
     ensure_directory_exists(DATASETS_DIR)
-    ds_path = os.path.join(DATASETS_DIR, ds_config.name.split("/")[-1])
+    ds_path = os.path.join(DATASETS_DIR, ds_config.id.split("/")[-1])
     if ignore_cache or not os.path.exists(ds_path):
         try:
             if ds_config.source_type == SourceTypes.HUGGINGFACE_HUB:
                 dataset = load_dataset(
-                    ds_config.name,
+                    ds_config.id,
                     ds_config.version,
                     split=ds_config.split,
                     streaming=False,
@@ -57,11 +57,11 @@ def get_dataset(
             dataset.save_to_disk(ds_path)
         except Exception as e:
             raise FileNotFoundError(
-                f"Error while downloading dataset from URL ({ds_config.name})"
+                f"Error while downloading dataset from URL ({ds_config.id})"
             ) from e
     else:
         print(
-            f"Dataset ({ds_config.name}) already exists. Set ignore_cache=True to redownload"
+            f"Dataset ({ds_config.id}) already exists. Set ignore_cache=True to redownload"
         )
         dataset = load_from_disk(ds_path)
     return dataset
