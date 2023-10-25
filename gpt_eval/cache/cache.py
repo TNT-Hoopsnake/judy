@@ -51,9 +51,9 @@ class SqliteCache:
         key += subkey
         return self.cache.get(key, None)
 
-    def build_cache_key(self, ds_name: str, scenario_type: str):
+    def build_cache_key(self, ds_name: str, task_type: str):
         config_hash = self.calculate_merkle_tree_hash(
             [EVAL_CONFIG_PATH, RUN_CONFIG_PATH]
         )
-        cache_key = f"{config_hash}-{scenario_type}-{ds_name}"
+        cache_key = f"{config_hash}-{task_type}-{ds_name}"
         return cache_key

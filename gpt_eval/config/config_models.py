@@ -15,7 +15,7 @@ from .constants import (
     ApiTypes,
     DatasetSplits,
     ModelFamilyTypes,
-    ScenarioTypes,
+    TaskTypes,
     SourceTypes,
     JudgeModels,
 )
@@ -25,9 +25,10 @@ from .constants import (
 # this is done for most optional fields as well as fields that can be overridden
 
 
-class ScenarioConfig(BaseModel):
-    id: ScenarioTypes
+class TaskConfig(BaseModel):
+    id: TaskTypes
     name: str = Field(default=None)
+    desc: str = Field(default=None)
     datasets: List[str]
     model_config = ConfigDict(use_enum_values=True)
     tags: List[str] = Field(default=None)
@@ -65,7 +66,7 @@ class RunConfig(BaseModel):
     context_char_limit: PositiveInt
     temperature: confloat(ge=0.0, le=2.0)
     models: conlist(str, min_length=1)
-    scenarios: conlist(str, min_length=1)
+    tasks: conlist(str, min_length=1)
     metrics: conlist(str, min_length=1)
 
     @validator("proxies", always=True)
@@ -79,7 +80,7 @@ class RunConfig(BaseModel):
 class MetricConfig(BaseModel):
     name: str
     desc: str
-    scenarios: List[ScenarioTypes] = Field(default=None)
+    tasks: List[TaskTypes] = Field(default=None)
     min: int = Field(default=None)
     max: int = Field(default=None)
 
@@ -87,7 +88,8 @@ class MetricConfig(BaseModel):
 class MetricGroupConfig(BaseModel):
     id: str
     name: str = Field(default=None)
-    scenarios: conlist(ScenarioTypes, min_length=1)
+    desc: str = Field(default=None)
+    tasks: conlist(TaskTypes, min_length=1)
     min: int = 0
     max: int = 10
     metrics: conlist(MetricConfig, min_length=1)
@@ -95,7 +97,7 @@ class MetricGroupConfig(BaseModel):
 
 class EvaluationConfig(BaseModel):
     models: conlist(EvaluatedModel, min_length=1)
-    scenarios: conlist(ScenarioConfig, min_length=1)
+    tasks: conlist(TaskConfig, min_length=1)
     metric_groups: conlist(MetricGroupConfig, min_length=1)
 
 
@@ -103,7 +105,7 @@ class DatasetConfig(BaseModel):
     id: str
     name: str = Field(default=None)
     source: HttpUrl
-    scenarios: conlist(ScenarioTypes, min_length=1)
+    tasks: conlist(TaskTypes, min_length=1)
     formatter: str
     source_type: Optional[SourceTypes] = SourceTypes.HUGGINGFACE_HUB
     version: Optional[str] = Field(default=None)

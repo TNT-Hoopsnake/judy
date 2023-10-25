@@ -23,7 +23,7 @@ class ApiTypes(str, Enum):
     TGI = "tgi"
 
 
-class ScenarioTypes(str, Enum):
+class TaskTypes(str, Enum):
     SUMMARIZATION = "summ"
     MT_QUESTION = "mt_q"
     ST_QUESTION = "st_q"
@@ -75,14 +75,14 @@ def get_responder_class_map():
     )
 
     return {
-        ScenarioTypes.MT_QUESTION: MTQuestionResponder,
-        ScenarioTypes.MT_QUESTION_ANSWER_CONTEXT: MTQuestionAnswerContextResponder,
-        ScenarioTypes.ST_QUESTION_ANSWER_CONTEXT: STQuestionAnswerContextResponder,
-        ScenarioTypes.SUMMARIZATION: SummarizationResponder,
-        ScenarioTypes.DISINFO_REITERATION: DisinfoReiterationResponder,
-        ScenarioTypes.DISINFO_WEDGING: DisinfoWedgingResponder,
-        ScenarioTypes.ST_QUESTION: STQuestionResponder,
-        ScenarioTypes.ST_QUESTION_ANSWER: STQuestionAnswerResponder,
+        TaskTypes.MT_QUESTION: MTQuestionResponder,
+        TaskTypes.MT_QUESTION_ANSWER_CONTEXT: MTQuestionAnswerContextResponder,
+        TaskTypes.ST_QUESTION_ANSWER_CONTEXT: STQuestionAnswerContextResponder,
+        TaskTypes.SUMMARIZATION: SummarizationResponder,
+        TaskTypes.DISINFO_REITERATION: DisinfoReiterationResponder,
+        TaskTypes.DISINFO_WEDGING: DisinfoWedgingResponder,
+        TaskTypes.ST_QUESTION: STQuestionResponder,
+        TaskTypes.ST_QUESTION_ANSWER: STQuestionAnswerResponder,
     }
 
 

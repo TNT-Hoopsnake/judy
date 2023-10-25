@@ -3,7 +3,7 @@ from .config_models import (
     EvaluatedModel,
     EvaluationConfig,
     MetricGroupConfig,
-    ScenarioConfig,
+    TaskConfig,
     MetricConfig,
     RunConfig,
 )
@@ -17,13 +17,13 @@ from .constants import (
     REQUEST_RETRY_WAIT_TIME,
     ApiTypes,
     ModelFamilyTypes,
-    ScenarioTypes,
+    TaskTypes,
     SourceTypes,
     get_config_definitions,
     get_responder_class_map,
 )
 from .validator import (
-    check_scenarios_valid_for_dataset,
+    check_tasks_valid_for_dataset,
     load_and_validate_configs,
     load_validated_config,
 )
