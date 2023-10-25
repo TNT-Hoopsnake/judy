@@ -133,13 +133,16 @@ class EvalCommandLine:
         for task_id in run_config.tasks:
             # Ensure selected task is defined in the eval config
             matching_task = next(
-                filter(lambda task: task.id == task_id, eval_config.tasks),
-                None,
+                filter(
+                    lambda task: task.id
+                    == task_id,  # pylint: disable=cell-var-from-loop
+                    eval_config.tasks,
+                )
             )
             assert (
-                matching_task,
-                f"Task {task_id} is undefined. Create an entry for it in the evaluation config",
-            )
+                matching_task
+            ), f"Task {task_id} is undefined. Create an entry for it in the evaluation config"
+
             tasks.append(matching_task)
         return tasks
 
@@ -148,13 +151,17 @@ class EvalCommandLine:
         metrics = []
         for metric_id in run_config.metrics:
             matching_metric_group = next(
-                filter(lambda metric: metric.id == metric_id, eval_config.metric_groups)
+                filter(
+                    lambda metric: metric.id
+                    == metric_id,  # pylint: disable=cell-var-from-loop
+                    eval_config.metric_groups,
+                )
             )
             # Ensure selected task is defined in the eval config
             assert (
-                matching_metric_group,
-                f"Metric group {metric_id} is undefined. Create an entry for it in the evaluation config",
-            )
+                matching_metric_group
+            ), f"Metric group {metric_id} is undefined. Create an entry for it in the evaluation config"
+
             metrics.append(matching_metric_group)
         return metrics
 

@@ -2,7 +2,6 @@ import os
 import re
 from typing import List, Tuple
 import openai
-from pydantic import BaseModel
 from gpt_eval.utils import Retry
 from gpt_eval.utils.prompts import SYSTEM_PROMPT
 from gpt_eval.config.constants import JudgeModels

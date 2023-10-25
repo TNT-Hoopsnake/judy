@@ -3,7 +3,6 @@ from typing import List
 from types import ModuleType
 import openai
 from easyllm.clients import huggingface
-from pydantic import BaseModel
 from easyllm.prompt_utils import PROMPT_MAPPING
 from easyllm.prompt_utils.base import buildBasePrompt
 from easyllm.schema.base import ChatMessage
@@ -92,9 +91,13 @@ class BaseResponder(ABC):
         pass
 
     @abstractmethod
-    def get_model_responses(self, prompts: List[ModelPrompt]) -> List[ModelResponse]:
+    def get_model_responses(
+        self, model_prompts: List[ModelPrompt]
+    ) -> List[ModelResponse]:
         pass
 
     @abstractmethod
-    def build_eval_prompts(self, responses: List[ModelResponse]) -> List[EvalPrompt]:
+    def build_eval_prompts(
+        self, model_responses: List[ModelResponse]
+    ) -> List[EvalPrompt]:
         pass
