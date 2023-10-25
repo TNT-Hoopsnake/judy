@@ -2,10 +2,17 @@ import os
 import re
 from typing import List, Tuple
 import openai
+from pydantic import BaseModel
 from gpt_eval.utils import Retry
 from gpt_eval.utils.prompts import SYSTEM_PROMPT
 from gpt_eval.config.constants import JudgeModels
-from gpt_eval.config.config_models import EvaluationConfig, MetricConfig
+from gpt_eval.config.config_models import (
+    EvaluationConfig,
+    MetricConfig,
+    MetricScore,
+    EvalResponse,
+    EvalPrompt,
+)
 
 
 def get_est_token_cost(eval_model: JudgeModels, num_tokens: int) -> float:
@@ -107,24 +114,22 @@ class Evaluator:
 
         return tuple(scores)
 
-    def get_evaluation_results(self, prompt: str) -> dict:
+    def get_evaluation_results(self, prompt: str) -> EvalResponse:
         eval_result = self.get_evaluation_response(prompt)
-
-        # Create a dictionary to store the evaluation results for each criterion
-        model_result_dict = {"prompt": prompt, "eval": eval_result}
 
         # Parse the evaluation metrics from the result using the criteria dictionary
         metric_scores = self.parse_result(eval_result)
         # Dynamically populate the model_result_dict with scores for each criterion
+        scores = []
         for i, metric in enumerate(self.metrics):
-            model_result_dict[metric.name] = metric_scores[i]
+            scores.append(MetricScore(name=metric.name, score=metric_scores[i]))
 
-        return model_result_dict
+        return EvalResponse(prompt=prompt, response=eval_result, scores=scores)
 
-    def run_evaluation(self, prompts: List[dict]) -> List[dict]:
+    def run_evaluation(self, prompts: List[EvalPrompt]) -> List[EvalResponse]:
         model_results = []
         for prompt in prompts:
-            results = self.get_evaluation_results(prompt["eval_prompt"])
+            results = self.get_evaluation_results(prompt.prompt)
             model_results.append(results)
 
         return model_results

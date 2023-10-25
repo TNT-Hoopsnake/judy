@@ -1,44 +1,60 @@
+from typing import List
 from gpt_eval.utils.prompts import SUMMARIZATION_PROMPT
+from gpt_eval.config.config_models import ModelPrompt, ModelResponse, EvalPrompt
 from .base_responder import BaseResponder
 
 SUMMARY_PREPROMPT = "Provide a concise and accurate summary of the following text:\n"
 
 
+class SummModelPrompt(ModelPrompt):
+    context: str
+    prompt: str
+    answer: str
+
+
 class SummarizationResponder(BaseResponder):
-    def build_model_prompts(self):
+    def build_model_prompts(self) -> List[SummModelPrompt]:
         docs, docs_gt = self.data
         model_prompts = []
         for doc, gt in zip(docs, docs_gt):
             prompt = f'{SUMMARY_PREPROMPT}"{doc[:self._context_char_limit]}"\n'
 
             model_prompts.append(
-                {
-                    "prompt": prompt,
-                    "context": doc[: self._context_char_limit],
-                    "gt_answer": gt,
-                }
+                SummModelPrompt(
+                    prompt=prompt,
+                    context=doc[: self._context_char_limit],
+                    answer=gt,
+                )
             )
 
         return model_prompts
 
-    def get_model_responses(self, prompt_contexts):
+    def get_model_responses(
+        self, model_prompts: List[ModelPrompt]
+    ) -> List[ModelResponse]:
         model_responses = []
-        for prompt_context in prompt_contexts:
-            response = self.query_model(prompt_context["prompt"])
+        for model_prompt in model_prompts:
+            response = self.query_model(model_prompt.prompt)
             # eventually should be linked via sql tables
-            model_responses.append({"response": response, **prompt_context})
+            model_responses.append(
+                ModelResponse(response=response, prompt=model_prompt)
+            )
 
         return model_responses
 
-    def build_eval_prompts(self, prompt_context_responses):
+    def build_eval_prompts(self, model_responses: List[ModelResponse]):
         eval_prompts = []
-        for prompt_context_response in prompt_context_responses:
+        for model_response in model_responses:
             replacement_map = {
-                "[DISCUSSION]": prompt_context_response["context"],
-                "[SUMMARY]": prompt_context_response["response"],
+                "[DISCUSSION]": model_response.prompt.context,
+                "[SUMMARY]": model_response.response,
             }
-            prompt = self.pb.build_full_prompt(SUMMARIZATION_PROMPT, replacement_map)
+            eval_prompt = self.pb.build_full_prompt(
+                SUMMARIZATION_PROMPT, replacement_map
+            )
 
-            eval_prompts.append({"eval_prompt": prompt, **prompt_context_response})
+            eval_prompts.append(
+                EvalPrompt(prompt=eval_prompt, model_response=model_response)
+            )
 
         return eval_prompts

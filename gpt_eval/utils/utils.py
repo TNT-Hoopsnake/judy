@@ -1,26 +1,7 @@
 import json
 import os
 from typing import List
-from types import ModuleType
-import openai
-from easyllm.clients import huggingface
-from gpt_eval.config.config_models import DatasetConfig
-from gpt_eval.config import ApiTypes
-
-
-def get_completion_library(api_type: ApiTypes, api_base: str) -> ModuleType:
-    if api_type == ApiTypes.OPENAI:
-        lib = openai
-        # openai lib requires api_key to be set, even if we're not accessing the actual OAI api
-        openai.api_key = ""
-    elif api_type == ApiTypes.TGI:
-        lib = huggingface
-    else:
-        raise ValueError(
-            f"Unable to determine completion library for api type: {api_type}"
-        )
-    lib.api_base = api_base
-    return lib
+from gpt_eval.config.config_models import DatasetConfig, EvalPrompt, EvalResponse
 
 
 def ensure_directory_exists(dir_path: str) -> str:
@@ -31,12 +12,24 @@ def ensure_directory_exists(dir_path: str) -> str:
 
 
 def save_evaluation_results(
-    model_name: str, dataset_name: str, data: dict, results_dir: str
+    model_name: str,
+    dataset_name: str,
+    eval_prompts: List[EvalPrompt],
+    eval_results: List[EvalResponse],
+    results_dir: str,
 ):
     ensure_directory_exists(results_dir)
 
     model_results_dir = ensure_directory_exists(os.path.join(results_dir, model_name))
     clean_ds_name = dataset_name.split("/")[-1]
+    data = []
+    for idx, item in enumerate(eval_results):
+        data.append(
+            {
+                "model": eval_prompts[idx].model_response.model_dump(),
+                "evaluator": item.model_dump(),
+            }
+        )
 
     with open(
         os.path.join(model_results_dir, f"{clean_ds_name}-results.json"), "w+"

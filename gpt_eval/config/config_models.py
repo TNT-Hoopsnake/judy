@@ -99,3 +99,28 @@ class MetricGroupConfig(BaseModel):
     min: int = 0
     max: int = 10
     metrics: conlist(MetricConfig, min_length=1)
+
+
+class ModelPrompt(BaseModel):
+    pass
+
+
+class ModelResponse(BaseModel):
+    response: str
+    prompt: ModelPrompt
+
+
+class EvalPrompt(BaseModel):
+    prompt: str
+    model_response: ModelResponse
+
+
+class MetricScore(BaseModel):
+    name: str
+    score: int
+
+
+class EvalResponse(BaseModel):
+    prompt: str
+    response: str
+    scores: List[MetricScore]

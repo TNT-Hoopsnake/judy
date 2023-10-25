@@ -297,11 +297,12 @@ def run_eval(
                     ignore_cache,
                 )
 
-                all_results = []
-                for prompt, result in zip(eval_prompts, evaluation_results):
-                    all_results.append({**prompt, **result})
                 save_evaluation_results(
-                    eval_model.name, dataset_name, all_results, results_dir
+                    eval_model.name,
+                    dataset_name,
+                    eval_prompts,
+                    evaluation_results,
+                    results_dir,
                 )
                 models.add(eval_model.name)
                 scenarios.add(eval_scenario.type)

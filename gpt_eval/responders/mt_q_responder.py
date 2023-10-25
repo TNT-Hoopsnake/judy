@@ -1,15 +1,21 @@
+from typing import List
 from gpt_eval.utils.prompts import MT_Q_PROMPT
+from gpt_eval.config.config_models import ModelPrompt, ModelResponse, EvalPrompt
 from .base_responder import BaseResponder
+
+
+class MTModelPrompt(ModelPrompt):
+    questions: List[str]
 
 
 class MTQuestionResponder(BaseResponder):
     # the data doesnt need adjusting but for consistency, this function is still used
     def build_model_prompts(self):
-        return [{"questions": question} for question in self.data]
+        return [MTModelPrompt(questions=question) for question in self.data]
 
-    def get_model_responses(self, prompt_contexts):
+    def get_model_responses(self, model_prompts: List[MTModelPrompt]) -> ModelResponse:
         model_responses = []
-        for turns in prompt_contexts:
+        for turns in model_prompts:
             model_qa = []
             messages = [
                 {
@@ -17,7 +23,7 @@ class MTQuestionResponder(BaseResponder):
                     "content": 'You are a helpful assistant that answers user questions truthfully and to the best of your ability. If you are unable to truthfully respond to a question, simply respond with "CANNOTANSWER"',
                 }
             ]
-            for turn in turns["questions"]:
+            for turn in turns.questions:
                 messages.append({"role": "user", "content": turn})
 
                 model_ans = self.query_chat_model(messages)
@@ -26,17 +32,21 @@ class MTQuestionResponder(BaseResponder):
                     f"[USER QUESTION]{turn}\n[ASSISTANT RESPONSE]{model_ans}"
                 )
 
-            model_responses.append({"model_response": "\n".join(model_qa), **turns})
+            model_responses.append(
+                ModelResponse(response="\n".join(model_qa), prompt=turns)
+            )
 
         return model_responses
 
-    def build_eval_prompts(self, prompt_context_responses):
+    def build_eval_prompts(self, model_responses: List[ModelResponse]):
         eval_prompts = []
-        for prompt_response in prompt_context_responses:
-            replacement_map = {"[CONTENT]": prompt_response["model_response"]}
+        for model_response in model_responses:
+            replacement_map = {"[CONTENT]": model_response.response}
 
-            prompt = self.pb.build_full_prompt(MT_Q_PROMPT, replacement_map)
+            eval_prompt = self.pb.build_full_prompt(MT_Q_PROMPT, replacement_map)
 
-            eval_prompts.append({"eval_prompt": prompt, **prompt_response})
+            eval_prompts.append(
+                EvalPrompt(prompt=eval_prompt, model_response=model_response)
+            )
 
         return eval_prompts
