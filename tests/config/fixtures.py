@@ -1,22 +1,14 @@
 from gpt_eval.config import EvaluationConfig, DatasetConfig
+from . import VALID_METRIC_GROUPS, VALID_TASKS, VALID_RUN_CONFIG
 
 
 def valid_eval_dataset_config():
     eval_config = EvaluationConfig(
-        judge="gpt-3.5-turbo",
-        judge_api_key=None,
-        judge_temperature=1,
-        use_proxy=True,
-        proxies={"http": "http://sample-proxy", "https": "http://sample-proxy"},
-        random_seed=10,
-        num_evals=1,
-        scenarios=[{"type": "summ", "datasets": ["fake_summ"], "tags": []}],
-        max_tokens=10,
-        context_char_limit=10,
-        temperature=1,
-        evaluated_models=[
+        metric_groups=VALID_METRIC_GROUPS,
+        tasks=VALID_TASKS,
+        models=[
             {
-                "name": "test-model",
+                "id": "test-model",
                 "api_type": "tgi",
                 "api_base": "http://fake.domain",
                 "tags": [],
@@ -25,139 +17,136 @@ def valid_eval_dataset_config():
     )
     dataset_config = [
         DatasetConfig(
-            name="fake_summ",
+            id="fake_summ",
             source="http://fake.dataset",
-            scenarios=["summ"],
+            tasks=["summ"],
             formatter="fake_formatter",
         )
     ]
     return eval_config, dataset_config
 
 
-def invalid_eval_dataset_config():
-    # scenario for given dataset in eval is not valid according to given dataset config
+def invalid_task_for_dataset_config():
+    # task for given dataset in eval is not valid according to given dataset config
     eval_config = EvaluationConfig(
-        judge="gpt-3.5-turbo",
-        judge_api_key=None,
-        judge_temperature=1,
-        use_proxy=True,
-        proxies={"http": "http://sample-proxy", "https": "http://sample-proxy"},
-        random_seed=10,
-        num_evals=1,
-        scenarios=[{"type": "summ", "datasets": ["fake_summ"]}],
-        max_tokens=10,
-        context_char_limit=10,
-        temperature=1,
-        evaluated_models=[
-            {"name": "test-model", "api_type": "tgi", "api_base": "http://fake.domain"}
+        metric_groups=VALID_METRIC_GROUPS,
+        tasks=[{"id": "summ", "datasets": ["fake_summ"]}],
+        models=[
+            {"id": "test-model", "api_type": "tgi", "api_base": "http://fake.domain"}
         ],
     )
     dataset_config = [
         DatasetConfig(
-            name="fake_summ",
+            id="fake_summ",
             source="http://fake.dataset",
-            scenarios=["mt_q"],
+            tasks=["mt_q"],
             formatter="fake_formatter",
         )
     ]
     return eval_config, dataset_config
 
 
-def valid_system_configs():
-    system_configs = [
+VALID_RUN_PARAMS = [
+    (
+        "define proxies and use them",
         {
+            **VALID_RUN_CONFIG,
             "judge": "gpt-3.5-turbo",
             "judge_api_key": None,
             "judge_temperature": 1,
             "use_proxy": True,
             "proxies": {"http": "http://sample-proxy", "https": "http://sample-proxy"},
         },
+    ),
+    (
+        "no proxies and disabled proxy use",
         {
+            **VALID_RUN_CONFIG,
             "judge": "gpt-4",
             "judge_api_key": "hf-whatever",
             "judge_temperature": 0.2,
             "use_proxy": False,
         },
+    ),
+    (
+        "no judge api key",
         {
+            **VALID_RUN_CONFIG,
             "judge": "gpt-4",
             "judge_temperature": 1.9,
             "use_proxy": False,
         },
-    ]
-    for config in system_configs:
-        eval_config, _ = valid_eval_dataset_config()
-        yield {**eval_config.model_dump(), **config}
+    ),
+]
 
 
-def invalid_system_configs():
-    system_configs = [
-        # proxies must exist when use_proxy is true
+INVALID_RUN_PARAMS = [
+    (
+        "proxies must exist when use_proxy is true",
         {
+            **{k: v for k, v in VALID_RUN_CONFIG.items() if k != "proxies"},
             "judge": "gpt-3.5-turbo",
             "judge_api_key": None,
             "judge_temperature": 1,
             "use_proxy": True,
         },
-        # judge temperature must be between 0 and 2
+    ),
+    (
+        "judge temperature must be between 0 and 2",
         {
+            **VALID_RUN_CONFIG,
             "judge": "gpt-4",
             "judge_api_key": "hf-whatever",
             "judge_temperature": 3.0,
             "use_proxy": False,
         },
-        # use_proxy field must exist
+    ),
+    (
+        "use_proxy field must exist",
         {
+            **{k: v for k, v in VALID_RUN_CONFIG.items() if k != "use_proxy"},
             "judge": "gpt-4",
             "judge_temperature": 1.9,
         },
-    ]
-    for config in system_configs:
-        eval_config, _ = invalid_eval_dataset_config()
-        yield {**eval_config.model_dump(), **config}
-
-
-def valid_eval_configs():
-    eval_configs = [
+    ),
+    (
+        "max tokens is a negative value",
         {
-            "judge": "gpt-4",
-            "judge_temperature": 1.9,
-            "use_proxy": False,
-            "random_seed": 123,
-            "num_evals": 1,
-            "scenarios": [
-                {"type": "summ", "datasets": ["xsum", "cnn_dailymail"]},
-            ],
-            "max_tokens": 300,
-            "context_char_limit": 1000,
-            "temperature": 1,
-            "evaluated_models": [
+            **VALID_RUN_CONFIG,
+            "max_tokens": -1,
+        },
+    ),
+]
+
+
+VALID_EVAL_PARAMS = [
+    (
+        "define multiple models",
+        {
+            "metric_groups": VALID_METRIC_GROUPS,
+            "tasks": VALID_TASKS,
+            "models": [
                 {
-                    "name": "flan-t5-small",
+                    "id": "flan-t5-small",
                     "api_type": "tgi",
                     "api_base": "http://localhost:8080",
                 },
                 {
-                    "name": "flan-example",
+                    "id": "flan-example",
                     "api_type": "openai",
                     "api_base": "http://not.real",
                 },
             ],
         },
+    ),
+    (
+        "define single model",
         {
-            "judge": "gpt-4",
-            "judge_temperature": 1.9,
-            "use_proxy": False,
-            "random_seed": None,
-            "num_evals": 1,
-            "scenarios": [
-                {"type": "summ", "datasets": ["xsum", "cnn_dailymail"]},
-            ],
-            "max_tokens": 500,
-            "context_char_limit": 1000,
-            "temperature": 1,
-            "evaluated_models": [
+            "metric_groups": VALID_METRIC_GROUPS,
+            "tasks": VALID_TASKS,
+            "models": [
                 {
-                    "name": "flan-t5-small",
+                    "id": "flan-t5-small",
                     "api_type": "tgi",
                     "api_base": "http://localhost:8080",
                     "temperature": 0.5,
@@ -166,143 +155,129 @@ def valid_eval_configs():
                 }
             ],
         },
-    ]
-    for config in eval_configs:
-        yield config
+    ),
+]
 
 
-def invalid_eval_configs():
-    eval_configs = [
-        # missing api_base
+INVALID_EVAL_PARAMS = [
+    (
+        "missing api_base",
         {
-            "random_seed": 123,
-            "num_evals": 1,
-            "scenarios": [
-                {"type": "summ", "datasets": ["xsum", "cnn_dailymail"]},
-            ],
-            "max_tokens": 300,
-            "context_char_limit": 1000,
-            "temperature": 1,
-            "evaluated_models": [
+            "metric_groups": VALID_METRIC_GROUPS,
+            "tasks": VALID_TASKS,
+            "models": [
                 {
-                    "name": "flan-t5-small",
+                    "id": "flan-t5-small",
                     "api_type": "tgi",
                 },
             ],
         },
-        # max tokens is a negative value
+    ),
+    (
+        "evaluated models is empty",
         {
-            "random_seed": None,
-            "num_evals": 1,
-            "scenarios": [
-                {"type": "summ", "datasets": ["xsum", "cnn_dailymail"]},
-            ],
-            "max_tokens": -1,
-            "context_char_limit": 1000,
-            "temperature": 1,
-            "evaluated_models": [
-                {
-                    "name": "flan-t5-small",
-                    "api_type": "tgi",
-                    "api_base": "http://localhost:8080",
-                    "temperature": 0.5,
-                    "max_tokens": 300,
-                    "context_char_limit": 10,
-                }
-            ],
+            "metric_groups": VALID_METRIC_GROUPS,
+            "tasks": VALID_TASKS,
+            "models": [],
         },
-        # evaluated models is empty
-        {
-            "random_seed": None,
-            "num_evals": 1,
-            "scenarios": [
-                {"type": "summ", "datasets": ["xsum", "cnn_dailymail"]},
-            ],
-            "max_tokens": 100,
-            "context_char_limit": 1000,
-            "temperature": 1,
-            "evaluated_models": [],
-        },
-    ]
-    for config in eval_configs:
-        yield config
+    ),
+]
 
 
-def valid_dataset_configs():
-    dataset_configs = [
+VALID_DATASET_PARAMS = [
+    (
+        "no version specified",
         [
             {
-                "name": "dim/mt_bench_en",
+                "id": "dim/mt_bench_en",
+                "name": "MT BENCH",
                 "source": "https://huggingface.co/datasets/dim/mt_bench_en",
                 "version": None,
-                "scenarios": ["mt_q"],
+                "tasks": ["mt_q"],
                 "formatter": "mtbench_formatter",
             },
             {
-                "name": "ms_marco",
+                "id": "ms_marco",
+                "name": "MS MARCO",
                 "source": "https://huggingface.co/datasets/ms_marco",
                 "version": "v1.1",
-                "scenarios": ["st_qac"],
+                "tasks": ["st_qac"],
                 "formatter": "msmarco_formatter",
             },
         ],
+    ),
+    (
+        "versions defined",
         [
             {
-                "name": "dim/mt_bench_en",
+                "id": "dim/mt_bench_en",
+                "name": "MT BENCH",
                 "source": "https://huggingface.co/datasets/dim/mt_bench_en",
-                "scenarios": ["mt_q"],
+                "tasks": ["mt_q"],
                 "formatter": "mtbench_formatter",
             },
             {
-                "name": "ms_marco",
+                "id": "ms_marco",
+                "name": "MS MARCO",
                 "source": "https://huggingface.co/datasets/ms_marco",
                 "version": "v1.1",
-                "scenarios": ["st_qac"],
+                "tasks": ["st_qac"],
                 "formatter": "msmarco_formatter",
             },
         ],
-    ]
-    for config in dataset_configs:
-        yield config
+    ),
+]
 
 
-def invalid_dataset_configs():
-    dataset_configs = [
-        # dataset name is missing
+INVALID_DATASET_PARAMS = [
+    (
+        "dataset id is missing",
         [
             {
                 "source": "https://huggingface.co/datasets/dim/mt_bench_en",
                 "version": None,
-                "scenarios": ["mt_q"],
+                "tasks": ["mt_q"],
                 "formatter": "mtbench_formatter",
             },
             {
-                "name": "ms_marco",
+                "id": "ms_marco",
                 "source": "https://huggingface.co/datasets/ms_marco",
                 "version": "v1.1",
-                "scenarios": ["st_qac"],
+                "tasks": ["st_qac"],
                 "formatter": "msmarco_formatter",
             },
         ],
-        # must contain at least one dataset config
-        [],
-        # dataset scenarios must contain at least one item
+    ),
+    ("must contain at least one dataset config", []),
+    (
+        "dataset tasks must contain at least one item",
         [
             {
-                "name": "mt_bench",
+                "id": "mt_bench",
+                "name": "MT BENCH",
                 "source": "https://huggingface.co/datasets/dim/mt_bench_en",
                 "version": None,
-                "scenarios": [],
+                "tasks": [],
                 "formatter": "mtbench_formatter",
             },
             {
-                "name": "ms_marco",
+                "id": "ms_marco",
+                "name": "MS MARCO",
                 "source": "https://huggingface.co/datasets/ms_marco",
                 "version": "v1.1",
-                "scenarios": ["st_qac"],
+                "tasks": ["st_qac"],
                 "formatter": "msmarco_formatter",
             },
         ],
-    ]
-    for config in dataset_configs:
-        yield config
+    ),
+]
+
+
+def get_param_ids(values):
+    for value in values:
+        yield value[0]
+
+
+def get_param_data(values):
+    for value in values:
+        yield value[1]
