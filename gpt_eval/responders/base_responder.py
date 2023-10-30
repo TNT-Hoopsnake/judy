@@ -39,7 +39,7 @@ class BaseResponder(ABC):
 
     @Retry()
     def query_chat_model(self, chat_history: List[dict]):
-        lib = self.get_completion_library(self._api_type, self._api_base)
+        lib = self.get_completion_library()
 
         messages = [ChatMessage(**message) for message in chat_history]
 
@@ -72,18 +72,18 @@ class BaseResponder(ABC):
         eval_prompts = self.build_eval_prompts(responses)
         return eval_prompts
 
-    def get_completion_library(self, api_type: ApiTypes, api_base: str) -> ModuleType:
-        if api_type == ApiTypes.OPENAI:
+    def get_completion_library(self) -> ModuleType:
+        if self._api_type == ApiTypes.OPENAI:
             lib = openai
             # openai lib requires api_key to be set, even if we're not accessing the actual OAI api
             openai.api_key = ""
-        elif api_type == ApiTypes.TGI:
+        elif self._api_type == ApiTypes.TGI:
             lib = huggingface
         else:
             raise ValueError(
-                f"Unable to determine completion library for api type: {api_type}"
+                f"Unable to determine completion library for api type: {self._api_type}"
             )
-        lib.api_base = api_base
+        lib.api_base = self._api_base
         return lib
 
     @abstractmethod

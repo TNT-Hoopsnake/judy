@@ -76,7 +76,7 @@ class MTQuestionAnswerContextResponder(BaseResponder):
 
     def build_eval_prompts(
         self, model_responses: List[MTQACModelResponse]
-    ) -> EvalPrompt:
+    ) -> List[EvalPrompt]:
         eval_prompts = []
         for model_response in model_responses:
             replacement_map = {

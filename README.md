@@ -19,7 +19,7 @@ Judy has been inspired by techniques used in research including HELM [1] and LLM
 
 ## 1. Installation
 
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install foobar.
+Use the package manager [pip](https://pip.pypa.io/en/stable/) to install Judy.
 
 ```bash
 pip install git+https://github.com/TNT-Hoopsnake/gpt-eval

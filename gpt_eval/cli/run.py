@@ -166,7 +166,7 @@ class EvalCommandLine:
         return metrics
 
     @staticmethod
-    def get_metrics_for_group(task_id: TaskTypes, metric_group: str):
+    def get_metrics_for_group(task_id: TaskTypes, metric_group: MetricGroupConfig):
         metrics = []
         for metric_config in metric_group.metrics:
             # override group values with metric specific values

@@ -1,10 +1,10 @@
 from typing import Dict, List
-from gpt_eval.config.config_models import MetricConfig
+from gpt_eval.config.config_models import MetricConfig, TaskTypes
 from .prompts import BASE_PROMPT
 
 
 class PromptBuilder:
-    def __init__(self, task_type: str, metric_configs: List[MetricConfig]):
+    def __init__(self, task_type: TaskTypes, metric_configs: List[MetricConfig]):
         self.task_type = task_type
         self.metric_configs = metric_configs
 

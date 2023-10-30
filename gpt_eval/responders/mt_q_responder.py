@@ -13,7 +13,9 @@ class MTQuestionResponder(BaseResponder):
     def build_model_prompts(self):
         return [MTModelPrompt(questions=question) for question in self.data]
 
-    def get_model_responses(self, model_prompts: List[MTModelPrompt]) -> ModelResponse:
+    def get_model_responses(
+        self, model_prompts: List[MTModelPrompt]
+    ) -> List[ModelResponse]:
         model_responses = []
         for turns in model_prompts:
             model_qa = []
