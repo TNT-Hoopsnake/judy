@@ -18,6 +18,7 @@ from gpt_eval.config import (
     EvaluationConfig,
     MetricConfig,
     RunConfig,
+    IgnoreCacheTypes,
 )
 from gpt_eval.data.loader import load_formatted_data
 from gpt_eval.evaluation import Evaluator
@@ -37,13 +38,16 @@ class EvalCommandLine:
         model: str,
         run_config: RunConfig,
         metrics: List[MetricConfig],
-        ignore_cache: bool,
+        ignore_cache_type: IgnoreCacheTypes,
     ):
         eval_results = None
         eval_results_cache_key = (
             f"{self.cache.calculate_content_hash(eval_prompts)}-{model.name}"
         )
-        if ignore_cache:
+        if ignore_cache_type and ignore_cache_type in [
+            IgnoreCacheTypes.ALL,
+            IgnoreCacheTypes.PROMPTS,
+        ]:
             print("Skipping cache")
         else:
             eval_results = self.cache.get(cache_key, eval_results_cache_key)
@@ -92,11 +96,14 @@ class EvalCommandLine:
         ds_config: DatasetConfig,
         run_config: RunConfig,
         task_type: TaskTypes,
-        ignore_cache: bool,
+        ignore_cache_type: IgnoreCacheTypes,
     ) -> List[dict]:
         eval_prompts_cache_key = f"eval_prompts-{model.name}"
         eval_prompts = None
-        if ignore_cache:
+        if ignore_cache_type and ignore_cache_type in [
+            IgnoreCacheTypes.ALL,
+            IgnoreCacheTypes.PROMPTS,
+        ]:
             print("Skipping cache")
         else:
             eval_prompts = self.cache.get(cache_key, eval_prompts_cache_key)
@@ -106,8 +113,12 @@ class EvalCommandLine:
         if eval_prompts:
             print("Evaluation prompts retrieved from cache")
         else:
+            ignore_dataset_cache: bool = ignore_cache_type in [
+                IgnoreCacheTypes.ALL,
+                IgnoreCacheTypes.DATASET,
+            ]
             data = self.get_formatted_data(
-                cache_key, ds_config, run_config, ignore_cache
+                cache_key, ds_config, run_config, ignore_dataset_cache
             )
 
             responder_cls = get_responder_class_map().get(task_type)
@@ -251,10 +262,9 @@ class EvalCommandLine:
 @click.option(
     "-f",
     "--ignore-cache",
-    is_flag=True,
-    show_default=True,
-    default=False,
-    help="Ignore cache and force datasets to be re-downloaded and prompts to be re-evaluated",
+    type=click.Choice(["all", "datasets", "prompts"], case_sensitive=False),
+    default=None,
+    help="Ignore cache and force datasets to be re-downloaded and/or prompts to be re-evaluated",
 )
 def run_eval(
     task,

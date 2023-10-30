@@ -34,6 +34,12 @@ class TaskTypes(str, Enum):
     DISINFO_REITERATION = "disinfo_reiteration"
 
 
+class IgnoreCacheTypes(str, Enum):
+    ALL = "all"
+    DATASET = "datasets"
+    PROMPTS = "prompts"
+
+
 class SourceTypes(str, Enum):
     HUGGINGFACE_HUB = "hub"
     URL = "url"
