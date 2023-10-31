@@ -12,7 +12,6 @@ from pydantic import (
 )
 
 
-
 from .constants import (
     ApiTypes,
     DatasetSplits,
@@ -39,7 +38,7 @@ class TaskConfig(BaseModel):
 
 class EvaluatedModel(BaseModel):
     id: str
-    name: Optional[str]= Field(default=None)
+    name: Optional[str] = Field(default=None)
     api_type: ApiTypes
     api_base: HttpUrl
 

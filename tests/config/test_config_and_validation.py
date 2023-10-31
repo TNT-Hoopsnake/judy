@@ -20,6 +20,7 @@ from .fixtures import (
     invalid_task_for_dataset_config,
 )
 
+
 # Test for checking if tasks are valid for a dataset
 @pytest.mark.parametrize("eval_config, dataset_config", [valid_eval_dataset_config()])
 def test_datasets_valid_for_task(eval_config, dataset_config):

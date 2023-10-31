@@ -4,6 +4,7 @@ from typing import List
 from datetime import datetime
 from gpt_eval.config.config_models import DatasetConfig, EvalPrompt, EvalResponse
 
+
 def ensure_directory_exists(dir_path: str) -> str:
     if not os.path.exists(dir_path):
         os.mkdir(dir_path)
@@ -53,15 +54,18 @@ def get_dataset_config(
     return ds_config
 
 
-def dump_metadata(dir_path: str, dataset_tags: List[str], task_tags: List[str], model_tags: List[str]):
+def dump_metadata(
+    dir_path: str, dataset_tags: List[str], task_tags: List[str], model_tags: List[str]
+):
     with open(dir_path / "metadata.json", "w+") as fn:
         data = {
-            "dataset_tags":dataset_tags,
-            "task_tags":task_tags,
-            "model_tags":model_tags,
-            "timestamp":datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+            "dataset_tags": dataset_tags,
+            "task_tags": task_tags,
+            "model_tags": model_tags,
+            "timestamp": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
         }
         json.dump(data, fn, indent=4)
+
 
 def dump_configs(dir_path: str, configs):
     with open(dir_path / "config.json", "w+") as fn:
