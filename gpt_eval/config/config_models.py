@@ -11,6 +11,8 @@ from pydantic import (
     validator,
 )
 
+
+
 from .constants import (
     ApiTypes,
     DatasetSplits,
@@ -22,21 +24,22 @@ from .constants import (
 
 # adding "= Field(default=None)" to fields in the following models
 # enables those models to be valid while missing those fields entirely
-# this is done for most optional fields as well as fields that can be overridden
+# Any field that makes use of this must be optional.
+# When dumping models to json, these fields will exist but will be null and we must allow for that
 
 
 class TaskConfig(BaseModel):
     id: TaskTypes
-    name: str = Field(default=None)
-    desc: str = Field(default=None)
+    name: Optional[str] = Field(default=None)
+    desc: Optional[str] = Field(default=None)
     datasets: conlist(str, min_length=1)
     model_config = ConfigDict(use_enum_values=True)
-    tags: List[str] = Field(default=None)
+    tags: Optional[List[str]] = Field(default=None)
 
 
 class EvaluatedModel(BaseModel):
     id: str
-    name: str = Field(default=None)
+    name: Optional[str]= Field(default=None)
     api_type: ApiTypes
     api_base: HttpUrl
 
@@ -44,7 +47,7 @@ class EvaluatedModel(BaseModel):
     context_char_limit: Optional[PositiveInt] = Field(default=None)
     temperature: Optional[confloat(ge=0.0, le=2.0)] = Field(default=None)
     family: ModelFamilyTypes = ModelFamilyTypes.GENERIC
-    tags: List[str] = Field(default=None)
+    tags: Optional[List[str]] = Field(default=None)
 
     model_config = ConfigDict(use_enum_values=True)
 
@@ -80,9 +83,9 @@ class RunConfig(BaseModel):
 class MetricConfig(BaseModel):
     name: str
     desc: str
-    tasks: List[TaskTypes] = Field(default=None)
-    min: int = Field(default=None)
-    max: int = Field(default=None)
+    tasks: Optional[List[TaskTypes]] = Field(default=None)
+    min: Optional[int] = Field(default=None)
+    max: Optional[int] = Field(default=None)
 
 
 class MetricGroupConfig(BaseModel):
@@ -102,7 +105,7 @@ class EvaluationConfig(BaseModel):
 
 class DatasetConfig(BaseModel):
     id: str
-    name: str = Field(default=None)
+    name: Optional[str] = Field(default=None)
     source: HttpUrl
     tasks: conlist(TaskTypes, min_length=1)
     formatter: str
@@ -110,7 +113,7 @@ class DatasetConfig(BaseModel):
     version: Optional[str] = Field(default=None)
     split: DatasetSplits = DatasetSplits.TRAIN
     model_config = ConfigDict(use_enum_values=True)
-    tags: List[str] = Field(default=None)
+    tags: Optional[List[str]] = Field(default=None)
 
 
 class ModelPrompt(BaseModel):

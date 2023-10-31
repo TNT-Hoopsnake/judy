@@ -57,6 +57,7 @@ def load_and_validate_configs(config_definitions):
             configs[config_def["key"]] = validated_data
         except Exception as e:
             print(f"Error while validating {config_def['key']} config")
+            print(config_data)
             print(e)
             sys.exit(1)
 

@@ -31,7 +31,18 @@ VALID_RUN_CONFIG = {
     "max_tokens": 2048,
     "context_char_limit": 1024,
     "temperature": 0.5,
-    "models": ["test-model"],
+    "models": [
+        {
+            "id": "flan-t5-small",
+            "api_type": "tgi",
+            "api_base": "http://localhost:8080",
+        },
+        {
+            "id": "flan-example",
+            "api_type": "openai",
+            "api_base": "http://not.real",
+        },
+    ],
     "tasks": ["st_q"],
     "metrics": ["accuracy"],
     "models": [

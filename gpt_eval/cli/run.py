@@ -22,7 +22,14 @@ from gpt_eval.config import (
 )
 from gpt_eval.data.loader import load_formatted_data
 from gpt_eval.evaluation import Evaluator
-from gpt_eval.utils import PromptBuilder, get_dataset_config, save_evaluation_results
+from gpt_eval.utils import (
+    PromptBuilder,
+    get_dataset_config,
+    save_evaluation_results,
+    dump_metadata,
+    dump_configs,
+    ensure_directory_exists,
+)
 
 
 class EvalCommandLine:
@@ -304,6 +311,9 @@ def run_eval(
         raise FileNotFoundError(f"Output directory does not exist: {output}")
     results_dir = output_dir / name
 
+    ensure_directory_exists(results_dir)
+    dump_configs(results_dir, configs)
+    dump_metadata(results_dir, dataset_tag, task_tag, model_tag)
     models, tasks, datasets = set(), set(), set()
 
     run_tasks = cli.get_tasks_for_run(run_config, eval_config)

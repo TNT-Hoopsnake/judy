@@ -18,7 +18,7 @@ def load_formatted_data(
     dataset = get_dataset(ds_config, ignore_cache)
     if isinstance(dataset, DatasetDict):
         dataset = dataset.get(ds_config.split)
-        if not dataset.get(ds_config.split):
+        if not dataset:
             raise ValueError(
                 f"Invalid split ({ds_config.split}) set for dataset ({ds_config.id})"
             )

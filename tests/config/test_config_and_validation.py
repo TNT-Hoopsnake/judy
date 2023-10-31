@@ -1,3 +1,12 @@
+import pytest
+from pydantic import ValidationError
+from gpt_eval.config import (
+    load_validated_config,
+    EvaluationConfig,
+    DatasetConfig,
+    RunConfig,
+    check_tasks_valid_for_dataset,
+)
 from .fixtures import (
     get_param_ids,
     get_param_data,
@@ -10,16 +19,6 @@ from .fixtures import (
     valid_eval_dataset_config,
     invalid_task_for_dataset_config,
 )
-import pytest
-from gpt_eval.config import (
-    load_validated_config,
-    EvaluationConfig,
-    DatasetConfig,
-    RunConfig,
-    check_tasks_valid_for_dataset,
-)
-from pydantic import ValidationError
-
 
 # Test for checking if tasks are valid for a dataset
 @pytest.mark.parametrize("eval_config, dataset_config", [valid_eval_dataset_config()])
@@ -42,7 +41,7 @@ def test_datasets_valid_for_task(eval_config, dataset_config):
 @pytest.mark.parametrize(
     "eval_config, dataset_config", [invalid_task_for_dataset_config()]
 )
-def test_datasets_valid_for_task(eval_config, dataset_config):
+def test_datasets_invalid_for_task(eval_config, dataset_config):
     """
     Test that the function check_tasks_valid_for_dataset correctly detects invalid tasks for a given dataset configuration.
 

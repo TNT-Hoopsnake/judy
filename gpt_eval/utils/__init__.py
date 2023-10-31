@@ -4,4 +4,6 @@ from .utils import (
     ensure_directory_exists,
     get_dataset_config,
     save_evaluation_results,
+    dump_configs,
+    dump_metadata,
 )

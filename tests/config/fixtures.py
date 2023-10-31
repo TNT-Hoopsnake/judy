@@ -17,9 +17,9 @@ def valid_eval_dataset_config():
     )
     dataset_config = [
         DatasetConfig(
-            id="fake_summ",
+            id="riddle_sense",
             source="http://fake.dataset",
-            tasks=["summ"],
+            tasks=["st_qa"],
             formatter="fake_formatter",
         )
     ]
