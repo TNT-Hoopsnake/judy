@@ -1,83 +1,83 @@
-- name: dim/mt_bench_en
+- id: dim/mt_bench_en
   source: https://huggingface.co/datasets/dim/mt_bench_en
   version: null
-  scenarios: [mt_q]
+  tasks: [mt_q]
   formatter: mtbench_formatter
   split: train
 
-- name: ms_marco
+- id: ms_marco
   source: https://huggingface.co/datasets/ms_marco
   version: v1.1
-  scenarios: [st_qac]
+  tasks: [st_qac]
   formatter: msmarco_formatter
   split: test
 
-- name: xsum
+- id: xsum
   source: https://huggingface.co/datasets/xsum
   version: null
-  scenarios: [summ]
+  tasks: [summ]
   formatter: xsum_formatter
   split: test
 
-- name: cnn_dailymail
+- id: cnn_dailymail
   source: https://huggingface.co/datasets/cnn_dailymail
   version: 3.0.0
-  scenarios: [summ]
+  tasks: [summ]
   formatter: cnn_formatter
   split: test
 
-- name: squad_v2
+- id: squad_v2
   source: https://huggingface.co/datasets/squad_v2
   version: null
-  scenarios: [st_qac]
+  tasks: [st_qac]
   formatter: squad_formatter
   split: validation
 
-- name: quac
+- id: quac
   source: https://huggingface.co/datasets/quac
   version: null
-  scenarios: [mt_qac]
+  tasks: [mt_qac]
   formatter: quac_formatter
   split: validation
 
-- name: disinfo_reiteration
+- id: disinfo_reiteration
   source: https://drive.google.com/uc?export=download&id=1uVJbsgPCHFAvH43I6SVvU3Ayo8dh-y_N
   version: null
-  scenarios: [disinfo_reiteration]
+  tasks: [disinfo_reiteration]
   formatter: disinfo_reiteration_formatter
   source_type: url
   split: train
 
-- name: disinfo_wedging
+- id: disinfo_wedging
   source: https://drive.google.com/uc?export=download&id=1kWB3_F4Tobc_oVGC_T-a5DHEh-AB4GTc
   version: null
-  scenarios: [disinfo_wedging]
+  tasks: [disinfo_wedging]
   formatter: disinfo_wedging_formatter
   source_type: url
   split: train
 
-- name: launch/open_question_type
+- id: launch/open_question_type
   source: https://huggingface.co/datasets/launch/open_question_type
-  scenarios: [st_q]
+  tasks: [st_q]
   formatter: open_question_formatter
   split: test
 
-- name: tau/mrqa
+- id: tau/mrqa
   source: https://huggingface.co/datasets/tau/mrqa
-  scenarios: [st_qac]
+  tasks: [st_qac]
   formatter: mrqa_formatter
   version: hotpotqa
   split: test
 
-- name: riddle_sense
+- id: riddle_sense
   source: https://huggingface.co/datasets/riddle_sense
-  scenarios: [st_qa]
+  tasks: [st_qa]
   formatter: riddle_sense_formatter
   split: train
 
-- name: ethics_suite
+- id: ethics_suite
   source: https://raw.githubusercontent.com/LLM-Ethics/EthicsSuite/main/data.jsonl
-  scenarios: [st_q]
+  tasks: [st_q]
   formatter: ethics_suite_formatter
   source_type: url
   split: train

@@ -15,7 +15,7 @@ DATASETS_DIR = pathlib.Path(user_data_dir(APP_NAME, APP_AUTHOR))
 
 DATASET_CONFIG_PATH = USER_CONFIG_DIR / "dataset_config.yaml"
 EVAL_CONFIG_PATH = USER_CONFIG_DIR / "eval_config.yaml"
-METRIC_CONFIG_PATH = USER_CONFIG_DIR / "metric_config.yaml"
+RUN_CONFIG_PATH = USER_CONFIG_DIR / "run_config.yaml"
 
 
 class ApiTypes(str, Enum):
@@ -23,7 +23,7 @@ class ApiTypes(str, Enum):
     TGI = "tgi"
 
 
-class ScenarioTypes(str, Enum):
+class TaskTypes(str, Enum):
     SUMMARIZATION = "summ"
     MT_QUESTION = "mt_q"
     ST_QUESTION = "st_q"
@@ -32,6 +32,12 @@ class ScenarioTypes(str, Enum):
     MT_QUESTION_ANSWER_CONTEXT = "mt_qac"
     DISINFO_WEDGING = "disinfo_wedging"
     DISINFO_REITERATION = "disinfo_reiteration"
+
+
+class IgnoreCacheTypes(str, Enum):
+    ALL = "all"
+    DATASET = "datasets"
+    PROMPTS = "prompts"
 
 
 class SourceTypes(str, Enum):
@@ -75,27 +81,27 @@ def get_responder_class_map():
     )
 
     return {
-        ScenarioTypes.MT_QUESTION: MTQuestionResponder,
-        ScenarioTypes.MT_QUESTION_ANSWER_CONTEXT: MTQuestionAnswerContextResponder,
-        ScenarioTypes.ST_QUESTION_ANSWER_CONTEXT: STQuestionAnswerContextResponder,
-        ScenarioTypes.SUMMARIZATION: SummarizationResponder,
-        ScenarioTypes.DISINFO_REITERATION: DisinfoReiterationResponder,
-        ScenarioTypes.DISINFO_WEDGING: DisinfoWedgingResponder,
-        ScenarioTypes.ST_QUESTION: STQuestionResponder,
-        ScenarioTypes.ST_QUESTION_ANSWER: STQuestionAnswerResponder,
+        TaskTypes.MT_QUESTION: MTQuestionResponder,
+        TaskTypes.MT_QUESTION_ANSWER_CONTEXT: MTQuestionAnswerContextResponder,
+        TaskTypes.ST_QUESTION_ANSWER_CONTEXT: STQuestionAnswerContextResponder,
+        TaskTypes.SUMMARIZATION: SummarizationResponder,
+        TaskTypes.DISINFO_REITERATION: DisinfoReiterationResponder,
+        TaskTypes.DISINFO_WEDGING: DisinfoWedgingResponder,
+        TaskTypes.ST_QUESTION: STQuestionResponder,
+        TaskTypes.ST_QUESTION_ANSWER: STQuestionAnswerResponder,
     }
 
 
 def get_config_definitions(
     eval_config: Optional[pathlib.Path],
     dataset_config: Optional[pathlib.Path],
-    metric_config: Optional[pathlib.Path],
+    run_config: Optional[pathlib.Path],
 ):
     # avoid circular dependencies
     from gpt_eval.config.config_models import (
         EvaluationConfig,
         DatasetConfig,
-        MetricGroupConfig,
+        RunConfig,
     )
 
     return [
@@ -112,9 +118,9 @@ def get_config_definitions(
             "key": "datasets",
         },
         {
-            "cls": MetricGroupConfig,
-            "path": metric_config or METRIC_CONFIG_PATH,
-            "is_list": True,
-            "key": "metrics",
+            "cls": RunConfig,
+            "path": run_config or RUN_CONFIG_PATH,
+            "is_list": False,
+            "key": "run",
         },
     ]

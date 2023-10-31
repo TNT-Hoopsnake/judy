@@ -1,23 +1,39 @@
+from typing import List
 from gpt_eval.utils.prompts import MT_QAC_PROMPT
+from gpt_eval.config.config_models import ModelPrompt, ModelResponse, EvalPrompt
 from .base_responder import BaseResponder
 
 
+class MTQACModelPrompt(ModelPrompt):
+    questions: List[str]
+    context: str
+    gt_answers: List[List[str]]
+
+
+class MTQACModelResponse(ModelResponse):
+    gt_response: str
+
+
 class MTQuestionAnswerContextResponder(BaseResponder):
-    def build_model_prompts(self):
+    def build_model_prompts(self) -> List[MTQACModelPrompt]:
         questions_list, answers_list, contexts = self.data
 
         model_prompts = []
         for questions, answers, context in zip(questions_list, answers_list, contexts):
             context = context[: self._context_char_limit]
             model_prompts.append(
-                {"questions": questions, "context": context, "gt_answers": answers}
+                MTQACModelPrompt(
+                    questions=questions, context=context, gt_answers=answers
+                )
             )
 
         return model_prompts
 
-    def get_model_responses(self, prompt_contexts):
+    def get_model_responses(
+        self, model_prompts: List[MTQACModelPrompt]
+    ) -> List[MTQACModelResponse]:
         model_responses = []
-        for prompt_context in prompt_contexts:
+        for model_prompt in model_prompts:
             model_qa = []
             expected_qa = []
             messages = [
@@ -27,7 +43,7 @@ class MTQuestionAnswerContextResponder(BaseResponder):
                 },
                 {
                     "role": "user",
-                    "content": f"Study and understand this piece of text. I will follow up with questions about it. {prompt_context['context']}",
+                    "content": f"Study and understand this piece of text. I will follow up with questions about it. {model_prompt.context}",
                 },
                 {
                     "role": "assistant",
@@ -35,7 +51,7 @@ class MTQuestionAnswerContextResponder(BaseResponder):
                 },
             ]
             for question, expected_answer in zip(
-                prompt_context["questions"], prompt_context["gt_answers"]
+                model_prompt.questions, model_prompt.gt_answers
             ):
                 messages.append({"role": "user", "content": question})
 
@@ -49,25 +65,29 @@ class MTQuestionAnswerContextResponder(BaseResponder):
                 )
 
             model_responses.append(
-                {
-                    "model_responses": "\n".join(model_qa),
-                    "expected_answers": "\n".join(expected_qa),
-                    **prompt_context,
-                }
+                MTQACModelResponse(
+                    response="\n".join(model_qa),
+                    gt_response="\n".join(expected_qa),
+                    prompt=model_prompt,
+                )
             )
 
         return model_responses
 
-    def build_eval_prompts(self, prompt_context_responses):
+    def build_eval_prompts(
+        self, model_responses: List[MTQACModelResponse]
+    ) -> List[EvalPrompt]:
         eval_prompts = []
-        for prompt_context_response in prompt_context_responses:
+        for model_response in model_responses:
             replacement_map = {
-                "[ANSWER]": prompt_context_response["expected_answers"],
-                "[CONTEXT]": prompt_context_response["context"],
-                "[CONTENT]": prompt_context_response["model_responses"],
+                "[ANSWER]": model_response.gt_response,
+                "[CONTEXT]": model_response.prompt.context,
+                "[CONTENT]": model_response.response,
             }
-            prompt = self.pb.build_full_prompt(MT_QAC_PROMPT, replacement_map)
+            eval_prompt = self.pb.build_full_prompt(MT_QAC_PROMPT, replacement_map)
 
-            eval_prompts.append({"eval_prompt": prompt, **prompt_context_response})
+            eval_prompts.append(
+                EvalPrompt(prompt=eval_prompt, model_response=model_response)
+            )
 
         return eval_prompts

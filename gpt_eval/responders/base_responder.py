@@ -1,13 +1,21 @@
 from abc import ABC, abstractmethod
 from typing import List
+from types import ModuleType
+import openai
+from easyllm.clients import huggingface
 from easyllm.prompt_utils import PROMPT_MAPPING
 from easyllm.prompt_utils.base import buildBasePrompt
 from easyllm.schema.base import ChatMessage
 
 from gpt_eval.config import ApiTypes
 from gpt_eval.utils import PromptBuilder
-from gpt_eval.config.config_models import EvaluatedModel
-from gpt_eval.utils import Retry, get_completion_library
+from gpt_eval.config.config_models import (
+    EvaluatedModel,
+    ModelPrompt,
+    ModelResponse,
+    EvalPrompt,
+)
+from gpt_eval.utils import Retry
 
 
 class BaseResponder(ABC):
@@ -31,7 +39,7 @@ class BaseResponder(ABC):
 
     @Retry()
     def query_chat_model(self, chat_history: List[dict]):
-        lib = get_completion_library(self._api_type, self._api_base)
+        lib = self.get_completion_library()
 
         messages = [ChatMessage(**message) for message in chat_history]
 
@@ -64,14 +72,32 @@ class BaseResponder(ABC):
         eval_prompts = self.build_eval_prompts(responses)
         return eval_prompts
 
+    def get_completion_library(self) -> ModuleType:
+        if self._api_type == ApiTypes.OPENAI:
+            lib = openai
+            # openai lib requires api_key to be set, even if we're not accessing the actual OAI api
+            openai.api_key = ""
+        elif self._api_type == ApiTypes.TGI:
+            lib = huggingface
+        else:
+            raise ValueError(
+                f"Unable to determine completion library for api type: {self._api_type}"
+            )
+        lib.api_base = self._api_base
+        return lib
+
     @abstractmethod
-    def build_model_prompts(self):
+    def build_model_prompts(self) -> List[ModelPrompt]:
         pass
 
     @abstractmethod
-    def get_model_responses(self, prompt_contexts: List[dict]):
+    def get_model_responses(
+        self, model_prompts: List[ModelPrompt]
+    ) -> List[ModelResponse]:
         pass
 
     @abstractmethod
-    def build_eval_prompts(self, prompt_context_responses: List[dict]):
+    def build_eval_prompts(
+        self, model_responses: List[ModelResponse]
+    ) -> List[EvalPrompt]:
         pass

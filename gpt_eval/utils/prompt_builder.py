@@ -1,11 +1,11 @@
 from typing import Dict, List
-from gpt_eval.config.config_models import MetricConfig
+from gpt_eval.config.config_models import MetricConfig, TaskTypes
 from .prompts import BASE_PROMPT
 
 
 class PromptBuilder:
-    def __init__(self, scenario_type: str, metric_configs: List[MetricConfig]):
-        self.scenario_type = scenario_type
+    def __init__(self, task_type: TaskTypes, metric_configs: List[MetricConfig]):
+        self.task_type = task_type
         self.metric_configs = metric_configs
 
     @property
@@ -27,10 +27,10 @@ class PromptBuilder:
         return prompt
 
     def build_full_prompt(
-        self, scenario_prompt: str, replacement_map: Dict[str, str]
+        self, task_prompt: str, replacement_map: Dict[str, str]
     ) -> str:
         prompt = self.base_prompt
-        prompt += scenario_prompt
+        prompt += task_prompt
         for replace_key, replace_val in replacement_map.items():
             prompt = prompt.replace(replace_key, replace_val)
 

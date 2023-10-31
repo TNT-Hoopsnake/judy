@@ -31,18 +31,18 @@ def load_validated_config(json_data, validate_cls, is_list=False):
     return validated_data
 
 
-def check_scenarios_valid_for_dataset(eval_config, datasets_config):
-    for scenario in eval_config.scenarios:
-        for dataset_name in scenario.datasets:
+def check_tasks_valid_for_dataset(eval_config, datasets_config):
+    for task in eval_config.tasks:
+        for dataset_name in task.datasets:
             dataset_config = next(
-                (config for config in datasets_config if config.name == dataset_name),
+                (config for config in datasets_config if config.id == dataset_name),
                 None,
             )
             if not dataset_config:
                 raise ValueError(f"Dataset '{dataset_name}' is not configured.")
-            if scenario.type not in dataset_config.scenarios:
+            if task.id not in dataset_config.tasks:
                 raise ValueError(
-                    f"Scenario type '{scenario.type}' is not valid for dataset '{dataset_name}'."
+                    f"Task type '{task.id}' is not valid for dataset '{dataset_name}'."
                 )
 
 
@@ -57,11 +57,12 @@ def load_and_validate_configs(config_definitions):
             configs[config_def["key"]] = validated_data
         except Exception as e:
             print(f"Error while validating {config_def['key']} config")
+            print(config_data)
             print(e)
             sys.exit(1)
 
     try:
-        check_scenarios_valid_for_dataset(configs["eval"], configs["datasets"])
+        check_tasks_valid_for_dataset(configs["eval"], configs["datasets"])
     except ValueError as e:
         print(e)
         sys.exit(1)

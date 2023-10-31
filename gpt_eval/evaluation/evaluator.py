@@ -5,7 +5,13 @@ import openai
 from gpt_eval.utils import Retry
 from gpt_eval.utils.prompts import SYSTEM_PROMPT
 from gpt_eval.config.constants import JudgeModels
-from gpt_eval.config.config_models import EvaluationConfig, MetricConfig
+from gpt_eval.config.config_models import (
+    RunConfig,
+    MetricConfig,
+    MetricScore,
+    EvalResponse,
+    EvalPrompt,
+)
 
 
 def get_est_token_cost(eval_model: JudgeModels, num_tokens: int) -> float:
@@ -22,20 +28,20 @@ DEFAULT_OPENAI_API_BASE = "https://api.openai.com/v1"
 
 
 class Evaluator:
-    def __init__(self, eval_config: EvaluationConfig, metrics: List[MetricConfig]):
-        openai.api_key = eval_config.judge_api_key or os.getenv("OPENAI_KEY")
+    def __init__(self, run_config: RunConfig, metrics: List[MetricConfig]):
+        openai.api_key = run_config.judge_api_key or os.getenv("OPENAI_KEY")
         # ensure the openai api_base points to the correct address
         # this can be updated by responders so it is necessary to set it here
         openai.api_base = DEFAULT_OPENAI_API_BASE
-        if eval_config.use_proxy and eval_config.proxies:
+        if run_config.use_proxy and run_config.proxies:
             openai.proxy = {
-                "http": str(eval_config.proxies.http),
-                "https": str(eval_config.proxies.https),
+                "http": str(run_config.proxies.http),
+                "https": str(run_config.proxies.https),
             }
 
         self.metrics = metrics
-        self.evaluator = eval_config.judge
-        self.evaluator_temperature = eval_config.judge_temperature
+        self.evaluator = run_config.judge
+        self.evaluator_temperature = run_config.judge_temperature
         self.eval_input_tokens: List[int] = []
         self.eval_output_tokens: List[int] = []
 
@@ -107,24 +113,22 @@ class Evaluator:
 
         return tuple(scores)
 
-    def get_evaluation_results(self, prompt: str) -> dict:
+    def get_evaluation_results(self, prompt: str) -> EvalResponse:
         eval_result = self.get_evaluation_response(prompt)
-
-        # Create a dictionary to store the evaluation results for each criterion
-        model_result_dict = {"prompt": prompt, "eval": eval_result}
 
         # Parse the evaluation metrics from the result using the criteria dictionary
         metric_scores = self.parse_result(eval_result)
         # Dynamically populate the model_result_dict with scores for each criterion
+        scores = []
         for i, metric in enumerate(self.metrics):
-            model_result_dict[metric.name] = metric_scores[i]
+            scores.append(MetricScore(name=metric.name, score=metric_scores[i]))
 
-        return model_result_dict
+        return EvalResponse(prompt=prompt, response=eval_result, scores=scores)
 
-    def run_evaluation(self, prompts: List[dict]) -> List[dict]:
+    def run_evaluation(self, prompts: List[EvalPrompt]) -> List[EvalResponse]:
         model_results = []
         for prompt in prompts:
-            results = self.get_evaluation_results(prompt["eval_prompt"])
+            results = self.get_evaluation_results(prompt.prompt)
             model_results.append(results)
 
         return model_results
