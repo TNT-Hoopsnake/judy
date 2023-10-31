@@ -1,10 +1,3 @@
-models:
-  - name: Flan T5 Small
-    id: flan-t5-small
-    api_type: tgi
-    api_base: http://localhost:8080
-    temperature: 0.8
-    family: generic
 tasks:
   - name: Question Answering - Single turn with ground truth
     desc: This task tests the ability of a model to answer a single question without any context, and asks the judge to evaluate the response against a ground truth value (answer).

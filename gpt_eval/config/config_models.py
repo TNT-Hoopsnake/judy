@@ -65,7 +65,7 @@ class RunConfig(BaseModel):
     max_tokens: PositiveInt
     context_char_limit: PositiveInt
     temperature: confloat(ge=0.0, le=2.0)
-    models: conlist(str, min_length=1)
+    models: conlist(EvaluatedModel, min_length=1)
     tasks: conlist(str, min_length=1)
     metrics: conlist(str, min_length=1)
 
@@ -96,7 +96,6 @@ class MetricGroupConfig(BaseModel):
 
 
 class EvaluationConfig(BaseModel):
-    models: conlist(EvaluatedModel, min_length=1)
     tasks: conlist(TaskConfig, min_length=1)
     metric_groups: conlist(MetricGroupConfig, min_length=1)
 

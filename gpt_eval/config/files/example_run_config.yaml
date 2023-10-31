@@ -10,6 +10,11 @@ num_evals: 1
 max_tokens: 1000
 context_char_limit: 1000
 temperature: 1.1
-models: ["flan-t5-small"]
 tasks: ["st_qa", "st_q"]
 metrics: ["rq"]
+models:
+  - id: flan-t5-small
+    api_type: tgi
+    api_base: http://localhost:8080
+    temperature: 0.8
+    family: generic

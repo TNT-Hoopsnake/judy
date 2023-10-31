@@ -309,7 +309,7 @@ def run_eval(
     run_tasks = cli.get_tasks_for_run(run_config, eval_config)
     run_metric_groups = cli.get_metric_groups_for_run(run_config, eval_config)
 
-    for eval_model in eval_config.models:
+    for eval_model in run_config.models:
         if not EvalCommandLine.matches_tag(eval_model, model_tag):
             click.echo(f"Skipping model {eval_model.id} - does not match tag")
             continue
