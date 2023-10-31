@@ -29,7 +29,7 @@ class TaskConfig(BaseModel):
     id: TaskTypes
     name: str = Field(default=None)
     desc: str = Field(default=None)
-    datasets: List[str]
+    datasets: conlist(str, min_length=1)
     model_config = ConfigDict(use_enum_values=True)
     tags: List[str] = Field(default=None)
 
