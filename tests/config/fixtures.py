@@ -31,9 +31,6 @@ def invalid_task_for_dataset_config():
     eval_config = EvaluationConfig(
         metric_groups=VALID_METRIC_GROUPS,
         tasks=[{"id": "summ", "datasets": ["fake_summ"]}],
-        models=[
-            {"id": "test-model", "api_type": "tgi", "api_base": "http://fake.domain"}
-        ],
     )
     dataset_config = [
         DatasetConfig(
@@ -77,6 +74,40 @@ VALID_RUN_PARAMS = [
             "use_proxy": False,
         },
     ),
+    (
+        "define multiple models",
+        {
+            **VALID_RUN_CONFIG,
+            "models": [
+                {
+                    "id": "flan-t5-small",
+                    "api_type": "tgi",
+                    "api_base": "http://localhost:8080",
+                },
+                {
+                    "id": "flan-example",
+                    "api_type": "openai",
+                    "api_base": "http://not.real",
+                },
+            ],
+        },
+    ),
+    (
+        "define single model",
+        {
+            **VALID_RUN_CONFIG,
+            "models": [
+                {
+                    "id": "flan-t5-small",
+                    "api_type": "tgi",
+                    "api_base": "http://localhost:8080",
+                    "temperature": 0.5,
+                    "max_tokens": 300,
+                    "context_char_limit": 10,
+                }
+            ],
+        },
+    ),
 ]
 
 
@@ -116,55 +147,10 @@ INVALID_RUN_PARAMS = [
             "max_tokens": -1,
         },
     ),
-]
-
-
-VALID_EVAL_PARAMS = [
-    (
-        "define multiple models",
-        {
-            "metric_groups": VALID_METRIC_GROUPS,
-            "tasks": VALID_TASKS,
-            "models": [
-                {
-                    "id": "flan-t5-small",
-                    "api_type": "tgi",
-                    "api_base": "http://localhost:8080",
-                },
-                {
-                    "id": "flan-example",
-                    "api_type": "openai",
-                    "api_base": "http://not.real",
-                },
-            ],
-        },
-    ),
-    (
-        "define single model",
-        {
-            "metric_groups": VALID_METRIC_GROUPS,
-            "tasks": VALID_TASKS,
-            "models": [
-                {
-                    "id": "flan-t5-small",
-                    "api_type": "tgi",
-                    "api_base": "http://localhost:8080",
-                    "temperature": 0.5,
-                    "max_tokens": 300,
-                    "context_char_limit": 10,
-                }
-            ],
-        },
-    ),
-]
-
-
-INVALID_EVAL_PARAMS = [
     (
         "missing api_base",
         {
-            "metric_groups": VALID_METRIC_GROUPS,
-            "tasks": VALID_TASKS,
+            **VALID_RUN_CONFIG,
             "models": [
                 {
                     "id": "flan-t5-small",
@@ -176,9 +162,56 @@ INVALID_EVAL_PARAMS = [
     (
         "evaluated models is empty",
         {
+            **VALID_RUN_CONFIG,
+            "models": [],
+        },
+    ),
+]
+
+
+VALID_EVAL_PARAMS = [
+    (
+        "define multiple tasks",
+        {
             "metric_groups": VALID_METRIC_GROUPS,
             "tasks": VALID_TASKS,
-            "models": [],
+        },
+    ),
+]
+
+
+INVALID_EVAL_PARAMS = [
+    (
+        "no datasets for task",
+        {
+            "metric_groups": VALID_METRIC_GROUPS,
+            "tasks": [
+                {
+                    "name": "QA",
+                    "id": "st_qa",
+                    "desc": "Question Answering",
+                    "datasets": [],
+                }
+            ],
+        },
+    ),
+    (
+        "no tasks for metric group",
+        {
+            "metric_groups": [
+                {
+                    "name": " Response Quality",
+                    "id": "rq",
+                    "min": 0,
+                    "max": 10,
+                    "tasks": [],
+                    "metrics": [
+                        {"name": "Accuracy", "desc": "accuracy"},
+                        {"name": "Coherence", "desc": "choherence"},
+                    ],
+                }
+            ],
+            "tasks": VALID_TASKS,
         },
     ),
 ]

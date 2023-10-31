@@ -34,4 +34,7 @@ VALID_RUN_CONFIG = {
     "models": ["test-model"],
     "tasks": ["st_q"],
     "metrics": ["accuracy"],
+    "models": [
+        {"id": "test-model", "api_type": "tgi", "api_base": "http://fake.domain"}
+    ],
 }
