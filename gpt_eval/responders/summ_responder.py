@@ -1,6 +1,6 @@
 from typing import List
 from gpt_eval.utils.prompts import SUMMARIZATION_PROMPT
-from gpt_eval.config.config_models import ModelPrompt, ModelResponse, EvalPrompt
+from gpt_eval.responders import ModelPrompt, ModelResponse, EvalPrompt
 from .base_responder import BaseResponder
 
 SUMMARY_PREPROMPT = "Provide a concise and accurate summary of the following text:\n"
@@ -14,7 +14,7 @@ class SummModelPrompt(ModelPrompt):
 
 class SummarizationResponder(BaseResponder):
     def build_model_prompts(self) -> List[SummModelPrompt]:
-        docs, docs_gt = self.data
+        docs, docs_gt = self.get_data_tuple()
         model_prompts = []
         for doc, gt in zip(docs, docs_gt):
             prompt = f'{SUMMARY_PREPROMPT}"{doc[:self._context_char_limit]}"\n'

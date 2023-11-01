@@ -12,7 +12,7 @@ from pydantic import (
 )
 
 
-from .constants import (
+from .settings import (
     ApiTypes,
     DatasetSplits,
     ModelFamilyTypes,
@@ -113,28 +113,3 @@ class DatasetConfig(BaseModel):
     split: DatasetSplits = DatasetSplits.TRAIN
     model_config = ConfigDict(use_enum_values=True)
     tags: Optional[List[str]] = Field(default=None)
-
-
-class ModelPrompt(BaseModel):
-    pass
-
-
-class ModelResponse(BaseModel):
-    response: str
-    prompt: ModelPrompt
-
-
-class EvalPrompt(BaseModel):
-    prompt: str
-    model_response: ModelResponse
-
-
-class MetricScore(BaseModel):
-    name: str
-    score: int
-
-
-class EvalResponse(BaseModel):
-    prompt: str
-    response: str
-    scores: List[MetricScore]

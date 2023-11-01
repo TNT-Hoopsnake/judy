@@ -1,6 +1,6 @@
 from typing import List
 from gpt_eval.utils.prompts import MT_QAC_PROMPT
-from gpt_eval.config.config_models import ModelPrompt, ModelResponse, EvalPrompt
+from gpt_eval.responders import ModelPrompt, ModelResponse, EvalPrompt
 from .base_responder import BaseResponder
 
 
@@ -16,8 +16,7 @@ class MTQACModelResponse(ModelResponse):
 
 class MTQuestionAnswerContextResponder(BaseResponder):
     def build_model_prompts(self) -> List[MTQACModelPrompt]:
-        questions_list, answers_list, contexts = self.data
-
+        questions_list, contexts, answers_list = self.get_data_tuple()
         model_prompts = []
         for questions, answers, context in zip(questions_list, answers_list, contexts):
             context = context[: self._context_char_limit]

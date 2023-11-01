@@ -2,7 +2,8 @@ import json
 import os
 from typing import List
 from datetime import datetime
-from gpt_eval.config.config_models import DatasetConfig, EvalPrompt, EvalResponse
+from gpt_eval.config import DatasetConfig
+from gpt_eval.responders import EvalPrompt, EvalResponse
 
 
 def ensure_directory_exists(dir_path: str) -> str:

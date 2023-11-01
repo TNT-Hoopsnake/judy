@@ -8,7 +8,6 @@ from gpt_eval.cache import SqliteCache
 from gpt_eval.cli.install import setup_user_dir
 from gpt_eval.config import (
     get_config_definitions,
-    get_responder_class_map,
     load_and_validate_configs,
     EvaluatedModel,
     DatasetConfig,
@@ -20,8 +19,10 @@ from gpt_eval.config import (
     RunConfig,
     IgnoreCacheTypes,
 )
-from gpt_eval.data.loader import load_formatted_data
+from gpt_eval.dataset import BaseFormattedData
+from gpt_eval.dataset.loader import load_formatted_data
 from gpt_eval.evaluation import Evaluator
+from gpt_eval.responders import get_responder_class_map
 from gpt_eval.utils import (
     PromptBuilder,
     get_dataset_config,
@@ -76,7 +77,7 @@ class EvalCommandLine:
         ds_config: DatasetConfig,
         run_config: RunConfig,
         ignore_cache: bool,
-    ):
+    ) -> BaseFormattedData:
         data = None
         if ignore_cache:
             print("Skipping cache")
@@ -138,6 +139,7 @@ class EvalCommandLine:
                 prompt_builder=prompt_builder,
                 model_config=model,
             )
+
             eval_prompts = responder.get_evaluation_prompts()
 
             self.cache.set(cache_key, eval_prompts_cache_key, eval_prompts)
@@ -347,6 +349,8 @@ def run_eval(
                     continue
 
                 cache_key = cli.cache.build_cache_key(dataset_id, eval_task.id)
+
+                click.echo(f"Running task {ds_config.id} for dataset {eval_task.id}")
 
                 eval_prompts = cli.get_evaluation_prompts(
                     cache_key,

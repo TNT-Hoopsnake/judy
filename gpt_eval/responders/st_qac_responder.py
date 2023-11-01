@@ -1,6 +1,6 @@
 from typing import List
 from gpt_eval.utils.prompts import ST_QAC_PROMPT
-from gpt_eval.config.config_models import ModelPrompt, ModelResponse, EvalPrompt
+from gpt_eval.responders import ModelPrompt, ModelResponse, EvalPrompt
 from .base_responder import BaseResponder
 
 SINGLE_TURN_QUESTION_ANSWER_CONTEXT_PREPROMPT = (
@@ -17,7 +17,7 @@ class STQACModelPrompt(ModelPrompt):
 
 class STQuestionAnswerContextResponder(BaseResponder):
     def build_model_prompts(self) -> List[STQACModelPrompt]:
-        questions, answers, contexts = self.data
+        questions, answers, contexts = self.get_data_tuple()
 
         model_prompts = []
         for question, answer, context in zip(questions, answers, contexts):

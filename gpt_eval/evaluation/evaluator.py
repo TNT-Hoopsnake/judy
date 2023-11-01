@@ -4,10 +4,12 @@ from typing import List, Tuple
 import openai
 from gpt_eval.utils import Retry
 from gpt_eval.utils.prompts import SYSTEM_PROMPT
-from gpt_eval.config.constants import JudgeModels
-from gpt_eval.config.config_models import (
+from gpt_eval.config.settings import JudgeModels
+from gpt_eval.config import (
     RunConfig,
     MetricConfig,
+)
+from gpt_eval.responders import (
     MetricScore,
     EvalResponse,
     EvalPrompt,

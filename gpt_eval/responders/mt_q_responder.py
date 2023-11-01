@@ -1,6 +1,6 @@
 from typing import List
 from gpt_eval.utils.prompts import MT_Q_PROMPT
-from gpt_eval.config.config_models import ModelPrompt, ModelResponse, EvalPrompt
+from gpt_eval.responders import ModelPrompt, ModelResponse, EvalPrompt
 from .base_responder import BaseResponder
 
 
@@ -11,7 +11,9 @@ class MTModelPrompt(ModelPrompt):
 class MTQuestionResponder(BaseResponder):
     # the data doesnt need adjusting but for consistency, this function is still used
     def build_model_prompts(self):
-        return [MTModelPrompt(questions=question) for question in self.data]
+        return [
+            MTModelPrompt(questions=question[0]) for question in self.get_data_tuple()
+        ]
 
     def get_model_responses(
         self, model_prompts: List[MTModelPrompt]
