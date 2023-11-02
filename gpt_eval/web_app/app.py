@@ -23,9 +23,7 @@ def timestamp_filter(timestamp):
 def runs_dashboard():
     run_data = all_data
 
-    all_evaluations = sum(
-        data["config"]["run"].num_evals for data in run_data.values()
-    )
+    all_evaluations = sum(data["config"]["run"].num_evals for data in run_data.values())
     combined_run = {
         "name": "All",
         "models": df["model"].nunique(),
