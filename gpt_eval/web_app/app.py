@@ -24,7 +24,7 @@ def runs_dashboard():
     run_data = all_data
 
     all_evaluations = sum(
-        [data["config"]["run"].num_evals for data in run_data.values()]
+        data["config"]["run"].num_evals for data in run_data.values()
     )
     combined_run = {
         "name": "All",
