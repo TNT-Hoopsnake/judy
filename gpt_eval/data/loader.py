@@ -29,7 +29,6 @@ def load_formatted_data(
             f"Unable to map dataset ({ds_config.id}) to formatter function"
         ) from exc
     eval_idxs = get_eval_idxs(num_idxs, len(dataset))
-
     return format_func(dataset, eval_idxs)
 
 

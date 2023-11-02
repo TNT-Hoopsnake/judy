@@ -89,8 +89,8 @@ class MetricConfig(BaseModel):
 
 class MetricGroupConfig(BaseModel):
     id: str
-    name: str = Field(default=None)
-    desc: str = Field(default=None)
+    name: Optional[str] = Field(default=None)
+    desc: Optional[str] = Field(default=None)
     tasks: conlist(TaskTypes, min_length=1)
     min: int = 0
     max: int = 10

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% from "table_macro.html" import table %}
+{% block title %}{{context['run']}}{% endblock %}
+
+
+
+{% block content %}
+
+<div class="container">
+    <div class="row text-center mt-3">
+        <h1>RUN: {{context['run']}}</h1>
+    </div>
+    <hr>
+
+
+    <div class="row mt-2">
+        <div class="col">
+            <h4>Run Configuration</h4>
+            <ul>
+                {% for config_key, config_val in context['run_configs'].items() %}
+                <li>{{config_key}}: <strong>{{config_val}}</strong></li>
+                {% endfor %}
+            </ul>
+            <h2>Models</h2>
+            <ul>
+                {% for model in context['models'] %}
+                <li><a href="{{url_for('models', item=model)}}">{{model}}</a></li>
+                {% endfor %}
+            </ul>
+
+            <h2>Tasks</h2>
+            <ul>
+                {% for task in context['tasks'] %}
+                <li><a href="{{url_for('tasks', item=task)}}">{{task}}</a></li>
+                {% endfor %}
+            </ul>
+
+            <h2>Datasets</h2>
+            <ul>
+                {% for dataset in context['datasets'] %}
+                <li><a href="{{url_for('datasets', item=dataset)}}">{{dataset}}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="col-9">
+            <div class="row">
+                <form method="POST">
+                    <label for="groupby">Group By</label>
+                        {% for value, title in context['groupby_options'].items() %}
+                            <button class="btn btn-secondary" name="groupby" value="{{value}}" {% if context['groupby'] == value %}disabled{% endif %}>{{title}}</button>
+                        {% endfor %}
+                </form>
+            </div>
+            <div class="row">
+                {{ table(context['table_data'], context['groupby'] != 'model')}}
+            </div>
+        </div>
+    </div>
+</div>
+   
+
+
+
+{% endblock %}

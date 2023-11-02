@@ -1,0 +1,25 @@
+{% macro table(table_data, with_model=False) %}   
+    {% for dataset, data in table_data.items() %}
+        <h2>{{ dataset }}</h2>
+        <table class="table text-center">
+            <tr>
+                {% if with_model %}
+                    <th>Model</th>
+                {% endif %}
+                {% for metric in data.columns %}
+                    <th>{{ metric }}</th>
+                {% endfor %}
+            </tr>
+            {% for model, row in data.iterrows() %}
+                <tr>
+                    {% if with_model %}
+                        <td>{{model}}</td>
+                    {% endif %}
+                    {% for _, value in row.items() %}
+                        <td>{{ value }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+    {% endfor %}
+{% endmacro %}

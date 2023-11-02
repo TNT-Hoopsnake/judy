@@ -115,7 +115,7 @@ def test_valid_dataset_config(config_data):
     The test should return a list of validated DatasetConfig instances.
 
     """
-    validated_config = load_validated_config(config_data, DatasetConfig, True)
+    validated_config = load_validated_config(config_data, DatasetConfig)
     for validated in validated_config:
         assert isinstance(validated, DatasetConfig)
 
@@ -180,4 +180,4 @@ def test_invalid_dataset_config(config_data):
 
     """
     with pytest.raises(ValidationError):
-        load_validated_config(config_data, DatasetConfig, True)
+        load_validated_config(config_data, DatasetConfig)

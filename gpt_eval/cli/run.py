@@ -29,6 +29,7 @@ from gpt_eval.utils import (
     dump_metadata,
     dump_configs,
     ensure_directory_exists,
+    matches_tag
 )
 
 
@@ -215,17 +216,6 @@ class EvalCommandLine:
                 )
         return metrics
 
-    @staticmethod
-    def matches_tag(
-        config: TaskConfig | EvaluatedModel | DatasetConfig, tag: str
-    ) -> bool:
-        if not tag or not hasattr(config, "tags"):
-            return True
-        config_tags = config.tags or []
-        if tag in config_tags:
-            return True
-        return False
-
 
 @click.command()
 @click.option(
@@ -320,7 +310,7 @@ def run_eval(
     run_metric_groups = cli.get_metric_groups_for_run(run_config, eval_config)
 
     for eval_model in run_config.models:
-        if not EvalCommandLine.matches_tag(eval_model, model_tag):
+        if not matches_tag(eval_model, model_tag):
             click.echo(f"Skipping model {eval_model.id} - does not match tag")
             continue
         # use the model specific values if they exist
@@ -332,7 +322,7 @@ def run_eval(
         )
 
         for eval_task in run_tasks:
-            if not EvalCommandLine.matches_tag(eval_task, task_tag):
+            if not matches_tag(eval_task, task_tag):
                 click.echo(f"Skipping task {eval_task.id} - does not match tag")
                 continue
             metrics = cli.get_metrics_for_task(
@@ -342,7 +332,7 @@ def run_eval(
 
             for dataset_id in eval_task.datasets:
                 ds_config = get_dataset_config(dataset_id, dataset_config)
-                if not EvalCommandLine.matches_tag(ds_config, dataset_tag):
+                if not matches_tag(ds_config, dataset_tag):
                     click.echo(f"Skipping dataset {ds_config.id} - does not match tag")
                     continue
 
@@ -369,6 +359,7 @@ def run_eval(
 
                 save_evaluation_results(
                     eval_model.id,
+                    eval_task,
                     dataset_id,
                     eval_prompts,
                     evaluation_results,

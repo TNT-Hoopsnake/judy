@@ -6,4 +6,5 @@ from .utils import (
     save_evaluation_results,
     dump_configs,
     dump_metadata,
+    matches_tag
 )

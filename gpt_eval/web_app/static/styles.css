@@ -1,0 +1,6 @@
+body {
+    color:rgb(70, 70, 70)
+}
+.no-bullets {
+    list-style-type:none;
+}

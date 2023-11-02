@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% from "table_macro.html" import table %}
+{% block title %}{{context['model']}}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row text-center mt-3">
+        <h1>MODEL: {{context['model']}}</h1>
+    </div>
+    <hr>
+    <div class="row mt-2">
+        <div class="col">
+            <h2>Runs</h2>
+            <ul>
+                {% for run in context['runs'] %}
+                <li><a href="{{url_for('run_page', run_name=run)}}">{{run}}</a></li>
+                {% endfor %}
+            </ul>
+
+            <h2>Tasks</h2>
+            <ul>
+                {% for task in context['tasks'] %}
+                <li><a href="{{url_for('grouped_results', group_by='task', filter=task)}}">{{task}}</a></li>
+                {% endfor %}
+            </ul>
+
+
+            <h2>Datasets</h2>
+            <ul>
+                {% for dataset in context['datasets'] %}
+                <li><a href="{{url_for('grouped_results', group_by='dataset', filter=dataset)}}">{{dataset}}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="col-9">
+            <div class="row">
+                <form method="POST">
+                    <label for="groupby">Group By</label>
+                    <select class="form-select" id="groupby" name="groupby">
+                        {% for value, title in context['groupby_options'].items() %}
+                            <option value="{{value}}" {% if context['groupby'] == value %}selected{% endif %}>{{title}}</option>
+                        {% endfor %}
+                    </select>
+                    <button class="btn btn-success" type="submit">Confirm</button>
+                </form>
+            </div>
+            <div class="row">
+                {{ table(context['table_data'])}}
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
