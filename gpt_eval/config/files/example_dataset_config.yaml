@@ -4,6 +4,7 @@
   tasks: [mt_q]
   formatter: MTBenchFormatter
   split: train
+  tags: ["instruction_following", "open_ended"]
 
 - id: ms_marco
   source: https://huggingface.co/datasets/ms_marco
@@ -11,6 +12,7 @@
   tasks: [st_qac]
   formatter: MsMarcoFormatter
   split: test
+  tags: ["summarization", "documents", "info_retrieval"]
 
 - id: xsum
   source: https://huggingface.co/datasets/xsum
@@ -18,6 +20,7 @@
   tasks: [summ]
   formatter: XsumFormatter
   split: test
+  tags: ["summarization", "documents"]
 
 - id: cnn_dailymail
   source: https://huggingface.co/datasets/cnn_dailymail
@@ -25,6 +28,7 @@
   tasks: [summ]
   formatter: CNNFormatter
   split: test
+  tags: ["summarization", "documents"]
 
 - id: squad_v2
   source: https://huggingface.co/datasets/squad_v2
@@ -32,6 +36,7 @@
   tasks: [st_qac]
   formatter: SquadFormatter
   split: validation
+  tags: ["question_answering"]
 
 - id: quac
   source: https://huggingface.co/datasets/quac
@@ -39,6 +44,7 @@
   tasks: [mt_qac]
   formatter: QuacFormatter
   split: validation
+  tags: ["question_answering"]
 
 - id: disinfo_reiteration
   source: https://drive.google.com/uc?export=download&id=1uVJbsgPCHFAvH43I6SVvU3Ayo8dh-y_N
@@ -47,6 +53,7 @@
   formatter: DisinfoReiterationFormatter
   source_type: url
   split: train
+  tags: ["harms", "disinformation"]
 
 - id: disinfo_wedging
   source: https://drive.google.com/uc?export=download&id=1kWB3_F4Tobc_oVGC_T-a5DHEh-AB4GTc
@@ -55,25 +62,21 @@
   formatter: DisinfoWedgingFormatter
   source_type: url
   split: train
+  tags: ["harms", "disinformation"]
 
 - id: launch/open_question_type
   source: https://huggingface.co/datasets/launch/open_question_type
   tasks: [st_q]
   formatter: OpenQuestionFormatter
   split: test
-
-- id: tau/mrqa
-  source: https://huggingface.co/datasets/tau/mrqa
-  tasks: [st_qac]
-  formatter: MRQAFormatter
-  version: hotpotqa
-  split: test
+  tags: ["question_answering", "open_ended", "reasoning", "commonsense"]
 
 - id: riddle_sense
   source: https://huggingface.co/datasets/riddle_sense
   tasks: [st_qa]
   formatter: RiddleSenseFormatter
   split: train
+  tags: ["question_answering", "reasoning", "commonsense"]
 
 - id: ethics_suite
   source: https://raw.githubusercontent.com/LLM-Ethics/EthicsSuite/main/data.jsonl
@@ -81,17 +84,18 @@
   formatter: EthicsSuiteFormatter
   source_type: url
   split: train
+  tags: ["open_ended", "harms", "question_answering",]
 
-- id: flask
-  source: https://raw.githubusercontent.com/kaistAI/FLASK/main/evaluation_set/flask_evaluation.jsonl
-  tasks: ["st_qa"]
-  formatter: flask_formatter
-  source_type: url
-  split: train
+# - id: flask
+#   source: https://raw.githubusercontent.com/kaistAI/FLASK/main/evaluation_set/flask_evaluation.jsonl
+#   tasks: ["st_qa"]
+#   formatter: flask_formatter
+#   source_type: url
+#   split: train
 
-- id: flask_hard
-  source: https://raw.githubusercontent.com/kaistAI/FLASK/main/evaluation_set/flask_hard_evaluation.jsonl
-  tasks: ["st_qa"]
-  formatter: flask_formatter
-  source_type: url
-  split: train
+# - id: flask_hard
+#   source: https://raw.githubusercontent.com/kaistAI/FLASK/main/evaluation_set/flask_hard_evaluation.jsonl
+#   tasks: ["st_qa"]
+#   formatter: flask_formatter
+#   source_type: url
+#   split: train

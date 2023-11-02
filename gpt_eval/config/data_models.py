@@ -31,7 +31,6 @@ class TaskConfig(BaseModel):
     id: TaskTypes
     name: Optional[str] = Field(default=None)
     desc: Optional[str] = Field(default=None)
-    datasets: conlist(str, min_length=1)
     model_config = ConfigDict(use_enum_values=True)
     tags: Optional[List[str]] = Field(default=None)
 
@@ -68,8 +67,7 @@ class RunConfig(BaseModel):
     context_char_limit: PositiveInt
     temperature: confloat(ge=0.0, le=2.0)
     models: conlist(EvaluatedModel, min_length=1)
-    tasks: conlist(str, min_length=1)
-    metrics: conlist(str, min_length=1)
+    scenarios: conlist(str, min_length=1)
 
     @validator("proxies", always=True)
     def validate_proxies(cls, value, values):  # pylint: disable=no-self-argument
@@ -82,24 +80,23 @@ class RunConfig(BaseModel):
 class MetricConfig(BaseModel):
     name: str
     desc: str
-    tasks: Optional[List[TaskTypes]] = Field(default=None)
-    min: Optional[int] = Field(default=None)
-    max: Optional[int] = Field(default=None)
+    score_min: Optional[int] = Field(default=None)
+    score_max: Optional[int] = Field(default=None)
 
 
-class MetricGroupConfig(BaseModel):
+class ScenarioConfig(BaseModel):
     id: str
     name: str = Field(default=None)
     desc: str = Field(default=None)
-    tasks: conlist(TaskTypes, min_length=1)
-    min: int = 0
-    max: int = 10
+    score_min: int = 0
+    score_max: int = 10
+    datasets: conlist(str, min_length=1)
     metrics: conlist(MetricConfig, min_length=1)
 
 
 class EvaluationConfig(BaseModel):
     tasks: conlist(TaskConfig, min_length=1)
-    metric_groups: conlist(MetricGroupConfig, min_length=1)
+    scenarios: conlist(ScenarioConfig, min_length=1)
 
 
 class DatasetConfig(BaseModel):

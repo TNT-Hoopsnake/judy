@@ -101,8 +101,8 @@ class Evaluator:
                     # scoring method can be changed arbitrarily
                     # eg: user might want to assign 1 as the highest score
                     # we still need to ensure the evaluated score is within range
-                    min_score = min(metric.min, metric.max)
-                    max_score = max(metric.min, metric.max)
+                    min_score = min(metric.score_min, metric.score_max)
+                    max_score = max(metric.score_min, metric.score_max)
                     if not min_score <= score <= max_score:
                         raise ValueError("Evaluated score was out of range")
                     scores[i] = score

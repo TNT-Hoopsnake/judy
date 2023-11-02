@@ -1,10 +1,10 @@
-VALID_METRIC_GROUPS = [
+VALID_SCENARIOS = [
     {
-        "name": " Response Quality",
+        "name": "Response Quality",
         "id": "rq",
-        "min": 0,
-        "max": 10,
-        "tasks": ["mt_q", "mt_qac", "st_qac", "summ", "st_q", "st_qa"],
+        "score_min": 0,
+        "score_max": 10,
+        "datasets": ["dim/mt_bench_en"],
         "metrics": [
             {"name": "Accuracy", "desc": "accuracy"},
             {"name": "Coherence", "desc": "choherence"},
@@ -43,9 +43,5 @@ VALID_RUN_CONFIG = {
             "api_base": "http://not.real",
         },
     ],
-    "tasks": ["st_q"],
-    "metrics": ["accuracy"],
-    "models": [
-        {"id": "test-model", "api_type": "tgi", "api_base": "http://fake.domain"}
-    ],
+    "scenarios": ["rq"],
 }
