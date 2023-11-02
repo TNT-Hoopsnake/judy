@@ -1,47 +1,4 @@
-from gpt_eval.config import EvaluationConfig, DatasetConfig
-from . import VALID_METRIC_GROUPS, VALID_TASKS, VALID_RUN_CONFIG
-
-
-def valid_eval_dataset_config():
-    eval_config = EvaluationConfig(
-        metric_groups=VALID_METRIC_GROUPS,
-        tasks=VALID_TASKS,
-        models=[
-            {
-                "id": "test-model",
-                "api_type": "tgi",
-                "api_base": "http://fake.domain",
-                "tags": [],
-            }
-        ],
-    )
-    dataset_config = [
-        DatasetConfig(
-            id="riddle_sense",
-            source="http://fake.dataset",
-            tasks=["st_qa"],
-            formatter="fake_formatter",
-        )
-    ]
-    return eval_config, dataset_config
-
-
-def invalid_task_for_dataset_config():
-    # task for given dataset in eval is not valid according to given dataset config
-    eval_config = EvaluationConfig(
-        metric_groups=VALID_METRIC_GROUPS,
-        tasks=[{"id": "summ", "datasets": ["fake_summ"]}],
-    )
-    dataset_config = [
-        DatasetConfig(
-            id="fake_summ",
-            source="http://fake.dataset",
-            tasks=["mt_q"],
-            formatter="fake_formatter",
-        )
-    ]
-    return eval_config, dataset_config
-
+from . import VALID_SCENARIOS, VALID_TASKS, VALID_RUN_CONFIG
 
 VALID_RUN_PARAMS = [
     (
@@ -173,7 +130,7 @@ VALID_EVAL_PARAMS = [
     (
         "define multiple tasks",
         {
-            "metric_groups": VALID_METRIC_GROUPS,
+            "scenarios": VALID_SCENARIOS,
             "tasks": VALID_TASKS,
         },
     ),
@@ -182,29 +139,15 @@ VALID_EVAL_PARAMS = [
 
 INVALID_EVAL_PARAMS = [
     (
-        "no datasets for task",
+        "no datasets for scenario",
         {
-            "metric_groups": VALID_METRIC_GROUPS,
-            "tasks": [
-                {
-                    "name": "QA",
-                    "id": "st_qa",
-                    "desc": "Question Answering",
-                    "datasets": [],
-                }
-            ],
-        },
-    ),
-    (
-        "no tasks for metric group",
-        {
-            "metric_groups": [
+            "scenarios": [
                 {
                     "name": " Response Quality",
                     "id": "rq",
-                    "min": 0,
-                    "max": 10,
-                    "tasks": [],
+                    "score_min": 0,
+                    "score_max": 10,
+                    "datasets": [],
                     "metrics": [
                         {"name": "Accuracy", "desc": "accuracy"},
                         {"name": "Coherence", "desc": "choherence"},

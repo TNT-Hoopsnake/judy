@@ -1,7 +1,7 @@
 import pathlib
 import shutil
 
-from gpt_eval.config.constants import DATASETS_DIR, USER_CACHE_DIR, USER_CONFIG_DIR
+from gpt_eval.config.settings import DATASETS_DIR, USER_CACHE_DIR, USER_CONFIG_DIR
 
 
 def setup_user_dir():

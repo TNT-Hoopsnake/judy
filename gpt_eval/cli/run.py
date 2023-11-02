@@ -1,5 +1,5 @@
 import pathlib
-from typing import List
+from typing import List, Optional
 
 import click
 from dotenv import load_dotenv
@@ -8,26 +8,28 @@ from gpt_eval.cache import SqliteCache
 from gpt_eval.cli.install import setup_user_dir
 from gpt_eval.config import (
     get_config_definitions,
-    get_responder_class_map,
+    get_dataset_config,
+    get_task_config,
+    dump_configs,
     load_and_validate_configs,
     EvaluatedModel,
     DatasetConfig,
     TaskConfig,
     TaskTypes,
-    MetricGroupConfig,
+    ScenarioConfig,
     EvaluationConfig,
     MetricConfig,
     RunConfig,
     IgnoreCacheTypes,
 )
-from gpt_eval.data.loader import load_formatted_data
+from gpt_eval.dataset import BaseFormattedData
+from gpt_eval.dataset.loader import load_formatted_data
 from gpt_eval.evaluation import Evaluator
+from gpt_eval.responders import get_responder_class_map
 from gpt_eval.utils import (
     PromptBuilder,
-    get_dataset_config,
     save_evaluation_results,
     dump_metadata,
-    dump_configs,
     ensure_directory_exists,
 )
 
@@ -76,7 +78,7 @@ class EvalCommandLine:
         ds_config: DatasetConfig,
         run_config: RunConfig,
         ignore_cache: bool,
-    ):
+    ) -> BaseFormattedData:
         data = None
         if ignore_cache:
             print("Skipping cache")
@@ -138,6 +140,7 @@ class EvalCommandLine:
                 prompt_builder=prompt_builder,
                 model_config=model,
             )
+
             eval_prompts = responder.get_evaluation_prompts()
 
             self.cache.set(cache_key, eval_prompts_cache_key, eval_prompts)
@@ -145,74 +148,62 @@ class EvalCommandLine:
         return eval_prompts
 
     @staticmethod
-    def get_tasks_for_run(run_config: RunConfig, eval_config: EvaluationConfig):
-        tasks = []
-
-        for task_id in run_config.tasks:
-            # Ensure selected task is defined in the eval config
-            matching_task = next(
-                filter(
-                    lambda task: task.id
-                    == task_id,  # pylint: disable=cell-var-from-loop
-                    eval_config.tasks,
-                )
-            )
-            assert (
-                matching_task
-            ), f"Task {task_id} is undefined. Create an entry for it in the evaluation config"
-
-            tasks.append(matching_task)
-        return tasks
-
-    @staticmethod
-    def get_metric_groups_for_run(run_config: RunConfig, eval_config: EvaluationConfig):
-        metrics = []
-        for metric_id in run_config.metrics:
-            matching_metric_group = next(
-                filter(
-                    lambda metric: metric.id
-                    == metric_id,  # pylint: disable=cell-var-from-loop
-                    eval_config.metric_groups,
-                )
-            )
-            # Ensure selected task is defined in the eval config
-            assert (
-                matching_metric_group
-            ), f"Metric group {metric_id} is undefined. Create an entry for it in the evaluation config"
-
-            metrics.append(matching_metric_group)
-        return metrics
-
-    @staticmethod
-    def get_metrics_for_group(task_id: TaskTypes, metric_group: MetricGroupConfig):
-        metrics = []
-        for metric_config in metric_group.metrics:
-            # override group values with metric specific values
-            metric_config.tasks = metric_config.tasks or metric_group.tasks
-            if task_id not in metric_config.tasks:
-                continue
-            metric_config.min = metric_config.min or metric_group.min
-            metric_config.max = metric_config.max or metric_group.max
-            metrics.append(metric_config)
-        return metrics
-
-    @staticmethod
-    def get_metrics_for_task(
-        task_id: TaskTypes,
-        run_metric_groups: List[MetricGroupConfig],
-        eval_metric_groups: List[MetricGroupConfig],
+    def collect_evaluations(
+        run_config: RunConfig,
+        eval_config: EvaluationConfig,
+        dataset_config_list: List[DatasetConfig],
     ):
-        metrics = []
-        # 1. Use metrics defined in the run config for the task
-        for metric_group in run_metric_groups:
-            metrics.extend(EvalCommandLine.get_metrics_for_group(task_id, metric_group))
+        evaluations_to_run, config_cache = [], {
+            "scenario_metrics": {},
+            "datasets": {},
+        }
+        scenarios_to_run: List[ScenarioConfig] = EvalCommandLine.get_scenarios_for_run(
+            run_config, eval_config
+        )
+        for eval_scenario in scenarios_to_run:
+            metrics = EvalCommandLine.get_metrics_for_scenario(eval_scenario)
+            config_cache["scenario_metrics"].setdefault(eval_scenario.id, metrics)
+            for dataset_id in eval_scenario.datasets:
+                dataset = get_dataset_config(dataset_id, dataset_config_list)
+                for task_id in dataset.tasks:
+                    task = get_task_config(task_id, eval_config)
+                    evaluations_to_run.append((eval_scenario.id, dataset.id, task.id))
+                    config_cache["datasets"].setdefault(dataset.id, dataset)
+        return evaluations_to_run, config_cache
 
-        # 2. If no metrics match, use all matching metrics for the task from the eval config
-        if not metrics:
-            for metric_group in eval_metric_groups:
-                metrics.extend(
-                    EvalCommandLine.get_metrics_for_group(task_id, metric_group)
+    @staticmethod
+    def get_scenarios_for_run(
+        run_config: RunConfig,
+        eval_config: EvaluationConfig,
+        task_tag: Optional[str] = None,
+    ) -> List[ScenarioConfig]:
+        scenarios = []
+        for scenario_id in run_config.scenarios:
+            matching_scenario = next(
+                filter(
+                    lambda scenario: scenario.id
+                    == scenario_id,  # pylint: disable=cell-var-from-loop
+                    eval_config.scenarios,
                 )
+            )
+            # Ensure selected task is defined in the eval config
+            assert (
+                matching_scenario
+            ), f"Scenario {scenario_id} is undefined. Create an entry for it in the evaluation config"
+            if not EvalCommandLine.matches_tag(matching_scenario, task_tag):
+                click.echo(f"Skipping task {matching_scenario.id} - does not match tag")
+                continue
+            scenarios.append(matching_scenario)
+        return scenarios
+
+    @staticmethod
+    def get_metrics_for_scenario(scenario: ScenarioConfig):
+        metrics = []
+        for metric_config in scenario.metrics:
+            # override group values with metric specific values
+            metric_config.score_min = metric_config.score_min or scenario.score_min
+            metric_config.score_max = metric_config.score_max or scenario.score_max
+            metrics.append(metric_config)
         return metrics
 
     @staticmethod
@@ -295,6 +286,14 @@ def run_eval(
     if run_config and not pathlib.Path(run_config).is_file():
         raise FileNotFoundError(f"Run config file does not exist: {run_config}")
 
+    # Check output directory
+    output_dir = pathlib.Path(output)
+    if not output_dir.is_dir():
+        raise FileNotFoundError(f"Output directory does not exist: {output}")
+    results_dir = output_dir / name
+    ensure_directory_exists(results_dir)
+
+    # Validate configs
     config_definitions = get_config_definitions(eval_config, dataset_config, run_config)
     configs = load_and_validate_configs(config_definitions)
 
@@ -306,77 +305,68 @@ def run_eval(
     dataset_config = configs["datasets"]
     run_config = configs["run"]
 
-    output_dir = pathlib.Path(output)
-    if not output_dir.is_dir():
-        raise FileNotFoundError(f"Output directory does not exist: {output}")
-    results_dir = output_dir / name
-
-    ensure_directory_exists(results_dir)
     dump_configs(results_dir, configs)
     dump_metadata(results_dir, dataset_tag, task_tag, model_tag)
-    models, tasks, datasets = set(), set(), set()
 
-    run_tasks = cli.get_tasks_for_run(run_config, eval_config)
-    run_metric_groups = cli.get_metric_groups_for_run(run_config, eval_config)
+    # Collect evaluations to run
+    evaluations_to_run, config_cache = cli.collect_evaluations(
+        run_config, eval_config, dataset_config
+    )
 
-    for eval_model in run_config.models:
-        if not EvalCommandLine.matches_tag(eval_model, model_tag):
-            click.echo(f"Skipping model {eval_model.id} - does not match tag")
-            continue
-        # use the model specific values if they exist
-        # else use the general eval values
+    models_to_run: List[EvaluatedModel] = [
+        model
+        for model in run_config.models
+        if EvalCommandLine.matches_tag(model, model_tag)
+    ]
+    click.echo(
+        f"Running a total of {len(evaluations_to_run)} evaluations on {len(models_to_run)} models"
+    )
+
+    for eval_model in models_to_run:
+        click.echo(f"Evaluating {eval_model.id}")
+        # Model-specific parameters override general run config parameters
         eval_model.temperature = eval_model.temperature or run_config.temperature
         eval_model.max_tokens = eval_model.max_tokens or run_config.max_tokens
         eval_model.context_char_limit = (
             eval_model.context_char_limit or run_config.context_char_limit
         )
+        for scenario_id, dataset_id, task_id in evaluations_to_run:
+            ds_config = config_cache["datasets"].get(dataset_id)
+            scenario_metrics = config_cache["scenario_metrics"].get(scenario_id)
+            prompt_builder = PromptBuilder(task_id, scenario_metrics)
 
-        for eval_task in run_tasks:
-            if not EvalCommandLine.matches_tag(eval_task, task_tag):
-                click.echo(f"Skipping task {eval_task.id} - does not match tag")
-                continue
-            metrics = cli.get_metrics_for_task(
-                eval_task.id, run_metric_groups, eval_config.metric_groups
+            cache_key = cli.cache.build_cache_key(dataset_id, task_id)
+
+            click.echo(
+                f"Running scenario: {scenario_id}, dataset:{dataset_id}, task: {task_id}"
             )
-            prompt_builder = PromptBuilder(eval_task.id, metrics)
 
-            for dataset_id in eval_task.datasets:
-                ds_config = get_dataset_config(dataset_id, dataset_config)
-                if not EvalCommandLine.matches_tag(ds_config, dataset_tag):
-                    click.echo(f"Skipping dataset {ds_config.id} - does not match tag")
-                    continue
+            eval_prompts = cli.get_evaluation_prompts(
+                cache_key,
+                eval_model,
+                prompt_builder,
+                ds_config,
+                run_config,
+                task_id,
+                ignore_cache,
+            )
 
-                cache_key = cli.cache.build_cache_key(dataset_id, eval_task.id)
+            evaluation_results = cli.get_evaluation_results(
+                eval_prompts,
+                cache_key,
+                eval_model,
+                run_config,
+                scenario_metrics,
+                ignore_cache,
+            )
 
-                eval_prompts = cli.get_evaluation_prompts(
-                    cache_key,
-                    eval_model,
-                    prompt_builder,
-                    ds_config,
-                    run_config,
-                    eval_task.id,
-                    ignore_cache,
-                )
-
-                evaluation_results = cli.get_evaluation_results(
-                    eval_prompts,
-                    cache_key,
-                    eval_model,
-                    run_config,
-                    metrics,
-                    ignore_cache,
-                )
-
-                save_evaluation_results(
-                    eval_model.id,
-                    dataset_id,
-                    eval_prompts,
-                    evaluation_results,
-                    results_dir,
-                )
-                models.add(eval_model.id)
-                tasks.add(eval_task.id)
-                datasets.add(dataset_id)
+            save_evaluation_results(
+                eval_model.id,
+                dataset_id,
+                eval_prompts,
+                evaluation_results,
+                results_dir,
+            )
     click.echo(
-        f"Successfully evaluated {len(models)} models on {len(tasks)} tasks using {len(datasets)} datasets"
+        f"Successfully ran {len(evaluations_to_run)} evaluations on {len(models_to_run)} models"
     )

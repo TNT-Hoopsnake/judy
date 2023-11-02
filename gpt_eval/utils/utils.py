@@ -2,7 +2,7 @@ import json
 import os
 from typing import List
 from datetime import datetime
-from gpt_eval.config.config_models import DatasetConfig, EvalPrompt, EvalResponse
+from gpt_eval.responders import EvalPrompt, EvalResponse
 
 
 def ensure_directory_exists(dir_path: str) -> str:
@@ -42,18 +42,6 @@ def save_evaluation_results(
         json.dump(data, fn, indent=4)
 
 
-def get_dataset_config(
-    ds_id: str, ds_config_list: List[DatasetConfig]
-) -> DatasetConfig:
-    filtered_ds_configs = filter(lambda ds: ds.id == ds_id, ds_config_list)
-    ds_config = next(filtered_ds_configs, None)
-    # sanity check
-    if not ds_config:
-        raise ValueError("Unable to determine dataset config")
-
-    return ds_config
-
-
 def dump_metadata(
     dir_path: str, dataset_tags: List[str], task_tags: List[str], model_tags: List[str]
 ):
@@ -64,16 +52,4 @@ def dump_metadata(
             "model_tags": model_tags,
             "timestamp": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
         }
-        json.dump(data, fn, indent=4)
-
-
-def dump_configs(dir_path: str, configs):
-    with open(dir_path / "config.json", "w+") as fn:
-        data = {}
-        for key, config in configs.items():
-            if isinstance(config, list):
-                data[key] = [c.model_dump(mode="json") for c in config]
-            else:
-                data[key] = config.model_dump(mode="json")
-
         json.dump(data, fn, indent=4)
