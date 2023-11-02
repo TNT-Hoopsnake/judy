@@ -4,7 +4,8 @@ import flask
 
 # WORK IN PROGRESS
 
-BreadCrumb = collections.namedtuple('BreadCrumb', ['path', 'title'])
+BreadCrumb = collections.namedtuple("BreadCrumb", ["path", "title"])
+
 
 def breadcrumb(view_title):
     def decorator(f):
@@ -14,7 +15,7 @@ def breadcrumb(view_title):
             # don't need to repeat it
             flask.g.title = view_title
             # Also put previous breadcrumbs there, ready for view to use
-            session_crumbs = flask.session.setdefault('crumbs', set())
+            session_crumbs = flask.session.setdefault("crumbs", set())
             flask.g.breadcrumbs = set()
             for path, title in session_crumbs:
                 flask.g.breadcrumbs.add(BreadCrumb(path, title))
@@ -31,5 +32,7 @@ def breadcrumb(view_title):
                 session_crumbs.pop(0)
 
             return rv
+
         return decorated_function
+
     return decorator

@@ -29,7 +29,7 @@ from gpt_eval.utils import (
     dump_metadata,
     dump_configs,
     ensure_directory_exists,
-    matches_tag
+    matches_tag,
 )
 
 

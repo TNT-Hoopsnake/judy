@@ -2,18 +2,23 @@ import json
 import os
 from typing import List
 from datetime import datetime
-from gpt_eval.config.config_models import DatasetConfig, EvalPrompt, EvalResponse, TaskConfig, EvaluatedModel
+from gpt_eval.config.config_models import (
+    DatasetConfig,
+    EvalPrompt,
+    EvalResponse,
+    TaskConfig,
+    EvaluatedModel,
+)
 
 
-def matches_tag(
-        config: TaskConfig | EvaluatedModel | DatasetConfig, tag: str
-) -> bool:
+def matches_tag(config: TaskConfig | EvaluatedModel | DatasetConfig, tag: str) -> bool:
     if not tag or not hasattr(config, "tags"):
         return True
     config_tags = config.tags or []
     if tag in config_tags:
         return True
     return False
+
 
 def ensure_directory_exists(dir_path: str) -> str:
     if not os.path.exists(dir_path):
