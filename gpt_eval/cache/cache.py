@@ -2,7 +2,6 @@ import hashlib
 from pathlib import Path
 from typing import Any, List
 from sqlitedict import SqliteDict
-from gpt_eval.config import EVAL_CONFIG_PATH, RUN_CONFIG_PATH
 from gpt_eval.config.settings import USER_CACHE_DIR
 
 
