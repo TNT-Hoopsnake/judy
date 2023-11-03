@@ -7,7 +7,8 @@ from gpt_eval.config.settings import USER_CACHE_DIR
 
 
 class SqliteCache:
-    def __init__(self):
+    def __init__(self, config_paths: List[str | Path]):
+        self.config_paths = config_paths
         self.cache = SqliteDict(USER_CACHE_DIR / "cache.db", autocommit=True)
 
     def calculate_content_hash(self, content: Any) -> str:
@@ -19,12 +20,11 @@ class SqliteCache:
             content = file.read()
             return self.calculate_content_hash(content)
 
-    def calculate_merkle_tree_hash(self, file_paths: List[str | Path]) -> str | None:
-        if not file_paths:
-            return None
-
+    def calculate_merkle_tree_hash(self) -> str | None:
         # Calculate leaf hashes for all files
-        leaf_hashes = [self.calculate_file_hash(file_path) for file_path in file_paths]
+        leaf_hashes = [
+            self.calculate_file_hash(file_path) for file_path in self.config_paths
+        ]
 
         # Ensure the number of leaves is even by duplicating the last one if needed
         if len(leaf_hashes) % 2 != 0:
@@ -52,8 +52,6 @@ class SqliteCache:
         return self.cache.get(key, None)
 
     def build_cache_key(self, ds_name: str, task_type: str):
-        config_hash = self.calculate_merkle_tree_hash(
-            [EVAL_CONFIG_PATH, RUN_CONFIG_PATH]
-        )
+        config_hash = self.calculate_merkle_tree_hash()
         cache_key = f"{config_hash}-{task_type}-{ds_name}"
         return cache_key

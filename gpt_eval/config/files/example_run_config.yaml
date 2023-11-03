@@ -6,7 +6,7 @@ proxies:
   http: http://sample-proxy
   https: http://sample-proxy
 random_seed: 1
-num_evals: 1
+num_evals: 2
 max_tokens: 1000
 context_char_limit: 1000
 temperature: 1.1

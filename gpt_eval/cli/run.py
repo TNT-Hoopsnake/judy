@@ -21,6 +21,9 @@ from gpt_eval.config import (
     MetricConfig,
     RunConfig,
     IgnoreCacheTypes,
+    EVAL_CONFIG_PATH,
+    RUN_CONFIG_PATH,
+    DATASET_CONFIG_PATH,
 )
 from gpt_eval.dataset import BaseFormattedData
 from gpt_eval.dataset.loader import load_formatted_data
@@ -35,10 +38,10 @@ from gpt_eval.utils import (
 
 
 class EvalCommandLine:
-    def __init__(self):
+    def __init__(self, config_paths: List[str | pathlib.Path] = None):
         load_dotenv()
         setup_user_dir()
-        self.cache = SqliteCache()
+        self.cache = SqliteCache(config_paths)
 
     def get_evaluation_results(
         self,
@@ -153,7 +156,8 @@ class EvalCommandLine:
         eval_config: EvaluationConfig,
         dataset_config_list: List[DatasetConfig],
     ):
-        evaluations_to_run, config_cache = [], {
+        evaluations_to_run = []
+        config_cache = {
             "scenario_metrics": {},
             "datasets": {},
         }
@@ -239,21 +243,21 @@ class EvalCommandLine:
 )
 @click.option(
     "-d",
-    "--dataset-config",
+    "--dataset-config-path",
     help="The path to the dataset config file.",
     default=None,
     type=click.Path(),
 )
 @click.option(
     "-e",
-    "--eval-config",
+    "--eval-config-path",
     help="The path to the eval config file.",
     default=None,
     type=click.Path(),
 )
 @click.option(
     "-r",
-    "--run-config",
+    "--run-config-path",
     help="The path to the run config file.",
     type=click.Path(),
 )
@@ -270,21 +274,26 @@ def run_eval(
     dataset,
     name,
     output,
-    dataset_config,
-    eval_config,
-    run_config,
+    dataset_config_path,
+    eval_config_path,
+    run_config_path,
     ignore_cache,
 ):
     """Run evaluations for models using a judge model."""
-    cli = EvalCommandLine()
-    if eval_config and not pathlib.Path(eval_config).is_file():
-        raise FileNotFoundError(f"Eval config file does not exist: {eval_config}")
+    if eval_config_path and not pathlib.Path(eval_config_path).is_file():
+        raise FileNotFoundError(f"Eval config file does not exist: {eval_config_path}")
 
-    if dataset_config and not pathlib.Path(dataset_config).is_file():
-        raise FileNotFoundError(f"Eval config file does not exist: {dataset_config}")
+    if dataset_config_path and not pathlib.Path(dataset_config_path).is_file():
+        raise FileNotFoundError(
+            f"Eval config file does not exist: {dataset_config_path}"
+        )
 
-    if run_config and not pathlib.Path(run_config).is_file():
-        raise FileNotFoundError(f"Run config file does not exist: {run_config}")
+    if run_config_path and not pathlib.Path(run_config_path).is_file():
+        raise FileNotFoundError(f"Run config file does not exist: {run_config_path}")
+
+    eval_config_path = eval_config_path or EVAL_CONFIG_PATH
+    dataset_config_path = dataset_config_path or DATASET_CONFIG_PATH
+    run_config_path = run_config_path or RUN_CONFIG_PATH
 
     # Check output directory
     output_dir = pathlib.Path(output)
@@ -294,7 +303,9 @@ def run_eval(
     ensure_directory_exists(results_dir)
 
     # Validate configs
-    config_definitions = get_config_definitions(eval_config, dataset_config, run_config)
+    config_definitions = get_config_definitions(
+        eval_config_path, dataset_config_path, run_config_path
+    )
     configs = load_and_validate_configs(config_definitions)
 
     model_tag = model
@@ -308,6 +319,7 @@ def run_eval(
     dump_configs(results_dir, configs)
     dump_metadata(results_dir, dataset_tag, task_tag, model_tag)
 
+    cli = EvalCommandLine([eval_config_path, run_config_path])
     # Collect evaluations to run
     evaluations_to_run, config_cache = cli.collect_evaluations(
         run_config, eval_config, dataset_config
@@ -319,7 +331,7 @@ def run_eval(
         if EvalCommandLine.matches_tag(model, model_tag)
     ]
     click.echo(
-        f"Running a total of {len(evaluations_to_run)} evaluations on {len(models_to_run)} models"
+        f"Running a total of {len(evaluations_to_run) * run_config.num_evals} evaluations on {len(models_to_run)} models"
     )
 
     for eval_model in models_to_run:
@@ -368,5 +380,5 @@ def run_eval(
                 results_dir,
             )
     click.echo(
-        f"Successfully ran {len(evaluations_to_run)} evaluations on {len(models_to_run)} models"
+        f"Successfully ran {len(evaluations_to_run) * run_config.num_evals} evaluations on {len(models_to_run)} models"
     )

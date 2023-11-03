@@ -9,11 +9,13 @@ class MTModelPrompt(ModelPrompt):
 
 
 class MTQuestionResponder(BaseResponder):
-    # the data doesnt need adjusting but for consistency, this function is still used
     def build_model_prompts(self):
-        return [
-            MTModelPrompt(questions=question[0]) for question in self.get_data_tuple()
-        ]
+        prompts = []
+        for questions_set in self.get_data_tuple():
+            for questions in questions_set:
+                prompts.append(MTModelPrompt(questions=questions))
+
+        return prompts
 
     def get_model_responses(
         self, model_prompts: List[MTModelPrompt]

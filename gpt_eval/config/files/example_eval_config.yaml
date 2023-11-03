@@ -37,7 +37,7 @@ scenarios:
     desc: This scenario tests the model's ability to follow instructions on a range of different tasks.
     score_min: 0
     score_max: 10
-    datasets: ["dim/mt_bench_en"]
+    datasets: ["dim/mt_bench_en", "cnn_dailymail","xsum"]
     metrics:
     - name: Coherence
       desc: "Evaluate how well the response flows logically and how well ideas are connected. A high score should be given to responses that are easy to follow."
@@ -62,7 +62,7 @@ scenarios:
     desc: This scenario tests the model's ability to answer questions under different conditions - with/without context, open-ended questions, unanswerable uestions etc.
     score_min: 0
     score_max: 10
-    datasets: ["squad_v2", "quac", "launch/open_question_type", "riddle_sense", "ethics_suite"]
+    datasets: ["squad_v2", "quac", "launch/open_question_type", "riddle_sense", "ethics_suite", "ms_marco"]
     metrics:
     - name: Accuracy
       desc: "Assess the extent to which the response aligns with factual information without errors. A high score should be awarded to responses that are factually sound and accurately answer the User's queries."
