@@ -1,5 +1,5 @@
 from typing import Dict, List
-from gpt_eval.config.config_models import MetricConfig, TaskTypes
+from gpt_eval.config import MetricConfig, TaskTypes
 from .prompts import BASE_PROMPT
 
 
@@ -14,7 +14,7 @@ class PromptBuilder:
         metric_formats = []
         for metric in self.metric_configs:
             metric_descriptions.append(
-                f"\t{metric.name} (Min Score: {metric.min}, Max Score: {metric.max}): {metric.desc}\n"
+                f"\t{metric.name} (Min Score: {metric.score_min}, Max Score: {metric.score_max}): {metric.desc}\n"
             )
             metric_formats.append(f"\t{metric.name}: X\n")
 

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Tuple, Any
 from types import ModuleType
 import openai
 from easyllm.clients import huggingface
@@ -9,8 +9,9 @@ from easyllm.schema.base import ChatMessage
 
 from gpt_eval.config import ApiTypes
 from gpt_eval.utils import PromptBuilder
-from gpt_eval.config.config_models import (
-    EvaluatedModel,
+from gpt_eval.config import EvaluatedModel
+from gpt_eval.dataset import BaseFormattedData
+from gpt_eval.responders import (
     ModelPrompt,
     ModelResponse,
     EvalPrompt,
@@ -20,7 +21,10 @@ from gpt_eval.utils import Retry
 
 class BaseResponder(ABC):
     def __init__(
-        self, data, prompt_builder: PromptBuilder, model_config: EvaluatedModel
+        self,
+        data: BaseFormattedData,
+        prompt_builder: PromptBuilder,
+        model_config: EvaluatedModel,
     ):
         self.data = data
         self.pb = prompt_builder
@@ -36,6 +40,9 @@ class BaseResponder(ABC):
         chat_history = [{"role": "user", "content": prompt}]
 
         return self.query_chat_model(chat_history)
+
+    def get_data_tuple(self) -> Tuple[Any]:
+        return tuple(self.data.model_dump().values())
 
     @Retry()
     def query_chat_model(self, chat_history: List[dict]):

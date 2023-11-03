@@ -1,12 +1,13 @@
 import pytest
 from pydantic import ValidationError
+from gpt_eval.cli.run import EvalCommandLine
 from gpt_eval.config import (
     load_validated_config,
     EvaluationConfig,
     DatasetConfig,
     RunConfig,
-    check_tasks_valid_for_dataset,
 )
+from . import VALID_TASKS, VALID_RUN_CONFIG
 from .fixtures import (
     get_param_ids,
     get_param_data,
@@ -16,46 +17,81 @@ from .fixtures import (
     INVALID_EVAL_PARAMS,
     VALID_DATASET_PARAMS,
     INVALID_DATASET_PARAMS,
-    valid_eval_dataset_config,
-    invalid_task_for_dataset_config,
 )
 
 
-# Test for checking if tasks are valid for a dataset
-@pytest.mark.parametrize("eval_config, dataset_config", [valid_eval_dataset_config()])
-def test_datasets_valid_for_task(eval_config, dataset_config):
-    """
-    Test that the function check_tasks_valid_for_dataset correctly validates tasks for a given dataset configuration.
-
-    Parameters:
-    - eval_config (EvaluationConfig): A valid evaluation configuration.
-    - dataset_config (list of DatasetConfig): A list of valid dataset configurations.
-
-    Expected Outcome:
-    The test should pass without raising any exceptions.
-
-    """
-    check_tasks_valid_for_dataset(eval_config, dataset_config)
-
-
-# Test for checking if tasks are invalid for a dataset
-@pytest.mark.parametrize(
-    "eval_config, dataset_config", [invalid_task_for_dataset_config()]
-)
-def test_datasets_invalid_for_task(eval_config, dataset_config):
-    """
-    Test that the function check_tasks_valid_for_dataset correctly detects invalid tasks for a given dataset configuration.
-
-    Parameters:
-    - eval_config (EvaluationConfig): An invalid evaluation configuration.
-    - dataset_config (list of DatasetConfig): A list of dataset configurations with invalid tasks.
-
-    Expected Outcome:
-    The test should raise a ValueError indicating that tasks are invalid.
-
-    """
+def test_invalid_dataset_eval_config():
+    cli = EvalCommandLine()
+    eval_config = EvaluationConfig(
+        scenarios=[
+            {
+                "name": "Response Quality",
+                "id": "rq",
+                "score_min": 0,
+                "score_max": 10,
+                "datasets": ["this_doesnt_exist"],
+                "metrics": [
+                    {"name": "Accuracy", "desc": "accuracy"},
+                    {"name": "Coherence", "desc": "choherence"},
+                ],
+            }
+        ],
+        tasks=VALID_TASKS,
+    )
     with pytest.raises(ValueError):
-        check_tasks_valid_for_dataset(eval_config, dataset_config)
+        cli.collect_evaluations(
+            run_config=RunConfig(**VALID_RUN_CONFIG),
+            eval_config=eval_config,
+            dataset_config_list=[
+                DatasetConfig(
+                    **{
+                        "id": "ms_marco",
+                        "name": "MS MARCO",
+                        "source": "https://huggingface.co/datasets/ms_marco",
+                        "version": "v1.1",
+                        "tasks": ["st_qa"],
+                        "formatter": "msmarco_formatter",
+                    }
+                ),
+            ],
+        )
+
+
+def test_invalid_task_for_dataset():
+    cli = EvalCommandLine()
+    eval_config = EvaluationConfig(
+        scenarios=[
+            {
+                "name": "Response Quality",
+                "id": "rq",
+                "score_min": 0,
+                "score_max": 10,
+                "datasets": ["ms_marco"],
+                "metrics": [
+                    {"name": "Accuracy", "desc": "accuracy"},
+                    {"name": "Coherence", "desc": "choherence"},
+                ],
+            }
+        ],
+        tasks=VALID_TASKS,
+    )
+    with pytest.raises(ValueError):
+        cli.collect_evaluations(
+            run_config=RunConfig(**VALID_RUN_CONFIG),
+            eval_config=eval_config,
+            dataset_config_list=[
+                DatasetConfig(
+                    **{
+                        "id": "ms_marco",
+                        "name": "MS MARCO",
+                        "source": "https://huggingface.co/datasets/ms_marco",
+                        "version": "v1.1",
+                        "tasks": ["this_doesnt_exist"],
+                        "formatter": "msmarco_formatter",
+                    }
+                ),
+            ],
+        )
 
 
 # Test for validating a run configuration

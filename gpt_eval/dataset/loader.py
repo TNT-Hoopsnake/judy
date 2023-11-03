@@ -2,7 +2,7 @@ import os
 import numpy as np
 from datasets import load_dataset, load_from_disk, Dataset, DatasetDict
 from gpt_eval.utils import Retry
-from gpt_eval.data import formatters
+from gpt_eval.dataset import formatters
 from gpt_eval.config import DATASETS_DIR, DatasetConfig, SourceTypes
 from gpt_eval.utils import ensure_directory_exists
 
@@ -23,13 +23,14 @@ def load_formatted_data(
                 f"Invalid split ({ds_config.split}) set for dataset ({ds_config.id})"
             )
     try:
-        format_func = getattr(formatters, ds_config.formatter)
+        format_class = getattr(formatters, ds_config.formatter)
     except AttributeError as exc:
         raise ValueError(
-            f"Unable to map dataset ({ds_config.id}) to formatter function"
+            f"Unable to map dataset ({ds_config.id}) to formatter class"
         ) from exc
     eval_idxs = get_eval_idxs(num_idxs, len(dataset))
-    return format_func(dataset, eval_idxs)
+
+    return format_class(dataset, eval_idxs).format()
 
 
 @Retry

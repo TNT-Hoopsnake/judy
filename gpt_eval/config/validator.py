@@ -31,21 +31,6 @@ def load_validated_config(config_data, validate_cls):
     return validated_data
 
 
-def check_tasks_valid_for_dataset(eval_config, datasets_config):
-    for task in eval_config.tasks:
-        for dataset_name in task.datasets:
-            dataset_config = next(
-                (config for config in datasets_config if config.id == dataset_name),
-                None,
-            )
-            if not dataset_config:
-                raise ValueError(f"Dataset '{dataset_name}' is not configured.")
-            if task.id not in dataset_config.tasks:
-                raise ValueError(
-                    f"Task type '{task.id}' is not valid for dataset '{dataset_name}'."
-                )
-
-
 def load_and_validate_configs(config_definitions):
     configs = {}
     for config_def in config_definitions:
@@ -58,11 +43,5 @@ def load_and_validate_configs(config_definitions):
             print(config_data)
             print(e)
             sys.exit(1)
-
-    try:
-        check_tasks_valid_for_dataset(configs["eval"], configs["datasets"])
-    except ValueError as e:
-        print(e)
-        sys.exit(1)
 
     return configs
