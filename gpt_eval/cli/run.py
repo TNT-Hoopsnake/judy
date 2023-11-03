@@ -315,9 +315,7 @@ def run_eval(
     )
 
     models_to_run: List[EvaluatedModel] = [
-        model
-        for model in run_config.models
-        if matches_tag(model, model_tag)
+        model for model in run_config.models if matches_tag(model, model_tag)
     ]
     click.echo(
         f"Running a total of {len(evaluations_to_run) * run_config.num_evals} evaluations on {len(models_to_run)} models"

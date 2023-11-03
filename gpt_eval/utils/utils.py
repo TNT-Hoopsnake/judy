@@ -10,7 +10,6 @@ from gpt_eval.config import (
 from gpt_eval.responders import EvalPrompt, EvalResponse
 
 
-
 def matches_tag(config: TaskConfig | EvaluatedModel | DatasetConfig, tag: str) -> bool:
     if not tag or not hasattr(config, "tags"):
         return True
@@ -49,7 +48,7 @@ def save_evaluation_results(
         data.append(
             {
                 "task_id": task_id,
-                "scenario_id":scenario_id,
+                "scenario_id": scenario_id,
                 "model": model,
                 "evaluator": item.model_dump(mode="json"),
             }

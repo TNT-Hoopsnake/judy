@@ -166,7 +166,10 @@ def datasets():
                         {
                             "title": dataset.id,
                             "desc": None,
-                            "data": {"Source": dataset.source, "Tags": ', '.join(dataset.tags)},
+                            "data": {
+                                "Source": dataset.source,
+                                "Tags": ", ".join(dataset.tags),
+                            },
                             "links": {"tasks": dataset.tasks},
                         }
                     )
