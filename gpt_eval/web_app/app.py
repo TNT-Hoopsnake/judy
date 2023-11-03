@@ -76,13 +76,13 @@ def runs_dashboard():
 @app.route("/runs/<run_name>", methods=["GET", "POST"])
 def run_page(run_name):
     groupby_options = {
-        "metric_group": "Metric Group",
+        "scenario": "Scenario",
         "model": "Model",
         "task": "Task",
         "dataset": "Dataset",
     }
 
-    groupby = "metric_group"
+    groupby = "scenario"
     if request.method == "POST":
         groupby = request.form.get("groupby")
 
@@ -139,7 +139,7 @@ def tasks():
                         {
                             "title": task.name,
                             "desc": task.desc,
-                            "links": {"datasets": task.datasets, "tags": task.tags},
+                            "links": {"tags": task.tags},
                         }
                     )
 
@@ -166,8 +166,8 @@ def datasets():
                         {
                             "title": dataset.id,
                             "desc": None,
-                            "data": {"Source": dataset.source},
-                            "links": {"tags": dataset.tags, "tasks": dataset.tasks},
+                            "data": {"Source": dataset.source, "Tags": ', '.join(dataset.tags)},
+                            "links": {"tasks": dataset.tasks},
                         }
                     )
 

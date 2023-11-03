@@ -29,6 +29,7 @@ def ensure_directory_exists(dir_path: str) -> str:
 
 def save_evaluation_results(
     model_name: str,
+    scenario_id: str,
     task_id: str,
     dataset_name: str,
     eval_prompts: List[EvalPrompt],
@@ -48,6 +49,7 @@ def save_evaluation_results(
         data.append(
             {
                 "task_id": task_id,
+                "scenario_id":scenario_id,
                 "model": model,
                 "evaluator": item.model_dump(mode="json"),
             }

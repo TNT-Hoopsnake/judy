@@ -363,6 +363,7 @@ def run_eval(
 
             save_evaluation_results(
                 eval_model.id,
+                scenario_id,
                 task_id,
                 dataset_id,
                 eval_prompts,
