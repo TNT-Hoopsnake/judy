@@ -15,60 +15,53 @@
   <div class="row text-center my-4">
     <h1>Raw Results</h1>
   </div>
-  <div class="row">
-    <label>Filters:</label>
-    <div class="col-2">
-      <div class="dropdown">
-        <button class="btn btn-primary dropdown-toggle" type="button" id="dropdown-runs" data-bs-toggle="dropdown" aria-expanded="false">
-          Runs
-        </button>
-        <ul class="dropdown-menu" aria-labelledby="dropdown-runs">
-            {% for run in runs %}
-            <li><a class="dropdown-item" href="{{url_for('raw_results', run_name=run)}}">{{run}}</a></li>
-            {% endfor %}
-        </ul>
+  <div class="raw-result-filter-item">
+      <div class="col raw-result-filter-group raw-result-filter-item">
+        <h5>Run: </h5>
+          <div class="dropdown">
+          <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" id="dropdown-runs" data-bs-toggle="dropdown" aria-expanded="false">
+            {{ run_name }}
+          </button>
+          <ul class="dropdown-menu" aria-labelledby="dropdown-runs">
+              <li><a class="dropdown-item" href="/raw/default">default</a></li>
+          </ul>
+        </div>
       </div>
-    </div>
-    <div class="col-2">
-      <div class="dropdown">
-        <button class="btn btn-success dropdown-toggle special-dropdown" type="button" id="model-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
-            Models
-        </button>
-        <ul class="dropdown-menu" aria-labelledby="model-dropdown">
-            {% for model, model_data in raw_data.items() %}
-                <li class="dropdown-submenu">
-                    <a class="dropdown-item dropdown-toggle special-dropdown" href="#" data-toggle="dropdown-submenu">{{ model }}</a>
-                    <ul class="dropdown-menu">
-                        {% for dataset, dataset_data in model_data.items() %}
-                            <li><a class="dropdown-item" href="{{url_for('raw_results', run_name=run_name, model=model, dataset=dataset)}}">{{ dataset }}</a></li>
-                        {% endfor %}
-                    </ul>
-                </li>
-            {% endfor %}
-        </ul>
+      <div class="col raw-result-filter-group raw-result-filter-item">
+        <h5>Model: </h5>
+        <div id="model-dropdown" class="dropdown">
+          <button class="btn btn-outline-primary btn-sm dropdown-toggle special-dropdown" type="button" id="model-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+              {{ model_name }}
+          </button>
+          <ul class="dropdown-menu" aria-labelledby="model-dropdown">
+              {% for model, model_data in raw_data.items() %}
+                  <li class="dropdown-submenu">
+                      <a class="dropdown-item dropdown-toggle special-dropdown" href="#" data-toggle="dropdown-submenu">{{ model }}</a>
+                      <ul class="dropdown-menu">
+                          {% for dataset, dataset_data in model_data.items() %}
+                              <li><a class="dropdown-item" href="{{url_for('raw_results', run_name=run_name, model=model, dataset=dataset)}}">{{ dataset }}</a></li>
+                          {% endfor %}
+                      </ul>
+                  </li>
+              {% endfor %}
+          </ul>
+        </div>
       </div>
-    </div>
-
-    <div class="col" id="eval-buttons">
-      <label for="eval-btn-0">
-        Evaluation: 
-      </label>
-      {% for result in filtered_data %}
-        <button id="eval-btn-{{loop.index0}}" class="btn btn-secondary" data-target="eval-{{loop.index0}}" {% if loop.index0 == 0%}disabled{%endif%}>{{loop.index}}</button>
-      {% endfor %}
-    </div>
+      <div class="col raw-result-filter-group raw-result-filter-item"><h5>Dataset: {{ dataset_name }}</h3></div>
+      <div class="col" id="eval-buttons">
+        <label for="eval-btn-0">
+          <h5>Evaluation: </h5>
+        </label>
+        {% for result in filtered_data %}
+          <button id="eval-btn-{{loop.index0}}" class="btn btn-sm btn-outline-primary" data-target="eval-{{loop.index0}}" {% if loop.index0 == 0%}disabled{%endif%}>{{loop.index}}</button>
+        {% endfor %}
+      </div>
   </div>
   <hr>
-  <div class="row">
-      <div class="col"><h3><strong>Run: </strong>{{run_name}}</h3></div>
-      <div class="col"><h3><strong>Model: </strong>{{model_name}}</h3></div>
-      <div class="col"><h3><strong>Dataset: </strong>{{dataset_name}}</h3></div>
-  </div>
   <div class="row">
       <div class="col" >
           {% for result in filtered_data %}
           <div class="eval-content" id="eval-{{loop.index0}}">
-            <h4><strong>Evaluation: </strong>{{loop.index}}</h4>
             <!-- TODO - add (task name and description) used for this run/dataset/model here -->
             <div class="row">
               <div class="col">

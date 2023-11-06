@@ -4,3 +4,53 @@ body {
 .no-bullets {
     list-style-type:none;
 }
+
+.judy-card {
+    margin-top: 3%;
+    margin-bottom: 3%;
+    height: 300px;
+    overflow-y: auto;
+}
+
+.filter-radio {
+    margin-left: 1%;
+    margin-right: 1%;
+}
+
+.filter-form {
+    display: inline-flex;
+    justify-content: center;
+}
+
+.table-container {
+    margin: 2%;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.side-menu {
+    margin-top: 2%;
+}
+
+.results-table {
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+h4 {
+    margin-bottom: 3%
+}
+
+.raw-result-filter-item {
+    display: flex;
+}
+
+.raw-result-filter-group {
+    margin-right: 10px;
+    align-items: baseline;
+    justify-content: center;
+}
+
+.raw-result-filter-item h5 {
+    margin-right: 5px;
+}

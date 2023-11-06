@@ -6,7 +6,7 @@ from gpt_eval.web_app.utils import (
     get_readable_timestamp,
 )
 
-all_data = load_all_data()
+all_data, used_data = load_all_data()
 df = format_data(all_data)
 
 app = Flask(__name__)
@@ -107,15 +107,25 @@ def run_page(run_name):
 
     data = get_grouped_df(filtered_df, groupby)
 
-    models_list = filtered_df["model"].unique()
-    tasks_list = filtered_df["task"].unique()
-    datasets_list = filtered_df["dataset"].unique()
+    models_dict = {}
+    for item_id in filtered_df["model"].unique():
+        models_dict[item_id] = used_data["models"].get(item_id)
+    tasks_dict = {}
+    for item_id in filtered_df["task"].unique():
+        tasks_dict[item_id] = used_data["tasks"].get(item_id)
+    datasets_dict = {}
+    for item_id in filtered_df["dataset"].unique():
+        datasets_dict[item_id] = used_data["datasets"].get(item_id)
+    scenarios_dict = {}
+    for item_id in filtered_df["scenario"].unique():
+        scenarios_dict[item_id] = used_data["scenarios"].get(item_id)
 
     context = {
         "run": run_name,
-        "models": models_list,
-        "datasets": datasets_list,
-        "tasks": tasks_list,
+        "models": models_dict,
+        "datasets": datasets_dict,
+        "scenarios": scenarios_dict,
+        "tasks": tasks_dict,
         "table_data": data,
         "groupby": groupby,
         "groupby_options": groupby_options,

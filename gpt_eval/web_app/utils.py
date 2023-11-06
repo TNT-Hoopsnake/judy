@@ -8,6 +8,7 @@ from gpt_eval.config import (
     DatasetConfig,
     RunConfig,
     load_validated_config,
+    get_scenario_config,
 )
 from gpt_eval.utils import matches_tag
 
@@ -20,7 +21,7 @@ CONFIG_CLASS_MAP = {
 }
 
 
-def load_configs(config_path):
+def load_configs(config_path) -> dict:
     configs = {}
     with open(config_path, "r") as fn:
         data = json.load(fn)
@@ -58,7 +59,7 @@ def gather_data_index():
 
 
 def load_all_data():
-    all_data_list = {}
+    run_data_list, used_data_list = {}, {}
     data_index = gather_data_index()
     for run_name in os.listdir(DATA_DIR):
         run_path = os.path.join(DATA_DIR, run_name)
@@ -67,7 +68,7 @@ def load_all_data():
         with open(os.path.join(run_path, "metadata.json"), "r") as fn:
             metadata = json.load(fn)
 
-        all_data_list[run_name] = {
+        run_data_list[run_name] = {
             "config": config,
             "metadata": metadata,
             "data": {},
@@ -75,6 +76,7 @@ def load_all_data():
             "tasks_used": [],
             "datasets_used": [],
         }
+        used_data_list = {"models": {}, "tasks": {}, "datasets": {}, "scenarios": {}}
         run_scenarios = [data_index["scenarios"][id] for id in config["run"].scenarios]
         run_dataset_ids = set()
         run_task_ids = set()
@@ -86,14 +88,16 @@ def load_all_data():
 
         for task in config["eval"].tasks:
             if matches_tag(task, metadata["task_tags"]) and task.id in run_task_ids:
-                all_data_list[run_name]["tasks_used"].append(task)
+                run_data_list[run_name]["tasks_used"].append(task)
+                used_data_list["tasks"][task.id] = task
 
         for dataset in config["datasets"]:
             if (
                 matches_tag(dataset, metadata["dataset_tags"])
                 and dataset.id in run_dataset_ids
             ):
-                all_data_list[run_name]["datasets_used"].append(dataset)
+                run_data_list[run_name]["datasets_used"].append(dataset)
+                used_data_list["datasets"][dataset.id] = dataset
 
         for model in config["run"].models:
             model_path = os.path.join(run_path, model.id)
@@ -102,9 +106,9 @@ def load_all_data():
             if matches_tag(model, metadata["model_tags"]) and os.path.exists(
                 model_path
             ):
-                all_data_list[run_name]["models_used"].append(model)
-
-                all_data_list[run_name]["data"][model.id] = {}
+                run_data_list[run_name]["models_used"].append(model)
+                used_data_list["models"][model.id] = model
+                run_data_list[run_name]["data"][model.id] = {}
 
                 for dataset_name in os.listdir(model_path):
                     res_path = os.path.join(model_path, dataset_name)
@@ -115,11 +119,15 @@ def load_all_data():
                         with open(res_path, "r") as fn:
                             res_data = json.load(fn)
 
-                        all_data_list[run_name]["data"][model.id][
+                        run_data_list[run_name]["data"][model.id][
                             dataset_name
                         ] = res_data
 
-    return all_data_list
+        for scenario_id in config["run"].scenarios:
+            if scenario := get_scenario_config(scenario_id, config["eval"]):
+                used_data_list["scenarios"][scenario_id] = scenario
+
+    return run_data_list, used_data_list
 
 
 # todo - implement local timestamps

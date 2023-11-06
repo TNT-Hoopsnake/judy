@@ -1,18 +1,23 @@
-{% macro table(table_data, with_model=False) %}   
-    {% for dataset, data in table_data.items() %}
-        <h2>{{ dataset }}</h2>
-        <table class="table text-center">
-            <tr>
-                {% if with_model %}
-                    <th>Model</th>
-                {% endif %}
-                {% for metric in data.columns %}
-                    <th>{{ metric }}</th>
-                {% endfor %}
-            </tr>
+{% macro table(table_data, context) %}
+    {% set groupby = context["groupby"] %}
+    {% set context_key = groupby + 's' %}
+    {% for title, data in table_data.items() %}
+    <div class="table-container">
+        <h4>{{ context[context_key][title].name or context[context_key][title].id }}</h4>
+        <table class="table table-bordered results-table">
+            <thead class="table-light">
+                <tr>
+                    {% if groupby != 'model' %}
+                        <th>Model</th>
+                    {% endif %}
+                    {% for metric in data.columns %}
+                        <th>{{ metric }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
             {% for model, row in data.iterrows() %}
                 <tr>
-                    {% if with_model %}
+                    {% if groupby != 'model' %}
                         <td>{{model}}</td>
                     {% endif %}
                     {% for _, value in row.items() %}
@@ -21,5 +26,6 @@
                 </tr>
             {% endfor %}
         </table>
+    </div>
     {% endfor %}
 {% endmacro %}
