@@ -2,7 +2,7 @@
 
 Judy is a python library and framework to evaluate the text-generation capabilities of Large Language Models (LLM) using a Judge LLM.
 
-Judy allows users to use a competent Judge LLM (such as GPT-4) to evaluate other LLMs using different options for the following dimensions:
+Judy allows users to evaluate LLMs using a competent Judge LLM (such as GPT-4). Users can choose from a set of predefined scenarios sourced from recent research, or design their own. A scenario is a specific test designed to evaluate a particular aspect of an LLM. A scenario consists of:
 
 - `Dataset`: A source dataset to generate prompts to evaluate models against.
 - `Task`: A task to evaluate models on. Tasks for judge evaluations have been carefully designed by researchers to assess certain aspects of LLMs.
