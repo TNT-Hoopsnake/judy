@@ -6,7 +6,7 @@ REQUEST_RETRY_MAX_ATTEMPTS = 3
 REQUEST_RETRY_WAIT_TIME = 10
 REQUEST_RETRY_BACKOFF = 2
 
-APP_NAME = "gpt-eval"
+APP_NAME = "judy"
 APP_AUTHOR = "tnt"
 USER_CONFIG_DIR = pathlib.Path(user_config_dir(APP_NAME))
 USER_CACHE_DIR = pathlib.Path(user_cache_dir(APP_NAME, APP_AUTHOR))

@@ -1,6 +1,6 @@
 from typing import List
-from gpt_eval.utils.prompts import SUMMARIZATION_PROMPT
-from gpt_eval.responders import ModelPrompt, ModelResponse, EvalPrompt
+from judy.utils.prompts import SUMMARIZATION_PROMPT
+from judy.responders import ModelPrompt, ModelResponse, EvalPrompt
 from .base_responder import BaseResponder
 
 SUMMARY_PREPROMPT = "Provide a concise and accurate summary of the following text:\n"

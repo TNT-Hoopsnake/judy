@@ -1,4 +1,4 @@
-from gpt_eval.config import TaskTypes
+from judy.config import TaskTypes
 from .data_models import (
     ModelPrompt,
     ModelResponse,

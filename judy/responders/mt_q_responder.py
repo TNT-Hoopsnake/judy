@@ -1,6 +1,6 @@
 from typing import List
-from gpt_eval.utils.prompts import MT_Q_PROMPT
-from gpt_eval.responders import ModelPrompt, ModelResponse, EvalPrompt
+from judy.utils.prompts import MT_Q_PROMPT
+from judy.responders import ModelPrompt, ModelResponse, EvalPrompt
 from .base_responder import BaseResponder
 
 

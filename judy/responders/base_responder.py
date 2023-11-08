@@ -7,16 +7,16 @@ from easyllm.prompt_utils import PROMPT_MAPPING
 from easyllm.prompt_utils.base import buildBasePrompt
 from easyllm.schema.base import ChatMessage
 
-from gpt_eval.config import ApiTypes
-from gpt_eval.utils import PromptBuilder
-from gpt_eval.config import EvaluatedModel
-from gpt_eval.dataset import BaseFormattedData
-from gpt_eval.responders import (
+from judy.config import ApiTypes
+from judy.utils import PromptBuilder
+from judy.config import EvaluatedModel
+from judy.dataset import BaseFormattedData
+from judy.responders import (
     ModelPrompt,
     ModelResponse,
     EvalPrompt,
 )
-from gpt_eval.utils import Retry
+from judy.utils import Retry
 
 
 class BaseResponder(ABC):

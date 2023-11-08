@@ -3,14 +3,14 @@ import json
 from datetime import datetime
 import pandas as pd
 import numpy as np
-from gpt_eval.config import (
+from judy.config import (
     EvaluationConfig,
     DatasetConfig,
     RunConfig,
     load_validated_config,
     get_scenario_config,
 )
-from gpt_eval.utils import matches_tag
+from judy.utils import matches_tag
 
 DATA_DIR = "./results"
 

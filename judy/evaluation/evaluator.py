@@ -2,14 +2,14 @@ import os
 import re
 from typing import List, Tuple
 import openai
-from gpt_eval.utils import Retry
-from gpt_eval.utils.prompts import SYSTEM_PROMPT
-from gpt_eval.config.settings import JudgeModels
-from gpt_eval.config import (
+from judy.utils import Retry
+from judy.utils.prompts import SYSTEM_PROMPT
+from judy.config.settings import JudgeModels
+from judy.config import (
     RunConfig,
     MetricConfig,
 )
-from gpt_eval.responders import (
+from judy.responders import (
     MetricScore,
     EvalResponse,
     EvalPrompt,

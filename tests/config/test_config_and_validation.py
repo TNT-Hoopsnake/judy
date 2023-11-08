@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
-from gpt_eval.cli.run import EvalCommandLine
-from gpt_eval.config import (
+from judy.cli.run import EvalCommandLine
+from judy.config import (
     load_validated_config,
     EvaluationConfig,
     DatasetConfig,

@@ -1,6 +1,6 @@
 import pytest
 from .fixtures import dataset_ids, dataset_configs
-from gpt_eval.config import DatasetConfig, load_validated_config, get_dataset_config
+from judy.config import DatasetConfig, load_validated_config, get_dataset_config
 
 
 @pytest.mark.parametrize(

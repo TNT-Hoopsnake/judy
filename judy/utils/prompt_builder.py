@@ -1,5 +1,5 @@
 from typing import Dict, List
-from gpt_eval.config import MetricConfig, TaskTypes
+from judy.config import MetricConfig, TaskTypes
 from .prompts import BASE_PROMPT
 
 

@@ -4,9 +4,9 @@ from typing import List, Optional
 import click
 from dotenv import load_dotenv
 
-from gpt_eval.cache import SqliteCache
-from gpt_eval.cli.install import setup_user_dir
-from gpt_eval.config import (
+from judy.cache import SqliteCache
+from judy.cli.install import setup_user_dir
+from judy.config import (
     get_config_definitions,
     get_dataset_config,
     get_task_config,
@@ -23,12 +23,12 @@ from gpt_eval.config import (
     RUN_CONFIG_PATH,
     DATASET_CONFIG_PATH,
 )
-from gpt_eval.config.data_models import EvaluatedModel
-from gpt_eval.dataset import BaseFormattedData
-from gpt_eval.dataset.loader import load_formatted_data
-from gpt_eval.evaluation import Evaluator
-from gpt_eval.responders import get_responder_class_map
-from gpt_eval.utils import (
+from judy.config.data_models import EvaluatedModel
+from judy.dataset import BaseFormattedData
+from judy.dataset.loader import load_formatted_data
+from judy.evaluation import Evaluator
+from judy.responders import get_responder_class_map
+from judy.utils import (
     PromptBuilder,
     save_evaluation_results,
     dump_metadata,

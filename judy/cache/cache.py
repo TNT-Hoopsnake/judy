@@ -2,7 +2,7 @@ import hashlib
 from pathlib import Path
 from typing import Any, List
 from sqlitedict import SqliteDict
-from gpt_eval.config.settings import USER_CACHE_DIR
+from judy.config.settings import USER_CACHE_DIR
 
 
 class SqliteCache:

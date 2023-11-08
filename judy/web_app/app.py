@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, abort
-from gpt_eval.web_app.utils import (
+from judy.web_app.utils import (
     load_all_data,
     format_data,
     get_grouped_df,

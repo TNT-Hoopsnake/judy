@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "gpt-eval"
+name = "judy"
 version = "0.1.0"
 description = ""
 authors = ["Your Name <you@example.com>"]
@@ -24,4 +24,4 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-gpt-eval = "gpt_eval.cli.run:run_eval"
+judy = "judy.cli.run:run_eval"

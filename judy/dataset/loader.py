@@ -1,10 +1,10 @@
 import os
 import numpy as np
 from datasets import load_dataset, load_from_disk, Dataset, DatasetDict
-from gpt_eval.utils import Retry
-from gpt_eval.dataset import formatters
-from gpt_eval.config import DATASETS_DIR, DatasetConfig, SourceTypes
-from gpt_eval.utils import ensure_directory_exists
+from judy.utils import Retry
+from judy.dataset import formatters
+from judy.config import DATASETS_DIR, DatasetConfig, SourceTypes
+from judy.utils import ensure_directory_exists
 
 
 def load_formatted_data(

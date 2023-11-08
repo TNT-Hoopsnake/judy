@@ -2,12 +2,12 @@ import json
 import os
 from typing import List
 from datetime import datetime
-from gpt_eval.config import (
+from judy.config import (
     DatasetConfig,
     TaskConfig,
     EvaluatedModel,
 )
-from gpt_eval.responders import EvalPrompt, EvalResponse
+from judy.responders import EvalPrompt, EvalResponse
 
 
 def matches_tag(config: TaskConfig | EvaluatedModel | DatasetConfig, tag: str) -> bool:

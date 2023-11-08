@@ -1,6 +1,6 @@
 import time
 
-from gpt_eval.config import (
+from judy.config import (
     REQUEST_RETRY_BACKOFF,
     REQUEST_RETRY_MAX_ATTEMPTS,
     REQUEST_RETRY_WAIT_TIME,
