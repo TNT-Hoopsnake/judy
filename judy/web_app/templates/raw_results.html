@@ -23,39 +23,51 @@
             {{ run_name }}
           </button>
           <ul class="dropdown-menu" aria-labelledby="dropdown-runs">
-              <li><a class="dropdown-item" href="/raw/default">default</a></li>
+            {% for run in runs %}
+            <li><a class="dropdown-item" href="{{url_for('raw_results', run_name=run)}}">{{run}}</a></li>
+            {% endfor %}
           </ul>
         </div>
       </div>
       <div class="col raw-result-filter-group raw-result-filter-item">
-        <h5>Model: </h5>
-        <div id="model-dropdown" class="dropdown">
-          <button class="btn btn-outline-primary btn-sm dropdown-toggle special-dropdown" type="button" id="model-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
-              {{ model_name }}
-          </button>
-          <ul class="dropdown-menu" aria-labelledby="model-dropdown">
-              {% for model, model_data in raw_data.items() %}
-                  <li class="dropdown-submenu">
-                      <a class="dropdown-item dropdown-toggle special-dropdown" href="#" data-toggle="dropdown-submenu">{{ model }}</a>
-                      <ul class="dropdown-menu">
-                          {% for dataset, dataset_data in model_data.items() %}
-                              <li><a class="dropdown-item" href="{{url_for('raw_results', run_name=run_name, model=model, dataset=dataset)}}">{{ dataset }}</a></li>
-                          {% endfor %}
-                      </ul>
-                  </li>
-              {% endfor %}
-          </ul>
+        <h5>Model:</h5>
+        <div class="dropdown">
+            <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" id="model-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                {{ model_name }}
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="model-dropdown">
+                {% for model, model_data in raw_data.items() %}
+                    <li>
+                      <a class="dropdown-item" href="{{url_for('raw_results', run_name=run_name, model=model)}}">{{ model }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
         </div>
-      </div>
-      <div class="col raw-result-filter-group raw-result-filter-item"><h5>Dataset: {{ dataset_name }}</h3></div>
-      <div class="col" id="eval-buttons">
-        <label for="eval-btn-0">
-          <h5>Evaluation: </h5>
-        </label>
-        {% for result in filtered_data %}
-          <button id="eval-btn-{{loop.index0}}" class="btn btn-sm btn-outline-primary" data-target="eval-{{loop.index0}}" {% if loop.index0 == 0%}disabled{%endif%}>{{loop.index}}</button>
-        {% endfor %}
-      </div>
+    </div>
+    <div class="col raw-result-filter-group raw-result-filter-item">
+        <h5>Dataset:</h5>
+        <div class="dropdown">
+            <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" id="dataset-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                {{ dataset_name }}
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="dataset-dropdown">
+                {% for dataset, dataset_data in raw_data[model_name].items() %}
+                    <li>
+                        <a class="dropdown-item" href="{{url_for('raw_results', run_name=run_name, model=model_name, dataset=dataset)}}">{{ dataset }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    
+    <div class="col" id="eval-buttons">
+      <label for="eval-btn-0">
+        <h5>Evaluation: </h5>
+      </label>
+      {% for result in filtered_data %}
+        <button id="eval-btn-{{loop.index0}}" class="btn btn-sm btn-outline-primary" data-target="eval-{{loop.index0}}" {% if loop.index0 == 0%}disabled{%endif%}>{{loop.index}}</button>
+      {% endfor %}
+    </div>
   </div>
   <hr>
   <div class="row">
@@ -147,11 +159,9 @@
       button.addEventListener('click', () => {
           // Get the target div's ID from the data attribute
           const targetId = button.getAttribute('data-target');
-          console.log(targetId)
           // Hide all divs
           document.querySelectorAll('.eval-content').forEach(div => {
               div.style.display = 'none';
-              console.log('hiding a div')
           });
 
           // Show the target div
@@ -164,12 +174,5 @@
 
       });
   });
-  let dropdowns = document.querySelectorAll('.special-dropdown')
-  dropdowns.forEach((dd)=>{
-      dd.addEventListener('click', function (e) {
-          var el = this.nextElementSibling
-          el.style.display = el.style.display==='block'?'none':'block'
-      })
-  })
 </script>
 {% endblock %}

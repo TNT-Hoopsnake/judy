@@ -135,6 +135,34 @@ def run_page(run_name):
     return render_template("run_page.html", context=context)
 
 
+@app.route("/scenarios")
+def scenarios():
+    item_filter = request.args.get("item")
+    seen_scenarios = set()
+    scenario_data = []
+    for run_data in all_data.values():
+        for scenario in run_data["scenarios_used"]:
+            if scenario.id not in seen_scenarios:
+                if not item_filter or (item_filter and scenario.id == item_filter):
+                    seen_scenarios.add(scenario.id)
+                    scenario_data.append(
+                        {
+                            "title": scenario.name,
+                            "desc": scenario.desc,
+                            "links": {"datasets": scenario.datasets},
+                        }
+                    )
+
+    return render_template(
+        "card_page.html",
+        cards_data=scenario_data,
+        page_title="Scenario Info",
+        page_subtitle="List of Scenarios used in your Judy Runs",
+        page_name="scenarios",
+        is_filtered=bool(item_filter),
+    )
+
+
 @app.route("/tasks")
 def tasks():
     item_filter = request.args.get("item")
@@ -158,6 +186,8 @@ def tasks():
         cards_data=task_data,
         page_title="Task Info",
         page_subtitle="List of Tasks used in your Judy Runs",
+        page_name="tasks",
+        is_filtered=bool(item_filter),
     )
 
 
@@ -189,6 +219,8 @@ def datasets():
         cards_data=dataset_data,
         page_title="Dataset Info",
         page_subtitle="List of Datasets used in your Judy Runs",
+        page_name="datasets",
+        is_filtered=bool(item_filter),
     )
 
 
@@ -220,6 +252,8 @@ def models():
         cards_data=model_data,
         page_title="Model Info",
         page_subtitle="List of Models used in your Judy Runs",
+        page_name="models",
+        is_filtered=bool(item_filter),
     )
 
 

@@ -60,6 +60,8 @@ def gather_data_index():
 
 def load_all_data():
     run_data_list, used_data_list = {}, {}
+    used_data_list = {"models": {}, "tasks": {}, "datasets": {}, "scenarios": {}}
+
     data_index = gather_data_index()
     for run_name in os.listdir(DATA_DIR):
         run_path = os.path.join(DATA_DIR, run_name)
@@ -68,6 +70,7 @@ def load_all_data():
         with open(os.path.join(run_path, "metadata.json"), "r") as fn:
             metadata = json.load(fn)
 
+        run_scenarios = [data_index["scenarios"][id] for id in config["run"].scenarios]
         run_data_list[run_name] = {
             "config": config,
             "metadata": metadata,
@@ -75,9 +78,8 @@ def load_all_data():
             "models_used": [],
             "tasks_used": [],
             "datasets_used": [],
+            "scenarios_used": run_scenarios,
         }
-        used_data_list = {"models": {}, "tasks": {}, "datasets": {}, "scenarios": {}}
-        run_scenarios = [data_index["scenarios"][id] for id in config["run"].scenarios]
         run_dataset_ids = set()
         run_task_ids = set()
         for scenario in run_scenarios:
