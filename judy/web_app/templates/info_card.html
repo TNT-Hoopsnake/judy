@@ -1,0 +1,33 @@
+{% macro info_card(card_data) %}
+    <div class="card judy-card">
+        <div class="card-header">
+            {{ card_data.title }}
+        </div>
+        <div class="card-body">
+            {% if card_data.desc %}
+            {{ card_data.desc }}
+            {% elif card_data.data %}
+            <ul>
+                {% for key, value in card_data.data.items() %}
+                <li><strong>{{key}}: </strong>{{value}}</li>
+                {% endfor %}
+            </ul>
+
+            {% endif %}
+            <hr>
+                {% if card_data.links %}
+                {% for key, value in card_data.links.items() %}
+                    {% if value %}
+                        <strong>{{ key }}:</strong>
+                        <ul>
+                        {% for val in value %}
+                            <li><a href="{{url_for(key, item=val)}}">{{ val }}</a></li>
+                        {% endfor %}
+                        </ul>
+                    {% endif %}
+                {% endfor %}
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+{% endmacro %}

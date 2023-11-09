@@ -1,0 +1,31 @@
+{% macro table(table_data, context) %}
+    {% set groupby = context["groupby"] %}
+    {% set context_key = groupby + 's' %}
+    {% for title, data in table_data.items() %}
+    <div class="table-container">
+        <h4>{{ context[context_key][title].name or context[context_key][title].id }}</h4>
+        <table class="table table-bordered results-table">
+            <thead class="table-light">
+                <tr>
+                    {% if groupby != 'model' %}
+                        <th>Model</th>
+                    {% endif %}
+                    {% for metric in data.columns %}
+                        <th>{{ metric }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            {% for model, row in data.iterrows() %}
+                <tr>
+                    {% if groupby != 'model' %}
+                        <td>{{model}}</td>
+                    {% endif %}
+                    {% for _, value in row.items() %}
+                        <td>{{ value }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% endfor %}
+{% endmacro %}

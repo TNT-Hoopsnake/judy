@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "gpt-eval"
+name = "judy"
 version = "0.1.0"
 description = ""
 authors = ["Your Name <you@example.com>"]
@@ -17,10 +17,11 @@ pytest = "^7.4.2"
 click = "^8.1.7"
 platformdirs = "^3.11.0"
 black = "^23.10.1"
+flask = "^3.0.0"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-gpt-eval = "gpt_eval.cli.run:run_eval"
+judy = "judy.cli.run:run_eval"

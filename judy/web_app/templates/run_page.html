@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% from "table_macro.html" import table %}
+{% block title %}{{context['run']}}{% endblock %}
+
+
+
+{% block content %}
+
+<div class="container">
+    <div class="row text-center mt-3">
+        <h1>RUN: {{context['run']}}</h1>
+    </div>
+    <div class="row">
+        <form method="POST" class="filter-form">
+            <p><strong>Grouped By:</strong></p>
+            {% for value, title in context['groupby_options'].items() %}
+            <div class="filter-radio">
+                <input type="radio" id="{{title}}" name="groupby" value="{{value}}" {% if context['groupby'] == value %}checked{% endif %} onchange="this.form.submit()"></input>
+                <label for="{{title}}">{{title}}</label>
+            </div>
+            {% endfor %}
+        </form>
+    </div>
+    <hr>
+
+
+    <div class="row mt-2">
+        <div class="col side-menu">
+            <h4>Run Configuration</h4>
+            <ul>
+                {% for config_key, config_val in context['run_configs'].items() %}
+                <li>{{config_key}}: <strong>{{config_val}}</strong></li>
+                {% endfor %}
+            </ul>
+            <h4>Models</h4>
+            <ul>
+                {% for model_id, model in context['models'].items() %}
+                <li><a href="{{url_for('models', item=model.id)}}">{{model.name or model.id}}</a></li>
+                {% endfor %}
+            </ul>
+
+            <h4>Tasks</h4>
+            <ul>
+                {% for task_id, task in context['tasks'].items() %}
+                <li><a href="{{url_for('tasks', item=task.id)}}">{{task.name or task.id}}</a></li>
+                {% endfor %}
+            </ul>
+
+            <h4>Datasets</h4>
+            <ul>
+                {% for dataset_id, dataset in context['datasets'].items() %}
+                <li><a href="{{url_for('datasets', item=dataset.id)}}">{{dataset.name or dataset_id}}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="col-9">
+            <div class="row">
+                {{ table(context['table_data'], context )}}
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+{% endblock %}

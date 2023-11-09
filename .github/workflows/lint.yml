@@ -18,7 +18,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install pylint
           python -m pip install .
-          python -m pylint gpt_eval
+          python -m pylint judy
 
   testing:
     runs-on: ubuntu-latest

@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}Raw Results{% endblock %}
+
+{% block content %}
+<style>
+  .eval-content {
+    display: none;
+  }
+  #eval-0 {
+    display: block;
+  }
+</style>
+<div class="container">
+  <div class="row text-center my-4">
+    <h1>Raw Results</h1>
+  </div>
+  <div class="raw-result-filter-item">
+      <div class="col raw-result-filter-group raw-result-filter-item">
+        <h5>Run: </h5>
+          <div class="dropdown">
+          <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" id="dropdown-runs" data-bs-toggle="dropdown" aria-expanded="false">
+            {{ run_name }}
+          </button>
+          <ul class="dropdown-menu" aria-labelledby="dropdown-runs">
+            {% for run in runs %}
+            <li><a class="dropdown-item" href="{{url_for('raw_results', run_name=run)}}">{{run}}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+      <div class="col raw-result-filter-group raw-result-filter-item">
+        <h5>Model:</h5>
+        <div class="dropdown">
+            <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" id="model-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                {{ model_name }}
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="model-dropdown">
+                {% for model, model_data in raw_data.items() %}
+                    <li>
+                      <a class="dropdown-item" href="{{url_for('raw_results', run_name=run_name, model=model)}}">{{ model }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <div class="col raw-result-filter-group raw-result-filter-item">
+        <h5>Dataset:</h5>
+        <div class="dropdown">
+            <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" id="dataset-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                {{ dataset_name }}
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="dataset-dropdown">
+                {% for dataset, dataset_data in raw_data[model_name].items() %}
+                    <li>
+                        <a class="dropdown-item" href="{{url_for('raw_results', run_name=run_name, model=model_name, dataset=dataset)}}">{{ dataset }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    
+    <div class="col" id="eval-buttons">
+      <label for="eval-btn-0">
+        <h5>Evaluation: </h5>
+      </label>
+      {% for result in filtered_data %}
+        <button id="eval-btn-{{loop.index0}}" class="btn btn-sm btn-outline-primary" data-target="eval-{{loop.index0}}" {% if loop.index0 == 0%}disabled{%endif%}>{{loop.index}}</button>
+      {% endfor %}
+    </div>
+  </div>
+  <hr>
+  <div class="row">
+      <div class="col" >
+          {% for result in filtered_data %}
+          <div class="eval-content" id="eval-{{loop.index0}}">
+            <!-- TODO - add (task name and description) used for this run/dataset/model here -->
+            <div class="row">
+              <div class="col">
+                <div class="accordion" id="response-accordion">
+                  <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingContext">
+                      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseContext" aria-expanded="true" aria-controls="collapseContext">
+                        Model Response
+                      </button>
+                    </h2>
+                    <div id="collapseContext" class="accordion-collapse collapse show" aria-labelledby="headingContext" data-bs-parent="#response-accordion">
+                      <div class="accordion-body">
+                        {% if result['model']['question'] %}
+                        <strong>Question: </strong>{{result['model']['question']}}
+                        <hr>
+                        {% endif %}
+                        <strong>Model Response: </strong>{{result['model']['response']}}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingPrompt">
+                      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePrompt" aria-expanded="false" aria-controls="collapsePrompt">
+                        Evaluation Prompt
+                      </button>
+                    </h2>
+                    <div id="collapsePrompt" class="accordion-collapse collapse" aria-labelledby="headingPrompt" data-bs-parent="#response-accordion">
+                      <div class="accordion-body" style="white-space: pre-line;">
+                        {{result['evaluator']['prompt']}}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col">
+                <div class="accordion" id="results-accordion">
+                  <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingScores">
+                      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseScores" aria-expanded="true" aria-controls="collapseScores">
+                        Model Metrics
+                      </button>
+                    </h2>
+                    <div id="collapseScores" class="accordion-collapse collapse show" aria-labelledby="headingScores" data-bs-parent="#results-accordion">
+                      <div class="accordion-body">
+                        <ul>
+                        {% for metric_score in result['evaluator']['scores'] %}
+                          <li><strong>{{metric_score['name']}}: </strong>{{metric_score['score']}}</li>
+                        {% endfor %}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingResults">
+                      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseResponse" aria-expanded="false" aria-controls="collapseResponse">
+                        Evaluation Results
+                      </button>
+                    </h2>
+                    <div id="collapseResponse" class="accordion-collapse collapse" aria-labelledby="headingResults" data-bs-parent="#results-accordion">
+                      <div class="accordion-body" style="white-space: pre-line;">
+                        {{result['evaluator']['response']}}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+      </div>
+  </div>
+</div>
+<script>
+
+  // Select the div with the ID "eval-buttons"
+  const evalButtonsDiv = document.getElementById("eval-buttons");
+
+  // Select all buttons within the "eval-buttons" div
+  const buttonsInEval = evalButtonsDiv.querySelectorAll("button");
+
+  // Add click event listeners to each button
+  buttonsInEval.forEach(button => {
+      button.addEventListener('click', () => {
+          // Get the target div's ID from the data attribute
+          const targetId = button.getAttribute('data-target');
+          // Hide all divs
+          document.querySelectorAll('.eval-content').forEach(div => {
+              div.style.display = 'none';
+          });
+
+          // Show the target div
+          document.getElementById(targetId).style.display = 'block';
+
+          buttonsInEval.forEach(btn => {
+            btn.disabled = false;
+          });
+          button.disabled = true;
+
+      });
+  });
+</script>
+{% endblock %}
