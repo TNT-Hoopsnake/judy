@@ -26,8 +26,9 @@ def load_json(path):
         try:
             return json.load(fn)
         except ValueError:
-            print(f'Error loading json data from path {path}')
+            print(f"Error loading json data from path {path}")
             return None
+
 
 def load_configs(config_path) -> dict:
     configs = {}
@@ -116,7 +117,9 @@ def load_all_data():
             model_path = os.path.join(run_path, model.id)
 
             # Ensure the model was included in this run
-            if matches_tag(model, metadata["model_tags"]) and os.path.exists(model_path):
+            if matches_tag(model, metadata["model_tags"]) and os.path.exists(
+                model_path
+            ):
                 run_data_list[run_name]["models_used"].append(model)
                 run_data_list[run_name]["data"][model.id] = {}
 
@@ -128,7 +131,9 @@ def load_all_data():
                     # Ensure the dataset was included in this run
                     if os.path.exists(res_path):
                         res_data = load_json(res_path)
-                        run_data_list[run_name]["data"][model.id][dataset_name] = res_data
+                        run_data_list[run_name]["data"][model.id][
+                            dataset_name
+                        ] = res_data
 
     return run_data_list, data_index
 

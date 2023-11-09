@@ -29,7 +29,7 @@ def runs_dashboard():
         "models": df["model"].nunique(),
         "tasks": df["task"].nunique(),
         "datasets": df["dataset"].nunique(),
-        "scenarios": df['scenario'].nunique(),
+        "scenarios": df["scenario"].nunique(),
         "total_eval_num": all_evaluations,
     }
     context = {"data": run_data, "combined": combined_run}
