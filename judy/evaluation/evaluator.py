@@ -1,11 +1,10 @@
 import os
 import re
-import logging
 from typing import List, Tuple
 import openai
 from judy.utils import Retry
 from judy.utils.prompts import SYSTEM_PROMPT
-from judy.config.settings import JudgeModels
+from judy.config import get_est_token_cost
 from judy.config import (
     RunConfig,
     MetricConfig,
@@ -15,27 +14,7 @@ from judy.responders import (
     EvalResponse,
     EvalPrompt,
 )
-
-_logger = logging.getLogger("app")
-
-
-def get_est_token_cost(
-    eval_model: JudgeModels, num_input_tokens: int, num_output_tokens
-) -> float:
-    input_cost = output_cost = 0
-    match eval_model:
-        case JudgeModels.GPT4:
-            input_cost = 0.01 / 1000.0
-            output_cost = 0.03 / 1000.0
-        case JudgeModels.GPT35:
-            input_cost = 0.001 / 1000.0
-            output_cost = 0.002 / 1000.0
-        case _:
-            _logger.error(
-                "Unable to determine cost for given judge model: %s", eval_model
-            )
-
-    return round((num_input_tokens * input_cost) + (num_output_tokens * output_cost), 5)
+from judy.config.logging import logger as log
 
 
 DEFAULT_OPENAI_API_BASE = "https://api.openai.com/v1"
@@ -52,7 +31,7 @@ class Evaluator:
                 "http": str(run_config.proxies.http),
                 "https": str(run_config.proxies.https),
             }
-            _logger.debug("Proxy will be used for accessing openai API")
+            log.debug("Proxy will be used for accessing openai API")
 
         self.metrics = metrics
         self.evaluator = run_config.judge
@@ -82,7 +61,7 @@ class Evaluator:
             ],
             temperature=self.evaluator_temperature,
         )
-        _logger.info(
+        log.info(
             "Estimated cost for single request to openai API: $%f",
             get_est_token_cost(
                 self.evaluator,
@@ -129,7 +108,7 @@ class Evaluator:
                         )
                     scores[i] = score
                 except ValueError as e:
-                    _logger.warning(str(e))
+                    log.warning(str(e))
                     scores[i] = 0
 
         return tuple(scores)
@@ -155,6 +134,6 @@ class Evaluator:
         est_cost = get_est_token_cost(
             self.evaluator, sum(self.eval_input_tokens), sum(self.eval_output_tokens)
         )
-        _logger.info("Total estimated cost of evaluation: $%f", est_cost)
+        log.info("Total estimated cost of evaluation: $%f", est_cost)
 
         return model_results

@@ -16,14 +16,18 @@ from .settings import (
     DATASETS_DIR,
     EVAL_CONFIG_PATH,
     RUN_CONFIG_PATH,
+    LOG_FILE_PATH,
     REQUEST_RETRY_BACKOFF,
     REQUEST_RETRY_MAX_ATTEMPTS,
     REQUEST_RETRY_WAIT_TIME,
     ApiTypes,
+    JudgeModels,
     ModelFamilyTypes,
     TaskTypes,
     SourceTypes,
     IgnoreCacheTypes,
+    InputTokenCost,
+    OutputTokenCost,
 )
 from .validator import (
     load_and_validate_configs,
@@ -123,3 +127,19 @@ def get_scenario_config(scenario_id: str, eval_config: EvaluationConfig):
             f"Dataset {scenario_id} is undefined. Create an entry for it in the dataset config"
         )
     return matching_scenario
+
+
+def get_est_token_cost(
+    eval_model: JudgeModels, num_input_tokens: int, num_output_tokens
+) -> float:
+    match eval_model:
+        case JudgeModels.GPT4:
+            input_cost = InputTokenCost.GPT4
+            output_cost = OutputTokenCost.GPT4
+        case JudgeModels.GPT35:
+            input_cost = InputTokenCost.GPT35
+            output_cost = InputTokenCost.GPT35
+        case _:
+            input_cost = output_cost = 0
+
+    return round((num_input_tokens * input_cost) + (num_output_tokens * output_cost), 5)

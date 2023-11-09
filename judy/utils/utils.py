@@ -1,6 +1,5 @@
 import json
 import os
-import logging
 import pathlib
 import sys
 from typing import List
@@ -14,8 +13,7 @@ from judy.config import (
 from judy.config.settings import DATASET_CONFIG_PATH, EVAL_CONFIG_PATH, RUN_CONFIG_PATH
 from judy.config.validator import load_and_validate_configs
 from judy.responders import EvalPrompt, EvalResponse
-
-_logger = logging.getLogger("app")
+from judy.config.logging import logger as log
 
 
 def matches_tag(config: TaskConfig | EvaluatedModel | DatasetConfig, tag: str) -> bool:
@@ -30,7 +28,7 @@ def matches_tag(config: TaskConfig | EvaluatedModel | DatasetConfig, tag: str) -
 def ensure_directory_exists(dir_path: str) -> str:
     if not os.path.exists(dir_path):
         os.mkdir(dir_path)
-        _logger.info("Created new directory: %s", dir_path)
+        log.info("Created new directory: %s", dir_path)
 
     return dir_path
 
@@ -95,16 +93,16 @@ def load_configs(
                     f"Config file is not a valid file or does not exist at path: {config_path}"
                 )
     except FileNotFoundError as e:
-        _logger.error(str(e))
+        log.error(str(e))
         sys.exit(1)
 
     eval_config_path = eval_config_path or EVAL_CONFIG_PATH
     dataset_config_path = dataset_config_path or DATASET_CONFIG_PATH
     run_config_path = run_config_path or RUN_CONFIG_PATH
 
-    _logger.info("Evaluation config path: %s", eval_config_path)
-    _logger.info("Dataset config path: %s", dataset_config_path)
-    _logger.info("Run config path: %s", run_config_path)
+    log.info("Evaluation config path: %s", eval_config_path)
+    log.info("Dataset config path: %s", dataset_config_path)
+    log.info("Run config path: %s", run_config_path)
 
     # Validate configs
     config_definitions = get_config_definitions(
@@ -120,11 +118,11 @@ def get_output_directory(output: str | pathlib.Path, run_name: str) -> pathlib.P
         if not output_dir.is_dir():
             raise FileNotFoundError(f"Output directory does not exist: {output}")
     except FileNotFoundError as e:
-        _logger.error(str(e))
+        log.error(str(e))
         sys.exit(1)
 
     results_dir = output_dir / run_name
     ensure_directory_exists(results_dir)
-    _logger.info("Results directory: %s", results_dir)
+    log.info("Results directory: %s", results_dir)
 
     return results_dir

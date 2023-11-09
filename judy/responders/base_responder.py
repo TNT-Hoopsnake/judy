@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Tuple, Any
 from types import ModuleType
-import logging
 import sys
 
 import openai
@@ -20,8 +19,7 @@ from judy.responders import (
     EvalPrompt,
 )
 from judy.utils import Retry
-
-_logger = logging.getLogger("app")
+from judy.config.logging import logger as log
 
 
 class BaseResponder(ABC):
@@ -103,7 +101,7 @@ class BaseResponder(ABC):
             lib.api_base = self._api_base
             return lib
         except ValueError as e:
-            _logger.error(str(e))
+            log.error(str(e))
             sys.exit(1)
 
     @abstractmethod

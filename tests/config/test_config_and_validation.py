@@ -1,6 +1,6 @@
 import pytest
 from pydantic import ValidationError
-from judy.cli.run import EvalCommandLine
+from judy.cli.run import EvalManager
 from judy.config import (
     load_validated_config,
     EvaluationConfig,
@@ -21,7 +21,7 @@ from .fixtures import (
 
 
 def test_invalid_dataset_eval_config():
-    cli = EvalCommandLine()
+    cli = EvalManager()
     eval_config = EvaluationConfig(
         scenarios=[
             {
@@ -58,7 +58,7 @@ def test_invalid_dataset_eval_config():
 
 
 def test_invalid_task_for_dataset():
-    cli = EvalCommandLine()
+    cli = EvalManager()
     eval_config = EvaluationConfig(
         scenarios=[
             {

@@ -1,5 +1,4 @@
 import os
-import logging
 
 import numpy as np
 from datasets import load_dataset, load_from_disk, Dataset, DatasetDict
@@ -7,8 +6,7 @@ from judy.utils import Retry
 from judy.dataset import formatters
 from judy.config import DATASETS_DIR, DatasetConfig, SourceTypes
 from judy.utils import ensure_directory_exists
-
-_logger = logging.getLogger("app")
+from judy.config.logging import logger as log
 
 
 def load_formatted_data(
@@ -71,7 +69,7 @@ def get_dataset(
                 f"Error while downloading dataset from URL ({ds_config.id})"
             ) from e
     else:
-        _logger.info("Dataset (%s) loaded from path (%s)", ds_config.id, ds_path)
+        log.info("Dataset (%s) loaded from path (%s)", ds_config.id, ds_path)
         dataset = load_from_disk(ds_path)
     return dataset
 

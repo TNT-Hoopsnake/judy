@@ -1,6 +1,5 @@
 import pathlib
 from typing import List, Optional
-import logging
 import sys
 
 from dotenv import load_dotenv
@@ -28,10 +27,10 @@ from judy.utils import (
     matches_tag,
 )
 
-_logger = logging.getLogger("app")
+from judy.config.logging import logger as log
 
 
-class EvalCommandLine:
+class EvalManager:
     def __init__(self, config_paths: List[str | pathlib.Path] = None):
         load_dotenv()
         setup_user_dir()
@@ -54,14 +53,14 @@ class EvalCommandLine:
             IgnoreCacheTypes.ALL,
             IgnoreCacheTypes.PROMPTS,
         ]:
-            _logger.info("Skipped accessing cache for evaluation results")
+            log.info("Skipped accessing cache for evaluation results")
         else:
             eval_results = self.cache.get(cache_key, eval_results_cache_key)
             if not eval_results:
-                _logger.info("Evaluation results not present in cache")
+                log.info("Evaluation results not present in cache")
 
         if eval_results:
-            _logger.info("Evaluation results retrieved from cache")
+            log.info("Evaluation results retrieved from cache")
         else:
             evaluator = Evaluator(run_config=run_config, metrics=metrics)
             eval_results = evaluator.run_evaluation(eval_prompts)
@@ -78,14 +77,14 @@ class EvalCommandLine:
     ) -> BaseFormattedData:
         data = None
         if ignore_cache:
-            _logger.info("Skipped accessing cache for formatted data")
+            log.info("Skipped accessing cache for formatted data")
         else:
             data = self.cache.get(cache_key, "data")
             if not data:
-                _logger.info("Formatted data not present in cache")
+                log.info("Formatted data not present in cache")
 
         if data:
-            _logger.info("Formatted data retrieved from cache")
+            log.info("Formatted data retrieved from cache")
 
         else:
             try:
@@ -97,7 +96,7 @@ class EvalCommandLine:
                 )
                 self.cache.set(cache_key, "data", data)
             except Exception as e:
-                _logger.error(str(e))
+                log.error(str(e))
                 sys.exit(1)
 
         return data
@@ -118,14 +117,14 @@ class EvalCommandLine:
             IgnoreCacheTypes.ALL,
             IgnoreCacheTypes.PROMPTS,
         ]:
-            _logger.info("Skipped accessing cache for evaluation prompts")
+            log.info("Skipped accessing cache for evaluation prompts")
         else:
             eval_prompts = self.cache.get(cache_key, eval_prompts_cache_key)
             if not eval_prompts:
-                _logger.info("Evaluation prompts not present in cache")
+                log.info("Evaluation prompts not present in cache")
 
         if eval_prompts:
-            _logger.info("Evaluation prompts retrieved from cache")
+            log.info("Evaluation prompts retrieved from cache")
         else:
             ignore_dataset_cache: bool = ignore_cache_type in [
                 IgnoreCacheTypes.ALL,
@@ -138,9 +137,7 @@ class EvalCommandLine:
             responder_cls = get_responder_class_map().get(task_type)
             # sanity check
             if not responder_cls:
-                _logger.error(
-                    "Unable to determine responder class for task: %s", task_type
-                )
+                log.error("Unable to determine responder class for task: %s", task_type)
                 raise ValueError("Unable to determine responder class")
 
             responder = responder_cls(
@@ -166,11 +163,11 @@ class EvalCommandLine:
             "scenario_metrics": {},
             "datasets": {},
         }
-        scenarios_to_run: List[ScenarioConfig] = EvalCommandLine.get_scenarios_for_run(
+        scenarios_to_run: List[ScenarioConfig] = EvalManager.get_scenarios_for_run(
             run_config, eval_config
         )
         for eval_scenario in scenarios_to_run:
-            metrics = EvalCommandLine.get_metrics_for_scenario(eval_scenario)
+            metrics = EvalManager.get_metrics_for_scenario(eval_scenario)
             config_cache["scenario_metrics"].setdefault(eval_scenario.id, metrics)
             for dataset_id in eval_scenario.datasets:
                 dataset = get_dataset_config(dataset_id, dataset_config_list)
@@ -200,7 +197,7 @@ class EvalCommandLine:
                 matching_scenario
             ), f"Scenario {scenario_id} is undefined. Create an entry for it in the evaluation config"
             if not matches_tag(matching_scenario, task_tag):
-                _logger.warning(
+                log.warning(
                     "Skipping scenario (%s) as it does not match tag (%s)",
                     matching_scenario.id,
                     task_tag,
@@ -226,7 +223,7 @@ class EvalCommandLine:
         models: List[EvaluatedModel] = []
         for model in run_config.models:
             if not matches_tag(model, model_tag):
-                _logger.warning(
+                log.warning(
                     "Skipping model (%s) as it does not match tag (%s)",
                     model.id,
                     model_tag,

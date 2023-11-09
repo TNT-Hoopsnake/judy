@@ -1,7 +1,6 @@
-import logging
 import click
 
-from judy.cli.eval_cl import EvalCommandLine
+from judy.cli.manager import EvalManager
 from judy.config import dump_configs
 from judy.utils import (
     PromptBuilder,
@@ -10,21 +9,7 @@ from judy.utils import (
     load_configs,
     get_output_directory,
 )
-
-
-def _init_logger():
-    logger = logging.getLogger("app")
-    logger.setLevel(logging.INFO)
-    handler = logging.FileHandler("app.log")
-    formatter = logging.Formatter(
-        "[%(asctime)s %(filename)s->%(funcName)s():%(lineno)s]%(levelname)s: %(message)s"
-    )
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-
-
-_init_logger()
-_logger = logging.getLogger("app")
+from judy.config.logging import logger as log
 
 
 @click.command()
@@ -100,21 +85,21 @@ def run_eval(
     dump_configs(results_dir, configs)
     dump_metadata(results_dir, dataset_tag, task_tag, model_tag)
 
-    cli = EvalCommandLine([eval_config_path, run_config_path])
+    cli = EvalManager([eval_config_path, run_config_path])
     # Collect evaluations to run
     evaluations_to_run, config_cache = cli.collect_evaluations(
         run_config, eval_config, dataset_config
     )
     models_to_run = cli.get_models_to_run(run_config, model_tag)
 
-    _logger.info(
+    log.info(
         "Running a total of %d evaluations on %d models",
         (len(evaluations_to_run) * run_config.num_evals),
         len(models_to_run),
     )
 
     for eval_model in models_to_run:
-        _logger.info("Evaluation started for model: %s", eval_model.id)
+        log.info("Evaluation started for model: %s", eval_model.id)
         # Model-specific parameters override general run config parameters
         eval_model.temperature = eval_model.temperature or run_config.temperature
         eval_model.max_tokens = eval_model.max_tokens or run_config.max_tokens
@@ -128,7 +113,7 @@ def run_eval(
 
             cache_key = cli.cache.build_cache_key(dataset_id, task_id)
 
-            _logger.info(
+            log.info(
                 "Running scenario: %s, dataset: %s, task: %s",
                 scenario_id,
                 dataset_id,
@@ -164,7 +149,7 @@ def run_eval(
                 results_dir,
             )
 
-    _logger.info(
+    log.info(
         "Successfully ran %d evaluations on %d models",
         (len(evaluations_to_run) * run_config.num_evals),
         len(models_to_run),
