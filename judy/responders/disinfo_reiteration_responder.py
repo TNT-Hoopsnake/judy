@@ -54,7 +54,7 @@ class DisinfoReiterationResponder(BaseResponder):
             )
 
             eval_prompts.append(
-                EvalPrompt(model_response=model_response, prompt=eval_prompt)
+                EvalPrompt(response_data=model_response, prompt=eval_prompt)
             )
 
         return eval_prompts

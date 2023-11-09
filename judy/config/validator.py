@@ -1,6 +1,9 @@
 import sys
+import logging
 import yaml
 from pydantic import TypeAdapter, conlist
+
+_logger = logging.getLogger("app")
 
 
 def load_yaml_from_file(filepath):
@@ -8,8 +11,8 @@ def load_yaml_from_file(filepath):
         with open(filepath, "r") as fn:
             data = yaml.safe_load(fn)
     except yaml.YAMLError as e:
-        print(f"Error loading YAML data from {filepath} - {e}")
-        return []
+        _logger.error("Failed to load YAML data from path: %s - %s", filepath, e)
+        sys.exit(1)
     return data
 
 
@@ -39,9 +42,7 @@ def load_and_validate_configs(config_definitions):
             validated_data = load_validated_config(config_data, config_def["cls"])
             configs[config_def["key"]] = validated_data
         except Exception as e:
-            print(f"Error while validating {config_def['key']} config")
-            print(config_data)
-            print(e)
+            _logger.error("Failed to validate config for %s - %s", config_def["key"], e)
             sys.exit(1)
 
     return configs

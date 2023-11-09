@@ -1,14 +1,20 @@
 import hashlib
+import logging
 from pathlib import Path
 from typing import Any, List
 from sqlitedict import SqliteDict
 from judy.config.settings import USER_CACHE_DIR
 
 
+_logger = logging.getLogger("app")
+
+
 class SqliteCache:
     def __init__(self, config_paths: List[str | Path]):
         self.config_paths = config_paths
-        self.cache = SqliteDict(USER_CACHE_DIR / "cache.db", autocommit=True)
+        cache_path = USER_CACHE_DIR / "cache.db"
+        self.cache = SqliteDict(cache_path, autocommit=True)
+        _logger.info("Loaded cache from file: %s", cache_path)
 
     def calculate_content_hash(self, content: Any) -> str:
         encoded_content = str(content).encode()
@@ -44,13 +50,16 @@ class SqliteCache:
 
     def set(self, key: str, subkey: str, data: Any):
         key += subkey
+        _logger.debug("Added to cache using key: %s", key)
         self.cache[key] = data
 
     def get(self, key: str, subkey: str):
         key += subkey
+        _logger.debug("Retrieved from cache using key: %s", key)
         return self.cache.get(key, None)
 
     def build_cache_key(self, ds_name: str, task_type: str):
         config_hash = self.calculate_merkle_tree_hash()
         cache_key = f"{config_hash}-{task_type}-{ds_name}"
+        _logger.debug("Built cache key: %s", cache_key)
         return cache_key

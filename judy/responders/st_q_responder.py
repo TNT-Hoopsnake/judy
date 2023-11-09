@@ -52,7 +52,7 @@ class STQuestionResponder(BaseResponder):
             eval_prompt = self.pb.build_full_prompt(ST_Q_PROMPT, replacement_map)
 
             eval_prompts.append(
-                EvalPrompt(prompt=eval_prompt, model_response=model_response)
+                EvalPrompt(prompt=eval_prompt, response_data=model_response)
             )
 
         return eval_prompts

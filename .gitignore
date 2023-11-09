@@ -4,3 +4,4 @@ datasets
 results/*
 *.db
 .vscode
+*.log

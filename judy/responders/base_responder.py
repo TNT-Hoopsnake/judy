@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import List, Tuple, Any
 from types import ModuleType
+import logging
+import sys
+
 import openai
 from easyllm.clients import huggingface
 from easyllm.prompt_utils import PROMPT_MAPPING
@@ -17,6 +20,8 @@ from judy.responders import (
     EvalPrompt,
 )
 from judy.utils import Retry
+
+_logger = logging.getLogger("app")
 
 
 class BaseResponder(ABC):
@@ -80,18 +85,26 @@ class BaseResponder(ABC):
         return eval_prompts
 
     def get_completion_library(self) -> ModuleType:
-        if self._api_type == ApiTypes.OPENAI:
-            lib = openai
-            # openai lib requires api_key to be set, even if we're not accessing the actual OAI api
-            openai.api_key = ""
-        elif self._api_type == ApiTypes.TGI:
-            lib = huggingface
-        else:
-            raise ValueError(
-                f"Unable to determine completion library for api type: {self._api_type}"
-            )
-        lib.api_base = self._api_base
-        return lib
+        try:
+            match self._api_type:
+                case ApiTypes.OPENAI:
+                    lib = openai
+                    # openai lib requires api_key to be set, even if we're not accessing the actual OAI api
+                    openai.api_key = ""
+                case ApiTypes.TGI:
+                    lib = huggingface
+                    # used to suppress annoying warning from easyllm
+                    lib.prompt_builder = lambda x: x
+                case _:
+                    raise ValueError(
+                        f"Unable to determine completion library for api type: {self._api_type}"
+                    )
+
+            lib.api_base = self._api_base
+            return lib
+        except ValueError as e:
+            _logger.error(str(e))
+            sys.exit(1)
 
     @abstractmethod
     def build_model_prompts(self) -> List[ModelPrompt]:
