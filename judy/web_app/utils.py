@@ -8,7 +8,6 @@ from judy.config import (
     DatasetConfig,
     RunConfig,
     load_validated_config,
-    get_scenario_config,
 )
 from judy.utils import matches_tag
 
