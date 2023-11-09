@@ -21,8 +21,17 @@ CONFIG_CLASS_MAP = {
 }
 
 
+def load_json(path):
+    with open(path, "r") as fn:
+        try:
+            return json.load(fn)
+        except ValueError:
+            print(f'Error loading json data from path {path}')
+            return None
+
 def load_configs(config_path) -> dict:
     configs = {}
+    data = load_json(config_path)
     with open(config_path, "r") as fn:
         data = json.load(fn)
 
@@ -37,7 +46,7 @@ def load_configs(config_path) -> dict:
     return configs
 
 
-def gather_data_index():
+def load_data_index():
     index = {"datasets": {}, "tasks": {}, "scenarios": {}, "models": {}}
     for run_name in os.listdir(DATA_DIR):
         run_path = os.path.join(DATA_DIR, run_name)
@@ -55,22 +64,21 @@ def gather_data_index():
         for model in config["run"].models:
             index["models"][model.id] = model
 
-        return index
+    return index
 
 
 def load_all_data():
-    run_data_list, used_data_list = {}, {}
-    used_data_list = {"models": {}, "tasks": {}, "datasets": {}, "scenarios": {}}
+    run_data_list = {}
+    data_index = load_data_index()
 
-    data_index = gather_data_index()
+    # Iterate over the run names in a directory
     for run_name in os.listdir(DATA_DIR):
         run_path = os.path.join(DATA_DIR, run_name)
-
         config = load_configs(os.path.join(run_path, "config.json"))
-        with open(os.path.join(run_path, "metadata.json"), "r") as fn:
-            metadata = json.load(fn)
+        metadata = load_json(os.path.join(run_path, "metadata.json"))
 
         run_scenarios = [data_index["scenarios"][id] for id in config["run"].scenarios]
+        # Create a dictionary entry for each run
         run_data_list[run_name] = {
             "config": config,
             "metadata": metadata,
@@ -82,54 +90,47 @@ def load_all_data():
         }
         run_dataset_ids = set()
         run_task_ids = set()
+
+        # Collect dataset and task IDs from scenarios
         for scenario in run_scenarios:
             run_dataset_ids = run_dataset_ids.union(set(scenario.datasets))
             for dataset_id in scenario.datasets:
                 dataset = data_index["datasets"][dataset_id]
                 run_task_ids = run_task_ids.union(set(dataset.tasks))
 
+        # Check and collect tasks used
         for task in config["eval"].tasks:
             if matches_tag(task, metadata["task_tags"]) and task.id in run_task_ids:
                 run_data_list[run_name]["tasks_used"].append(task)
-                used_data_list["tasks"][task.id] = task
 
+        # Check and collect datasets used
         for dataset in config["datasets"]:
             if (
                 matches_tag(dataset, metadata["dataset_tags"])
                 and dataset.id in run_dataset_ids
             ):
                 run_data_list[run_name]["datasets_used"].append(dataset)
-                used_data_list["datasets"][dataset.id] = dataset
 
+        # Check and collect models used
         for model in config["run"].models:
             model_path = os.path.join(run_path, model.id)
 
-            # ensure the model was included in this run
-            if matches_tag(model, metadata["model_tags"]) and os.path.exists(
-                model_path
-            ):
+            # Ensure the model was included in this run
+            if matches_tag(model, metadata["model_tags"]) and os.path.exists(model_path):
                 run_data_list[run_name]["models_used"].append(model)
-                used_data_list["models"][model.id] = model
                 run_data_list[run_name]["data"][model.id] = {}
 
+                # Iterate over the model's datasets
                 for dataset_name in os.listdir(model_path):
                     res_path = os.path.join(model_path, dataset_name)
                     dataset_name = dataset_name.replace("-results.json", "")
 
-                    # ensure the dataset was included in this run
+                    # Ensure the dataset was included in this run
                     if os.path.exists(res_path):
-                        with open(res_path, "r") as fn:
-                            res_data = json.load(fn)
+                        res_data = load_json(res_path)
+                        run_data_list[run_name]["data"][model.id][dataset_name] = res_data
 
-                        run_data_list[run_name]["data"][model.id][
-                            dataset_name
-                        ] = res_data
-
-        for scenario_id in config["run"].scenarios:
-            if scenario := get_scenario_config(scenario_id, config["eval"]):
-                used_data_list["scenarios"][scenario_id] = scenario
-
-    return run_data_list, used_data_list
+    return run_data_list, data_index
 
 
 # todo - implement local timestamps

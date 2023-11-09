@@ -25,6 +25,7 @@
       <tr>
         <th scope="col">Run Name</th>
         <th scope="col">Models Used</th>
+        <th scope="col">Scenarios Used</th>
         <th scope="col">Tasks Used</th>
         <th scope="col">Datasets Used</th>
         <th scope="col">Number of Evaluations</th>
@@ -38,6 +39,7 @@
         <tr>
             <td><a href="{{url_for('run_page', run_name=run_name)}}">{{run_name}}</a></td>
             <td>{{run_data['models_used'] | length}}</td>
+            <td>{{run_data['scenarios_used'] | length}}</td>
             <td>{{run_data['tasks_used'] | length}}</td>
             <td>{{run_data['datasets_used'] | length}}</td>
             <td>{{run_data['config']['run'].num_evals}}</td>
@@ -50,6 +52,7 @@
       <tr>
         <td><a href="{{url_for('run_page', run_name='all')}}">{{context['combined']['name']}}</a></td>
         <td>{{context['combined']['models']}}</td>
+        <td>{{context['combined']['scenarios']}}</td>
         <td>{{context['combined']['tasks']}}</td>
         <td>{{context['combined']['datasets']}}</td>
         <td>{{context['combined']['total_eval_num']}}</td>
