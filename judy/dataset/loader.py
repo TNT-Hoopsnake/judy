@@ -1,10 +1,12 @@
 import os
+
 import numpy as np
 from datasets import load_dataset, load_from_disk, Dataset, DatasetDict
 from judy.utils import Retry
 from judy.dataset import formatters
 from judy.config import DATASETS_DIR, DatasetConfig, SourceTypes
 from judy.utils import ensure_directory_exists
+from judy.config.logging import logger as log
 
 
 def load_formatted_data(
@@ -28,6 +30,7 @@ def load_formatted_data(
         raise ValueError(
             f"Unable to map dataset ({ds_config.id}) to formatter class"
         ) from exc
+
     eval_idxs = get_eval_idxs(num_idxs, len(dataset))
 
     return format_class(dataset, eval_idxs).format()
@@ -41,28 +44,32 @@ def get_dataset(
     ds_path = os.path.join(DATASETS_DIR, ds_config.id.split("/")[-1])
     if ignore_cache or not os.path.exists(ds_path):
         try:
-            if ds_config.source_type == SourceTypes.HUGGINGFACE_HUB:
-                dataset = load_dataset(
-                    ds_config.id,
-                    ds_config.version,
-                    split=ds_config.split,
-                    streaming=False,
-                )
-            elif ds_config.source_type == SourceTypes.URL:
-                dataset = load_dataset(
-                    "json",
-                    data_files={ds_config.split: str(ds_config.source)},
-                    split=ds_config.split,
-                )
+            match ds_config.source_type:
+                case SourceTypes.HUGGINGFACE_HUB:
+                    dataset = load_dataset(
+                        ds_config.id,
+                        ds_config.version,
+                        split=ds_config.split,
+                        streaming=False,
+                    )
+                case SourceTypes.URL:
+                    dataset = load_dataset(
+                        "json",
+                        data_files={ds_config.split: str(ds_config.source)},
+                        split=ds_config.split,
+                    )
+                case _:
+                    raise ValueError(
+                        f"Invalid dataset source type provided: {ds_config.source_type:}"
+                    )
+
             dataset.save_to_disk(ds_path)
         except Exception as e:
             raise FileNotFoundError(
                 f"Error while downloading dataset from URL ({ds_config.id})"
             ) from e
     else:
-        print(
-            f"Dataset ({ds_config.id}) already exists. Set ignore_cache=True to redownload"
-        )
+        log.info("Dataset (%s) loaded from path (%s)", ds_config.id, ds_path)
         dataset = load_from_disk(ds_path)
     return dataset
 

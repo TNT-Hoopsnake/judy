@@ -15,7 +15,7 @@ class ModelResponse(BaseModel):
 
 class EvalPrompt(BaseModel):
     prompt: str
-    model_response: ModelResponse
+    response_data: ModelResponse
 
 
 class MetricScore(BaseModel):

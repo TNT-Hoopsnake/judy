@@ -5,6 +5,7 @@ from judy.config import (
     REQUEST_RETRY_MAX_ATTEMPTS,
     REQUEST_RETRY_WAIT_TIME,
 )
+from judy.config.logging import logger as log
 
 
 class Retry:
@@ -22,14 +23,14 @@ class Retry:
             wait_time, backoff, attempts = self.wait_time, self.backoff, 0
             function_result = None
             while attempts < self.max_attempts:
-                print(f"Running {self.func.__name__}, attempt {attempts+1}")
+                log.debug("Running %s, attempt %d", self.func.__name__, attempts + 1)
                 try:
                     function_result = self.func(*args, **kwargs)
                 except Exception as e:
-                    print(f"WARNING - REQUEST FAILED FOR {self.func.__name__} - {e}")
+                    log.error("Request failed for %s - %s", self.func.__name__, e)
                 if function_result:
                     return function_result
-                print(f"Waiting {wait_time} seconds before the next attempt")
+                log.debug("Waiting %s seconds before next attempt", wait_time)
                 time.sleep(self.wait_time)
                 wait_time *= backoff
                 attempts += 1

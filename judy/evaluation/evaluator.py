@@ -4,29 +4,18 @@ from typing import List, Tuple
 import openai
 from judy.utils import Retry
 from judy.utils.prompts import SYSTEM_PROMPT
-from judy.config.settings import JudgeModels
 from judy.config import (
     RunConfig,
     MetricConfig,
+    DEFAULT_OPENAI_API_BASE,
+    get_est_token_cost,
 )
 from judy.responders import (
     MetricScore,
     EvalResponse,
     EvalPrompt,
 )
-
-
-def get_est_token_cost(eval_model: JudgeModels, num_tokens: int) -> float:
-    cost_factor = 0
-    if eval_model == JudgeModels.GPT4:
-        cost_factor = 0.03 / 1000.0
-    elif eval_model == JudgeModels.GPT35:
-        cost_factor = 0.0015 / 1000.0
-
-    return round(num_tokens * cost_factor, 5)
-
-
-DEFAULT_OPENAI_API_BASE = "https://api.openai.com/v1"
+from judy.config.logging import logger as log
 
 
 class Evaluator:
@@ -40,6 +29,7 @@ class Evaluator:
                 "http": str(run_config.proxies.http),
                 "https": str(run_config.proxies.https),
             }
+            log.debug("Proxy will be used for accessing openai API")
 
         self.metrics = metrics
         self.evaluator = run_config.judge
@@ -69,7 +59,14 @@ class Evaluator:
             ],
             temperature=self.evaluator_temperature,
         )
-        # logger.log(logging.INFO, f"openai request - completion tokens: {completion.usage.completion_tokens} - prompt_tokens: {completion.usage.prompt_tokens} - total: {completion.usage.total_tokens}")
+        log.info(
+            "Estimated cost for single request to openai API: $%f",
+            get_est_token_cost(
+                self.evaluator,
+                completion.usage.prompt_tokens,
+                completion.usage.completion_tokens,
+            ),
+        )
         self.eval_input_tokens.append(completion.usage.prompt_tokens)
         self.eval_output_tokens.append(completion.usage.completion_tokens)
         # Extract and return the content of the generated evaluation response
@@ -104,13 +101,12 @@ class Evaluator:
                     min_score = min(metric.score_min, metric.score_max)
                     max_score = max(metric.score_min, metric.score_max)
                     if not min_score <= score <= max_score:
-                        raise ValueError("Evaluated score was out of range")
+                        raise ValueError(
+                            f"Evaluated score was out of range: {score} - should be between {min_score} and {max_score}"
+                        )
                     scores[i] = score
-                except Exception as e:
-                    print(
-                        f"WARNING - Evaluator provided an invalid score for '{metric.name}' ({score})"
-                    )
-                    print(e)
+                except ValueError as e:
+                    log.warning(str(e))
                     scores[i] = 0
 
         return tuple(scores)
@@ -133,7 +129,9 @@ class Evaluator:
             results = self.get_evaluation_results(prompt.prompt)
             model_results.append(results)
 
+        est_cost = get_est_token_cost(
+            self.evaluator, sum(self.eval_input_tokens), sum(self.eval_output_tokens)
+        )
+        log.info("Total estimated cost of evaluation: $%f", est_cost)
+
         return model_results
-        # TODO - reimplement logging
-        # total_tokens = sum(self.eval_input_tokens) + sum(self.eval_output_tokens)
-        # logger.log(logging.INFO, f"- total openai usage - cost: ${get_est_token_cost(self.evaluator, total_tokens)} - tokens - combined: {total_tokens} - prompt: {sum(self.eval_input_tokens)} - completion: {sum(self.eval_output_tokens)}")

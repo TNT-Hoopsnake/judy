@@ -17,6 +17,11 @@ EVAL_CONFIG_PATH = USER_CONFIG_DIR / "eval_config.yaml"
 RUN_CONFIG_PATH = USER_CONFIG_DIR / "run_config.yaml"
 
 
+LOG_FILE_PATH = "app.log"
+
+DEFAULT_OPENAI_API_BASE = "https://api.openai.com/v1"
+
+
 class ApiTypes(str, Enum):
     OPENAI = "openai"
     TGI = "tgi"
@@ -64,3 +69,13 @@ class ModelFamilyTypes(str, Enum):
 class JudgeModels(str, Enum):
     GPT4 = "gpt-4"
     GPT35 = "gpt-3.5-turbo"
+
+
+class InputTokenCost(float, Enum):
+    GPT4 = 0.01 / 1000.0
+    GPT35 = 0.001 / 1000.0
+
+
+class OutputTokenCost(float, Enum):
+    GPT4 = 0.03 / 1000.0
+    GPT35 = 0.002 / 1000.0

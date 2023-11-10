@@ -54,7 +54,7 @@ class SummarizationResponder(BaseResponder):
             )
 
             eval_prompts.append(
-                EvalPrompt(prompt=eval_prompt, model_response=model_response)
+                EvalPrompt(prompt=eval_prompt, response_data=model_response)
             )
 
         return eval_prompts
