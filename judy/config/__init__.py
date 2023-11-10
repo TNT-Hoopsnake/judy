@@ -20,6 +20,7 @@ from .settings import (
     REQUEST_RETRY_BACKOFF,
     REQUEST_RETRY_MAX_ATTEMPTS,
     REQUEST_RETRY_WAIT_TIME,
+    DEFAULT_OPENAI_API_BASE,
     ApiTypes,
     JudgeModels,
     ModelFamilyTypes,

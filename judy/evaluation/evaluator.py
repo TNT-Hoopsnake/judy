@@ -4,10 +4,11 @@ from typing import List, Tuple
 import openai
 from judy.utils import Retry
 from judy.utils.prompts import SYSTEM_PROMPT
-from judy.config import get_est_token_cost
 from judy.config import (
     RunConfig,
     MetricConfig,
+    DEFAULT_OPENAI_API_BASE,
+    get_est_token_cost,
 )
 from judy.responders import (
     MetricScore,
@@ -15,9 +16,6 @@ from judy.responders import (
     EvalPrompt,
 )
 from judy.config.logging import logger as log
-
-
-DEFAULT_OPENAI_API_BASE = "https://api.openai.com/v1"
 
 
 class Evaluator:
