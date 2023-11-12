@@ -1,15 +1,78 @@
-body {
-    color:rgb(70, 70, 70)
+:root {
+    --body-color: rgb(70, 70, 70);
+    --body-background: #f5f5fa;
+    --card-background: #fff;
+    --card-border-radius: 10px;
+    --shadow-l1: 0px 4px 8px rgba(0, 0, 0, 0.04), 0px 0px 2px rgba(0, 0, 0, 0.06), 0px 0px 1px rgba(0, 0, 0, 0.04);
+    --shadow-l2: 0px 10px 20px rgba(0, 0, 0, 0.04), 0px 2px 6px rgba(0, 0, 0, 0.04), 0px 0px 1px rgba(0, 0, 0, 0.04);
+    --shadow-l3: 0px 10px 20px rgba(0, 0, 0, 0.04), 0px 2px 6px rgba(0, 0, 0, 0.04), 0px 0px 1px rgba(0, 0, 0, 0.04);
+    --shadow-l4: 0px 24px 32px rgba(0, 0, 0, 0.04), 0px 16px 24px rgba(0, 0, 0, 0.04), 0px 4px 8px rgba(0, 0, 0, 0.04), 0px 0px 1px rgba(0, 0, 0, 0.04)
 }
+
+body {
+    color: var(--body-color);
+    background: var(--body-background);
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale
+}
+
+#content {
+    padding-top: 30px;
+}
+
+.navbar {
+    box-shadow: var(--shadow-l3);
+}
+
+.navbar-brand h1 {
+    font-size: 25px;
+    color: var(--bs-primary);
+    font-weight: bold;
+    margin-bottom: 0;
+    font-style: italic;
+    text-decoration: underline;
+}
+
+.navbar-nav {
+    width: 100%;
+    display: inline-block;
+}
+
+.nav-item {
+    float: left;
+    width: 16%;
+    text-align: center;
+}
+
 .no-bullets {
     list-style-type:none;
+}
+
+.page-title {
+    padding-bottom: 3%;
 }
 
 .judy-card {
     margin-top: 3%;
     margin-bottom: 3%;
-    height: 300px;
+    height: 400px;
     overflow-y: auto;
+    background-color: var(--card-background);
+    box-shadow: var(--shadow-l1);
+    border-radius: var(--card-border-radius);
+    transition: box-shadow .3s ease;
+}
+
+.card-header {
+    font-weight: bold;
+}
+
+.accordion {
+    background-color: var(--card-background);
+    box-shadow: var(--shadow-l1);
+    border-radius: var(--card-border-radius);
+    transition: box-shadow .3s ease;
 }
 
 .filter-radio {
@@ -47,10 +110,16 @@ h4 {
 
 .raw-result-filter-group {
     margin-right: 10px;
-    align-items: baseline;
+    align-items: center;
     justify-content: center;
 }
 
 .raw-result-filter-item h5 {
     margin-right: 5px;
+    margin-bottom: 0px;
+}
+
+footer {
+    bottom:0;
+    width: 100%;
 }

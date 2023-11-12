@@ -2,24 +2,11 @@
 {% block title %}Runs | Judy{% endblock %}
 
 {% block content %}
-<div class="px-4 py-3 my-3 text-center">
-  <h1 class="display-5 fw-bold">Judy</h1>
-</div>
-<div class="row text-center mb-3">
-  <p>
-    Judy is a python library and framework to evaluate the text-generation capabilities of Large Language Models (LLM) using a Judge LLM.
-  </p>
-  <p>
-    Judy allows users to use a competent Judge LLM (such as GPT-4) to evaluate other LLMs using different options for the following dimensions:
-  </p>
-  <ul class="no-bullets">
-    <li><strong>Dataset: </strong>A source dataset to generate prompts to evaluate models against.</li>
-    <li><strong>Task: </strong>A task to evaluate models on. Tasks for judge evaluations have been carefully designed by researchers to assess certain aspects of LLMs.</li>
-    <li><strong>Metric: </strong>The metric(s) to use when evaluating the responses from a task. For example - accuracy, level of detail etc.</li>
-  </ul>
+<div class="page-title text-center my-3">
+  <h1>Evaluation Runs</h1>
+  <p>A list of all evaluations you have run using judy.</p>
 </div>
 <div class="row text-center">
-  <label for="runs-table"><h3>Evaluation Runs</h3></label>
   <table id="runs-table" class="table">
     <thead>
       <tr>
