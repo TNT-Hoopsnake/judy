@@ -1,3 +1,4 @@
+import pathlib
 import click
 from tqdm import tqdm
 
@@ -16,11 +17,17 @@ from judy.utils import (
     get_output_directory,
 )
 from judy.config.logging import logger as log
+from judy.web_app.main import run_webapp
+
+
+@click.group()
+def judy_cli():
+    click.secho("\n\t\t Welcome to Judy! \n\n", bold=True)
 
 
 def confirm_run():
     click.echo("\nHappy to continue? [y]: ", nl=False)
-    c = click.getchar()
+    c = click.getchar().lower()
     match c:
         case "y":
             click.echo("\n\n")
@@ -31,8 +38,6 @@ def confirm_run():
 
 
 def summarise_run(num_evaluations, models_to_run, scenarios_to_run, datasets_to_run):
-    click.secho("\n\t\t Welcome to Judy! \n\n", bold=True)
-
     click.secho("Your pending run will include:\n", bold=True)
     click.secho(f"\t{num_evaluations} evaluations", bold=True)
 
@@ -46,7 +51,7 @@ def summarise_run(num_evaluations, models_to_run, scenarios_to_run, datasets_to_
     click.echo("\n".join([f"\t\t{ds}" for ds in datasets_to_run]))
 
 
-@click.command()
+@judy_cli.command()
 @click.option(
     "-t", "--dataset", default=None, help="Only run datasets matching this tag"
 )
@@ -100,7 +105,7 @@ def summarise_run(num_evaluations, models_to_run, scenarios_to_run, datasets_to_
     default=False,
     help="Destroy all data contained within the cache DB",
 )
-def run_eval(
+def run(
     task,
     model,
     dataset,
@@ -218,3 +223,83 @@ def run_eval(
         (len(evaluations_to_run) * run_config.num_evals),
         len(models_to_run),
     )
+
+
+@judy_cli.command()
+@click.option(
+    "-h", "--host", default="127.0.0.1", type=str, help="Host used for the web app"
+)
+@click.option("-p", "--port", default=5000, type=int, help="Port used for the web app")
+@click.option(
+    "-r",
+    "--results-directory",
+    help="The path to the directory that contains results that should be loaded by the web app",
+    type=click.Path(),
+    required=True,
+)
+def serve(host, port, results_directory):
+    """Run a flask web app for displaying results"""
+    if not pathlib.Path(results_directory).is_dir():
+        click.echo(f"Invalid directory provided: {results_directory}")
+        click.echo("Please ensure it exists and is accessible by Judy")
+        return
+
+    run_webapp(host, port, results_directory)
+
+
+@judy_cli.command()
+@click.option(
+    "-d",
+    "--dataset-config-path",
+    help="The path to the dataset config file.",
+    default=DATASET_CONFIG_PATH,
+    type=str,
+)
+@click.option(
+    "-e",
+    "--eval-config-path",
+    help="The path to the eval config file.",
+    default=EVAL_CONFIG_PATH,
+    type=str,
+)
+@click.option(
+    "-r",
+    "--run-config-path",
+    help="The path to the run config file.",
+    default=RUN_CONFIG_PATH,
+    type=str,
+)
+def config(dataset_config_path, eval_config_path, run_config_path):
+    """View/Edit configuration files"""
+
+    for config_path in [dataset_config_path, eval_config_path, run_config_path]:
+        if not pathlib.Path(config_path).is_file():
+            click.echo(f"Invalid path provided. No file found at {config_path}")
+            return
+
+    quit_requested = False
+    while not quit_requested:
+        click.echo("\nYour config files are defined in the following locations:\n")
+        click.echo(f"\t(R)un Config: {run_config_path}")
+        click.echo(f"\t(E)valuation Config: {eval_config_path}")
+        click.echo(f"\t(D)ataset Config: {dataset_config_path}")
+        click.echo(
+            "\nPlease input R, E or D (case-insensitive) to choose which config file you would like to open.\nPress any other key to quit: ",
+            nl=False,
+        )
+        c = click.getchar().lower()
+        match c:
+            case "r":
+                click.echo("\nOpening Run config file")
+                click.edit(filename=run_config_path)
+            case "e":
+                click.echo("\nOpening Evaluation config file")
+                click.edit(filename=eval_config_path)
+            case "d":
+                click.echo("\nOpening Dataset config file")
+                click.edit(filename=dataset_config_path)
+            case _:
+                click.echo("\nQuitting...")
+                quit_requested = True
+
+        click.clear()
