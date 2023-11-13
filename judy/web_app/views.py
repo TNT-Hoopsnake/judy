@@ -26,7 +26,7 @@ def runs_dashboard():
     return render_template("run_dashboard.html", context=context)
 
 
-@app.route("/about")
+@app_bp.route("/about")
 def about():
     return render_template("about_page.html", context={})
 
