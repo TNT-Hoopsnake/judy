@@ -4,14 +4,14 @@
     <title>{% block title %}Judy{% endblock %}</title>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.0/dist/echarts.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <header>
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
             <div class="container">
-                <a class="navbar-brand" href="/">Judy</a>
+                <a class="navbar-brand" href="/"><h1>Judy</h1></a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
@@ -39,20 +39,31 @@
                             <a class="nav-link" href="{{url_for('judy.tasks')}}">Tasks</a>
                         </li>
                         <li class="nav-item">
-                            
+                            <a class="nav-link" href="{{url_for('judy.about')}}">About</a>
                         </li>
                     </ul>
                 </div>
             </div>
         </nav>
     </header>
-    <body>          
+    <body>
         <div id="content" class="container">
             {% block content %}{% endblock %}
+            <footer class="footer py-5">
+                <div class="row">
+                    <div class="col">
+                        <div class="d-flex flex-column flex-sm-row justify-content-between py-4 my-4 border-top">
+                            <p>© 2023 Tesserent Innovation. All rights reserved.</p>
+                            <div class="col-md-5 offset-md-1 mb-3">
+                                <h5>Subscribe to our blog</h5>
+                                <p>Learn what's new and exciting from us.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </footer>
         </div>
     </body>
-    <footer>
-        <!-- Common footer content goes here -->
-    </footer>
+
 </body>
 </html>

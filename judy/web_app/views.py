@@ -26,6 +26,11 @@ def runs_dashboard():
     return render_template("run_dashboard.html", context=context)
 
 
+@app_bp.route("/about")
+def about():
+    return render_template("about_page.html", context={})
+
+
 # not currently in use - might return it later idk?
 # @app.route('/models/<model_name>', methods=['GET', 'POST'])
 # def model_page(model_name):
