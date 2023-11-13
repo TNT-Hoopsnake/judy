@@ -26,3 +26,4 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.scripts]
 judy = "judy.cli.run:run_eval"
 judy-config = "judy.cli.edit_config:run_edit_configs"
+judy-web-app = "judy.cli.web_app:run_web_app"

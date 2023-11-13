@@ -11,8 +11,6 @@ from judy.config import (
 )
 from judy.utils import matches_tag
 
-DATA_DIR = "./results"
-
 CONFIG_CLASS_MAP = {
     "eval": EvaluationConfig,
     "datasets": DatasetConfig,
@@ -46,10 +44,10 @@ def load_configs(config_path) -> dict:
     return configs
 
 
-def load_data_index():
+def load_data_index(data_directory):
     index = {"datasets": {}, "tasks": {}, "scenarios": {}, "models": {}}
-    for run_name in os.listdir(DATA_DIR):
-        run_path = os.path.join(DATA_DIR, run_name)
+    for run_name in os.listdir(data_directory):
+        run_path = os.path.join(data_directory, run_name)
         config = load_configs(os.path.join(run_path, "config.json"))
 
         for task in config["eval"].tasks:
@@ -67,13 +65,13 @@ def load_data_index():
     return index
 
 
-def load_all_data():
+def load_all_data(data_directory):
     run_data_list = {}
-    data_index = load_data_index()
+    data_index = load_data_index(data_directory)
 
     # Iterate over the run names in a directory
-    for run_name in os.listdir(DATA_DIR):
-        run_path = os.path.join(DATA_DIR, run_name)
+    for run_name in os.listdir(data_directory):
+        run_path = os.path.join(data_directory, run_name)
         config = load_configs(os.path.join(run_path, "config.json"))
         metadata = load_json(os.path.join(run_path, "metadata.json"))
 

@@ -21,7 +21,7 @@
                         <strong>{{ key }}:</strong>
                         <ul>
                         {% for val in value %}
-                            <li><a href="{{url_for(key, item=val)}}">{{ val }}</a></li>
+                            <li><a href="{{url_for('judy.'+key, item=val)}}">{{ val }}</a></li>
                         {% endfor %}
                         </ul>
                     {% endif %}
