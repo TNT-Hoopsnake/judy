@@ -134,13 +134,13 @@ def run_eval(
     )
     models_to_run = manager.get_models_to_run(run_config, model_tag)
     datasets_to_run = list(set({eval[1] for eval in evaluations_to_run}))
+    num_evaluations = len(evaluations_to_run) * run_config.num_evals
 
     log.info(
         "Running a total of %d evaluations on %d models",
-        (len(evaluations_to_run) * run_config.num_evals),
+        num_evaluations,
         len(models_to_run),
     )
-    num_evaluations = len(evaluations_to_run) * run_config.num_evals
 
     summarise_run(num_evaluations, models_to_run, scenarios_to_run, datasets_to_run)
 
