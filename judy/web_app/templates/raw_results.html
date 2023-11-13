@@ -24,7 +24,7 @@
           </button>
           <ul class="dropdown-menu" aria-labelledby="dropdown-runs">
             {% for run in runs %}
-            <li><a class="dropdown-item" href="{{url_for('raw_results', run_name=run)}}">{{run}}</a></li>
+            <li><a class="dropdown-item" href="{{url_for('judy.raw_results', run_name=run)}}">{{run}}</a></li>
             {% endfor %}
           </ul>
         </div>
@@ -38,7 +38,7 @@
             <ul class="dropdown-menu" aria-labelledby="model-dropdown">
                 {% for model, model_data in raw_data.items() %}
                     <li>
-                      <a class="dropdown-item" href="{{url_for('raw_results', run_name=run_name, model=model)}}">{{ model }}</a>
+                      <a class="dropdown-item" href="{{url_for('judy.raw_results', run_name=run_name, model=model)}}">{{ model }}</a>
                     </li>
                 {% endfor %}
             </ul>
@@ -53,7 +53,7 @@
             <ul class="dropdown-menu" aria-labelledby="dataset-dropdown">
                 {% for dataset, dataset_data in raw_data[model_name].items() %}
                     <li>
-                        <a class="dropdown-item" href="{{url_for('raw_results', run_name=run_name, model=model_name, dataset=dataset)}}">{{ dataset }}</a>
+                        <a class="dropdown-item" href="{{url_for('judy.raw_results', run_name=run_name, model=model_name, dataset=dataset)}}">{{ dataset }}</a>
                     </li>
                 {% endfor %}
             </ul>

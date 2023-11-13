@@ -24,7 +24,7 @@
 
         {% for run_name, run_data in context['data'].items() %}
         <tr>
-            <td><a href="{{url_for('run_page', run_name=run_name)}}">{{run_name}}</a></td>
+            <td><a href="{{url_for('judy.run_page', run_name=run_name)}}">{{run_name}}</a></td>
             <td>{{run_data['models_used'] | length}}</td>
             <td>{{run_data['scenarios_used'] | length}}</td>
             <td>{{run_data['tasks_used'] | length}}</td>
@@ -37,7 +37,7 @@
     </tbody>
     <tfoot>
       <tr>
-        <td><a href="{{url_for('run_page', run_name='all')}}">{{context['combined']['name']}}</a></td>
+        <td><a href="{{url_for('judy.run_page', run_name='all')}}">{{context['combined']['name']}}</a></td>
         <td>{{context['combined']['models']}}</td>
         <td>{{context['combined']['scenarios']}}</td>
         <td>{{context['combined']['tasks']}}</td>
