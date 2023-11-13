@@ -36,13 +36,12 @@ def load_json(path):
 def load_configs(config_path) -> dict:
     configs = {}
     data = load_json(config_path)
-    with open(config_path, "r") as fn:
-        data = json.load(fn)
 
     for key, config in data.items():
         config_cls = CONFIG_CLASS_MAP.get(key)
         if not config_cls:
-            raise ValueError(f"Config class could not be retrieved using key: {key}")
+            print(f"Error retrieving config class using key {key}")
+            return None
 
         config_model = load_validated_config(config, config_cls)
         configs[key] = config_model
@@ -59,6 +58,11 @@ def load_data_index(data_directory):
             # ie: no results exist for this run
             continue
         config = load_configs(os.path.join(run_path, "config.json"))
+        if not config:
+            print(
+                f"No configurations could be loaded for run ({run_name}). It will be skipped."
+            )
+            continue
 
         for task in config["eval"].tasks:
             index["tasks"][task.id] = task
@@ -87,6 +91,11 @@ def load_all_data(data_directory):
             # ie: no results exist for this run
             continue
         config = load_configs(os.path.join(run_path, "config.json"))
+        if not config:
+            # error message will already displayed in load_data_index
+            # no need to display a duplicate one here
+            continue
+
         metadata = load_json(os.path.join(run_path, "metadata.json"))
 
         run_scenarios = [data_index["scenarios"][id] for id in config["run"].scenarios]
