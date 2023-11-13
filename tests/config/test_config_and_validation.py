@@ -21,7 +21,6 @@ from .fixtures import (
 
 
 def test_invalid_dataset_eval_config():
-    cli = EvalManager()
     eval_config = EvaluationConfig(
         scenarios=[
             {
@@ -39,7 +38,7 @@ def test_invalid_dataset_eval_config():
         tasks=VALID_TASKS,
     )
     with pytest.raises(ValueError):
-        cli.collect_evaluations(
+        EvalManager.collect_evaluations(
             run_config=RunConfig(**VALID_RUN_CONFIG),
             eval_config=eval_config,
             dataset_config_list=[
@@ -58,7 +57,6 @@ def test_invalid_dataset_eval_config():
 
 
 def test_invalid_task_for_dataset():
-    cli = EvalManager()
     eval_config = EvaluationConfig(
         scenarios=[
             {
@@ -76,7 +74,7 @@ def test_invalid_task_for_dataset():
         tasks=VALID_TASKS,
     )
     with pytest.raises(ValueError):
-        cli.collect_evaluations(
+        EvalManager.collect_evaluations(
             run_config=RunConfig(**VALID_RUN_CONFIG),
             eval_config=eval_config,
             dataset_config_list=[
