@@ -1,5 +1,6 @@
 import os
 import json
+import pathlib
 from datetime import datetime
 import pandas as pd
 import numpy as np
@@ -16,6 +17,11 @@ CONFIG_CLASS_MAP = {
     "datasets": DatasetConfig,
     "run": RunConfig,
 }
+
+
+def check_directory_contains_subdirectories(directory):
+    path = pathlib.Path(directory)
+    return any(path.is_dir() for path in path.iterdir())
 
 
 def load_json(path):
@@ -48,6 +54,10 @@ def load_data_index(data_directory):
     index = {"datasets": {}, "tasks": {}, "scenarios": {}, "models": {}}
     for run_name in os.listdir(data_directory):
         run_path = os.path.join(data_directory, run_name)
+        if not check_directory_contains_subdirectories(run_path):
+            # this run directory has no subdirectories
+            # ie: no results exist for this run
+            continue
         config = load_configs(os.path.join(run_path, "config.json"))
 
         for task in config["eval"].tasks:
@@ -72,6 +82,10 @@ def load_all_data(data_directory):
     # Iterate over the run names in a directory
     for run_name in os.listdir(data_directory):
         run_path = os.path.join(data_directory, run_name)
+        if not check_directory_contains_subdirectories(run_path):
+            # this run directory has no subdirectories
+            # ie: no results exist for this run
+            continue
         config = load_configs(os.path.join(run_path, "config.json"))
         metadata = load_json(os.path.join(run_path, "metadata.json"))
 
