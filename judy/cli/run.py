@@ -2,7 +2,12 @@ import click
 from tqdm import tqdm
 
 from judy.cli.manager import EvalManager
-from judy.config import dump_configs
+from judy.config import (
+    dump_configs,
+    DATASET_CONFIG_PATH,
+    EVAL_CONFIG_PATH,
+    RUN_CONFIG_PATH,
+)
 from judy.utils import (
     PromptBuilder,
     save_evaluation_results,
@@ -64,20 +69,21 @@ def summarise_run(num_evaluations, models_to_run, scenarios_to_run, datasets_to_
     "-d",
     "--dataset-config-path",
     help="The path to the dataset config file.",
-    default=None,
+    default=DATASET_CONFIG_PATH,
     type=click.Path(),
 )
 @click.option(
     "-e",
     "--eval-config-path",
     help="The path to the eval config file.",
-    default=None,
+    default=EVAL_CONFIG_PATH,
     type=click.Path(),
 )
 @click.option(
     "-r",
     "--run-config-path",
     help="The path to the run config file.",
+    default=RUN_CONFIG_PATH,
     type=click.Path(),
 )
 @click.option(
