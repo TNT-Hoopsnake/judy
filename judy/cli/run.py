@@ -31,7 +31,7 @@ def confirm_run():
 
 
 def summarise_run(num_evaluations, models_to_run, scenarios_to_run, datasets_to_run):
-    click.secho("\n\t\t Welcome to Judy! \n\n", bold=True, bg="white", fg="green")
+    click.secho("\n\t\t Welcome to Judy! \n\n", bold=True)
 
     click.secho("Your pending run will include:\n", bold=True)
     click.secho(f"\t{num_evaluations} evaluations", bold=True)

@@ -34,7 +34,7 @@ def run_edit_configs(dataset_config_path, eval_config_path, run_config_path):
     quit_requested = False
     while not quit_requested:
         click.clear()
-        click.secho("\n\t\t Welcome to Judy! \n\n", bold=True, bg="white", fg="green")
+        click.secho("\n\t\t Welcome to Judy! \n\n", bold=True)
 
         click.echo("\nYour config files are defined in the following locations:\n")
         click.echo(f"\t(R)un Config: {run_config_path}")
