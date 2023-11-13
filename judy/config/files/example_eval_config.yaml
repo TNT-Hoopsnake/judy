@@ -59,7 +59,7 @@ scenarios:
 
   - name: Question Answering
     id: qa
-    desc: This scenario tests the model's ability to answer questions under different conditions - with/without context, open-ended questions, unanswerable uestions etc.
+    desc: This scenario tests the model's ability to answer questions under different conditions - with/without context, open-ended questions, unanswerable questions etc.
     score_min: 0
     score_max: 10
     datasets: ["squad_v2", "quac", "launch/open_question_type", "riddle_sense", "ethics_suite", "ms_marco"]
