@@ -31,10 +31,19 @@ from judy.config.logging import logger as log
 
 
 class EvalManager:
-    def __init__(self, config_paths: List[str | pathlib.Path] = None):
+    def __init__(
+        self, config_paths: List[str | pathlib.Path] = None, clear_cache: bool = False
+    ):
         load_dotenv()
         setup_user_dir()
-        self.cache = SqliteCache(config_paths)
+        self.cache = SqliteCache(config_paths, clear_cache)
+
+    def sizeof_current_run_cache(self):
+        return len(self.cache.cache)
+
+    def get_num_cached_runs(self):
+        tables = self.cache.cache.get_tablenames(self.cache.cache.filename)
+        return len(tables)
 
     def get_evaluation_results(
         self,
@@ -47,7 +56,7 @@ class EvalManager:
     ):
         eval_results = None
         eval_results_cache_key = (
-            f"{self.cache.calculate_content_hash(eval_prompts)}-{model.name}"
+            f"{self.cache.calculate_content_hash(eval_prompts)}-{model.id}"
         )
         if ignore_cache_type and ignore_cache_type in [
             IgnoreCacheTypes.ALL,
@@ -111,7 +120,7 @@ class EvalManager:
         task_type: TaskTypes,
         ignore_cache_type: IgnoreCacheTypes,
     ) -> List[dict]:
-        eval_prompts_cache_key = f"eval_prompts-{model.name}"
+        eval_prompts_cache_key = f"eval_prompts-{model.id}"
         eval_prompts = None
         if ignore_cache_type and ignore_cache_type in [
             IgnoreCacheTypes.ALL,
@@ -175,7 +184,7 @@ class EvalManager:
                     task = get_task_config(task_id, eval_config)
                     evaluations_to_run.append((eval_scenario.id, dataset.id, task.id))
                     config_cache["datasets"].setdefault(dataset.id, dataset)
-        return evaluations_to_run, config_cache
+        return evaluations_to_run, scenarios_to_run, config_cache
 
     @staticmethod
     def get_scenarios_for_run(

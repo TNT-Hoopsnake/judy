@@ -1,27 +1,17 @@
-from flask import Flask, render_template, request, abort
+from flask import render_template, request, abort, g, Blueprint
 from judy.web_app.utils import (
-    load_all_data,
     format_data,
     get_grouped_df,
     get_readable_timestamp,
 )
 
-all_data, used_data = load_all_data()
-df = format_data(all_data)
-
-app = Flask(__name__)
-app.config.from_pyfile("config.py")
-app.static_folder = "static"
+app_bp = Blueprint("judy", __name__)
 
 
-@app.template_filter("timestamp")
-def timestamp_filter(timestamp):
-    return get_readable_timestamp(timestamp)
-
-
-@app.route("/")
+@app_bp.route("/")
 def runs_dashboard():
-    run_data = all_data
+    run_data = g.all_data
+    df = format_data(run_data)
 
     all_evaluations = sum(data["config"]["run"].num_evals for data in run_data.values())
     combined_run = {
@@ -74,8 +64,12 @@ def runs_dashboard():
 #     return render_template('model_page.html', context=context)
 
 
-@app.route("/runs/<run_name>", methods=["GET", "POST"])
+@app_bp.route("/runs/<run_name>", methods=["GET", "POST"])
 def run_page(run_name):
+    all_data = g.all_data
+    used_data = g.used_data
+    df = format_data(all_data)
+
     groupby_options = {
         "scenario": "Scenario",
         "model": "Model",
@@ -136,8 +130,10 @@ def run_page(run_name):
     return render_template("run_page.html", context=context)
 
 
-@app.route("/scenarios")
+@app_bp.route("/scenarios")
 def scenarios():
+    all_data = g.all_data
+
     item_filter = request.args.get("item")
     seen_scenarios = set()
     scenario_data = []
@@ -159,13 +155,15 @@ def scenarios():
         cards_data=scenario_data,
         page_title="Scenario Info",
         page_subtitle="List of Scenarios used in your Judy Runs",
-        page_name="scenarios",
+        page_name="judy.scenarios",
         is_filtered=bool(item_filter),
     )
 
 
-@app.route("/tasks")
+@app_bp.route("/tasks")
 def tasks():
+    all_data = g.all_data
+
     item_filter = request.args.get("item")
     seen_tasks = set()
     task_data = []
@@ -187,13 +185,15 @@ def tasks():
         cards_data=task_data,
         page_title="Task Info",
         page_subtitle="List of Tasks used in your Judy Runs",
-        page_name="tasks",
+        page_name="judy.tasks",
         is_filtered=bool(item_filter),
     )
 
 
-@app.route("/datasets")
+@app_bp.route("/datasets")
 def datasets():
+    all_data = g.all_data
+
     item_filter = request.args.get("item")
 
     seen_datasets = set()
@@ -220,13 +220,15 @@ def datasets():
         cards_data=dataset_data,
         page_title="Dataset Info",
         page_subtitle="List of Datasets used in your Judy Runs",
-        page_name="datasets",
+        page_name="judy.datasets",
         is_filtered=bool(item_filter),
     )
 
 
-@app.route("/models")
+@app_bp.route("/models")
 def models():
+    all_data = g.all_data
+
     seen_models = set()
     model_data = []
     item_filter = request.args.get("item")
@@ -253,14 +255,17 @@ def models():
         cards_data=model_data,
         page_title="Model Info",
         page_subtitle="List of Models used in your Judy Runs",
-        page_name="models",
+        page_name="judy.models",
         is_filtered=bool(item_filter),
     )
 
 
-@app.route("/raw")
-@app.route("/raw/<run_name>")
+@app_bp.route("/raw")
+@app_bp.route("/raw/<run_name>")
 def raw_results(run_name=None):
+    all_data = g.all_data
+    df = format_data(all_data)
+
     model_filter = request.args.get("model")
     dataset_filter = request.args.get("dataset")
 
@@ -291,7 +296,3 @@ def raw_results(run_name=None):
         raw_data=run_data,
         filtered_data=filtered_data,
     )
-
-
-if __name__ == "__main__":
-    app.run(debug=True)

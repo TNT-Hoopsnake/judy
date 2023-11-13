@@ -13,14 +13,14 @@
             <h2>Runs</h2>
             <ul>
                 {% for run in context['runs'] %}
-                <li><a href="{{url_for('run_page', run_name=run)}}">{{run}}</a></li>
+                <li><a href="{{url_for('judy.run_page', run_name=run)}}">{{run}}</a></li>
                 {% endfor %}
             </ul>
 
             <h2>Tasks</h2>
             <ul>
                 {% for task in context['tasks'] %}
-                <li><a href="{{url_for('grouped_results', group_by='task', filter=task)}}">{{task}}</a></li>
+                <li><a href="{{url_for('judy.grouped_results', group_by='task', filter=task)}}">{{task}}</a></li>
                 {% endfor %}
             </ul>
 
@@ -28,7 +28,7 @@
             <h2>Datasets</h2>
             <ul>
                 {% for dataset in context['datasets'] %}
-                <li><a href="{{url_for('grouped_results', group_by='dataset', filter=dataset)}}">{{dataset}}</a></li>
+                <li><a href="{{url_for('judy.grouped_results', group_by='dataset', filter=dataset)}}">{{dataset}}</a></li>
                 {% endfor %}
             </ul>
         </div>

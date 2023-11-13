@@ -10,7 +10,6 @@ from judy.config import (
     EvaluatedModel,
     get_config_definitions,
 )
-from judy.config.settings import DATASET_CONFIG_PATH, EVAL_CONFIG_PATH, RUN_CONFIG_PATH
 from judy.config.validator import load_and_validate_configs
 from judy.responders import EvalPrompt, EvalResponse
 from judy.config.logging import logger as log
@@ -95,10 +94,6 @@ def load_configs(
     except FileNotFoundError as e:
         log.error(str(e))
         sys.exit(1)
-
-    eval_config_path = eval_config_path or EVAL_CONFIG_PATH
-    dataset_config_path = dataset_config_path or DATASET_CONFIG_PATH
-    run_config_path = run_config_path or RUN_CONFIG_PATH
 
     log.info("Evaluation config path: %s", eval_config_path)
     log.info("Dataset config path: %s", dataset_config_path)

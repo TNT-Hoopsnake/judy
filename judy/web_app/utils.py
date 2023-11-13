@@ -1,5 +1,6 @@
 import os
 import json
+import pathlib
 from datetime import datetime
 import pandas as pd
 import numpy as np
@@ -11,13 +12,16 @@ from judy.config import (
 )
 from judy.utils import matches_tag
 
-DATA_DIR = "./results"
-
 CONFIG_CLASS_MAP = {
     "eval": EvaluationConfig,
     "datasets": DatasetConfig,
     "run": RunConfig,
 }
+
+
+def check_directory_contains_subdirectories(directory):
+    path = pathlib.Path(directory)
+    return any(path.is_dir() for path in path.iterdir())
 
 
 def load_json(path):
@@ -32,13 +36,12 @@ def load_json(path):
 def load_configs(config_path) -> dict:
     configs = {}
     data = load_json(config_path)
-    with open(config_path, "r") as fn:
-        data = json.load(fn)
 
     for key, config in data.items():
         config_cls = CONFIG_CLASS_MAP.get(key)
         if not config_cls:
-            raise ValueError(f"Config class could not be retrieved using key: {key}")
+            print(f"Error retrieving config class using key {key}")
+            return None
 
         config_model = load_validated_config(config, config_cls)
         configs[key] = config_model
@@ -46,11 +49,20 @@ def load_configs(config_path) -> dict:
     return configs
 
 
-def load_data_index():
+def load_data_index(data_directory):
     index = {"datasets": {}, "tasks": {}, "scenarios": {}, "models": {}}
-    for run_name in os.listdir(DATA_DIR):
-        run_path = os.path.join(DATA_DIR, run_name)
+    for run_name in os.listdir(data_directory):
+        run_path = os.path.join(data_directory, run_name)
+        if not check_directory_contains_subdirectories(run_path):
+            # this run directory has no subdirectories
+            # ie: no results exist for this run
+            continue
         config = load_configs(os.path.join(run_path, "config.json"))
+        if not config:
+            print(
+                f"No configurations could be loaded for run ({run_name}). It will be skipped."
+            )
+            continue
 
         for task in config["eval"].tasks:
             index["tasks"][task.id] = task
@@ -67,14 +79,23 @@ def load_data_index():
     return index
 
 
-def load_all_data():
+def load_all_data(data_directory):
     run_data_list = {}
-    data_index = load_data_index()
+    data_index = load_data_index(data_directory)
 
     # Iterate over the run names in a directory
-    for run_name in os.listdir(DATA_DIR):
-        run_path = os.path.join(DATA_DIR, run_name)
+    for run_name in os.listdir(data_directory):
+        run_path = os.path.join(data_directory, run_name)
+        if not check_directory_contains_subdirectories(run_path):
+            # this run directory has no subdirectories
+            # ie: no results exist for this run
+            continue
         config = load_configs(os.path.join(run_path, "config.json"))
+        if not config:
+            # error message will already displayed in load_data_index
+            # no need to display a duplicate one here
+            continue
+
         metadata = load_json(os.path.join(run_path, "metadata.json"))
 
         run_scenarios = [data_index["scenarios"][id] for id in config["run"].scenarios]
