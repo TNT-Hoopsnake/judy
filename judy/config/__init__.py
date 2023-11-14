@@ -45,19 +45,16 @@ def get_config_definitions(
         {
             "cls": EvaluationConfig,
             "path": eval_config or EVAL_CONFIG_PATH,
-            "is_list": False,
             "key": "eval",
         },
         {
             "cls": DatasetConfig,
             "path": dataset_config or DATASET_CONFIG_PATH,
-            "is_list": True,
             "key": "datasets",
         },
         {
             "cls": RunConfig,
             "path": run_config or RUN_CONFIG_PATH,
-            "is_list": False,
             "key": "run",
         },
     ]

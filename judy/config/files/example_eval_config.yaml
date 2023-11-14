@@ -62,10 +62,13 @@ scenarios:
     desc: This scenario tests the model's ability to answer questions under different conditions - with/without context, open-ended questions, unanswerable questions etc.
     score_min: 0
     score_max: 10
-    datasets: ["squad_v2", "quac", "launch/open_question_type", "riddle_sense", "ethics_suite", "ms_marco"]
+    datasets: ["squad_v2", "quac", "launch/open_question_type", "riddle_sense", "ethics_suite", "ms_marco", "gsm8k" ]
     metrics:
+    - name: Quality
+      desc: "Evaluate the quality of the Assistant's response. High scores should be award to responses that correctly answer the User's queries."
+
     - name: Accuracy
-      desc: "Assess the extent to which the response aligns with factual information without errors. A high score should be awarded to responses that are factually sound and accurately answer the User's queries."
+      desc: "Assess the extent to which the response aligns with accurate information without errors. A high score should be awarded to responses that accurately answer the User's queries."
 
     - name: Coherence
       desc: "Evaluate how well the response flows logically and how well ideas are connected. A high score should be given to responses that are easy to follow."

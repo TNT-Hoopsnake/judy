@@ -3,6 +3,7 @@
   version: null
   tasks: [mt_q]
   formatter: MTBenchFormatter
+  source_type: hub
   split: train
   tags: ["instruction_following", "open_ended"]
 
@@ -11,6 +12,7 @@
   version: v1.1
   tasks: [st_qac]
   formatter: MsMarcoFormatter
+  source_type: hub
   split: test
   tags: ["summarization", "documents", "info_retrieval"]
 
@@ -19,6 +21,7 @@
   version: null
   tasks: [summ]
   formatter: XsumFormatter
+  source_type: hub
   split: test
   tags: ["summarization", "documents"]
 
@@ -27,6 +30,7 @@
   version: 3.0.0
   tasks: [summ]
   formatter: CNNFormatter
+  source_type: hub
   split: test
   tags: ["summarization", "documents"]
 
@@ -35,6 +39,7 @@
   version: null
   tasks: [st_qac]
   formatter: SquadFormatter
+  source_type: hub
   split: validation
   tags: ["question_answering"]
 
@@ -43,6 +48,7 @@
   version: null
   tasks: [mt_qac]
   formatter: QuacFormatter
+  source_type: hub
   split: validation
   tags: ["question_answering"]
 
@@ -68,6 +74,7 @@
   source: https://huggingface.co/datasets/launch/open_question_type
   tasks: [st_q]
   formatter: OpenQuestionFormatter
+  source_type: hub
   split: test
   tags: ["question_answering", "open_ended", "reasoning", "commonsense"]
 
@@ -75,6 +82,7 @@
   source: https://huggingface.co/datasets/riddle_sense
   tasks: [st_qa]
   formatter: RiddleSenseFormatter
+  source_type: hub
   split: train
   tags: ["question_answering", "reasoning", "commonsense"]
 
@@ -85,6 +93,15 @@
   source_type: url
   split: train
   tags: ["open_ended", "harms", "question_answering",]
+
+- id: gsm8k
+  source: https://huggingface.co/datasets/gsm8k
+  version: main
+  tasks: [st_qa]
+  formatter: GSM8KFormatter
+  source_type: hub
+  split: test
+  tags: ["maths"]
 
 # - id: flask
 #   source: https://raw.githubusercontent.com/kaistAI/FLASK/main/evaluation_set/flask_evaluation.jsonl

@@ -10,6 +10,10 @@ from judy.config.logging import logger as log
 
 class Retry:
     def __init__(self, *args, **kwargs):
+        """
+        A decorator that allows for retrying a function with
+        configurable parameters in case of failures.
+        """
         self.func = None
         self.max_attempts = kwargs.get("max_attempts", REQUEST_RETRY_MAX_ATTEMPTS)
         self.wait_time = kwargs.get("wait_time", REQUEST_RETRY_WAIT_TIME)

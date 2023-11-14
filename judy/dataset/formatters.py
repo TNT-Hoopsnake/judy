@@ -179,3 +179,15 @@ class EthicsSuiteFormatter(BaseFormatter):
         questions = [self.dataset["text"][i] for i in self.eval_idxs]
 
         return FormattedData(questions=questions)
+
+
+class GSM8KFormatter(BaseFormatter):
+    def format(self) -> STQAFormattedData:
+        # available splits: train, test
+        questions = []
+        answers = []
+        for i in self.eval_idxs:
+            questions.append(self.dataset["question"][i])
+            answers.append(self.dataset["answer"][i])
+
+        return STQAFormattedData(questions=questions, answers=answers)

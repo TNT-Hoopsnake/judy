@@ -44,12 +44,24 @@ Ensure you have API access to the models you wish to evaluate. We currently supp
 
 If you are hosting models locally you can use a package like [LocalAI](https://github.com/mudler/LocalAI) to get an OpenAI compatible REST API which can be used by `Judy`.
 
-#### 3. Run an evaluation
+#### 3. Judy Commands
+
+A CLI interface is provided for viewing and editing Judy config files.
+
+```bash
+judy config
+```
 
 Run an evaluation as follows:
 
 ```bash
-judy --run-config run_config.yml --name disinfo-test --output ./results
+judy run --run-config run_config.yml --name disinfo-test --output ./results
+```
+
+After running an evaluation, you can serve a web app for viewing the results:
+
+```bash
+judy serve -r ./results
 ```
 
 ## 2. Roadmap
@@ -57,7 +69,7 @@ judy --run-config run_config.yml --name disinfo-test --output ./results
 ### 2.1 Features
 
 - [x] Core framework
-- [ ] Web app - to view evaluation results
+- [x] Web app - to view evaluation results
 - [ ] Add perturbations - the ability to modify input datasets - with typos, synonymns etc.
 - [ ] Add adaptations - the ability to use different prompting techniques - such as Chain of Thought etc.
 

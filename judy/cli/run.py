@@ -53,10 +53,10 @@ def summarise_run(num_evaluations, models_to_run, scenarios_to_run, datasets_to_
 
 @judy_cli.command()
 @click.option(
-    "-t", "--dataset", default=None, help="Only run datasets matching this tag"
+    "-dt", "--dataset", default=None, help="Only run datasets matching this tag"
 )
-@click.option("-s", "--task", default=None, help="Only run tasks matching this tag")
-@click.option("-m", "--model", default=None, help="Only run models matching this tag")
+@click.option("-tt", "--task", default=None, help="Only run tasks matching this tag")
+@click.option("-mt", "--model", default=None, help="Only run models matching this tag")
 @click.option(
     "-n",
     "--name",
@@ -127,15 +127,16 @@ def run(
     dataset_tag = dataset
     task_tag = task
 
+    # Create output directory
     results_dir = get_output_directory(output, name)
-
+    # dump configurations and metadata settings so they can be used in the web app
     dump_configs(results_dir, configs)
     dump_metadata(results_dir, dataset_tag, task_tag, model_tag)
 
     manager = EvalManager([eval_config_path, run_config_path], clear_cache)
     # Collect evaluations to run
     evaluations_to_run, scenarios_to_run, config_cache = manager.collect_evaluations(
-        run_config, eval_config, dataset_config
+        run_config, eval_config, dataset_config, dataset_tag, task_tag
     )
     models_to_run = manager.get_models_to_run(run_config, model_tag)
     datasets_to_run = list(set({eval[1] for eval in evaluations_to_run}))
@@ -163,7 +164,7 @@ def run(
     if not confirm_run():
         return
 
-    with tqdm(total=len(models_to_run) * len(evaluations_to_run)) as pbar:
+    with tqdm(total=len(models_to_run) * num_evaluations) as pbar:
         for eval_model in models_to_run:
             log.info("Evaluation started for model: %s", eval_model.id)
             # Model-specific parameters override general run config parameters
@@ -204,6 +205,7 @@ def run(
                     run_config,
                     scenario_metrics,
                     ignore_cache,
+                    pbar,
                 )
 
                 save_evaluation_results(

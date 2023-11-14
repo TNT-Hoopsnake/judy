@@ -6,11 +6,11 @@ proxies:
   http: http://sample-proxy
   https: http://sample-proxy
 random_seed: 12345
-num_evals: 1
+num_evals: 10
 max_tokens: 1000
 context_char_limit: 1000
 temperature: 1.1
-scenarios: ["inst", "qa", "dis_w", "dis_r"]
+scenarios: ["qa"]
 models:
   - id: flan-t5-small
     api_type: tgi
