@@ -1,7 +1,5 @@
 import pathlib
 from typing import List, Optional
-import sys
-
 from dotenv import load_dotenv
 
 from judy.cache import SqliteCache
