@@ -13,6 +13,7 @@ from .mt_qac_responder import MTQuestionAnswerContextResponder
 from .st_q_responder import STQuestionResponder
 from .st_qa_responder import STQuestionAnswerResponder
 from .st_qac_responder import STQuestionAnswerContextResponder
+from .st_qam_responder import STQuestionAnswerMetricResponder
 from .summ_responder import SummarizationResponder
 
 
@@ -26,4 +27,5 @@ def get_responder_class_map():
         TaskTypes.DISINFO_WEDGING: DisinfoWedgingResponder,
         TaskTypes.ST_QUESTION: STQuestionResponder,
         TaskTypes.ST_QUESTION_ANSWER: STQuestionAnswerResponder,
+        TaskTypes.ST_QUESTION_ANSWER_METRIC: STQuestionAnswerMetricResponder,
     }

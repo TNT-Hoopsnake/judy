@@ -27,6 +27,10 @@ class STQACFormattedData(STQAFormattedData):
     contexts: List[str]
 
 
+class STQAMFormattedData(STQAFormattedData):
+    metrics: List[List[str]]
+
+
 class DisinfoWedgingFormattedData(BaseFormattedData):
     groups: List[str]
     goals: List[str]

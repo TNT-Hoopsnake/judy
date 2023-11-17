@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Optional
 from judy.config import MetricConfig, TaskTypes
 from .prompts import BASE_PROMPT
 
@@ -20,16 +20,39 @@ class PromptBuilder:
     @property
     def base_prompt(self):
         """
-        Generates a base prompt that includes metric descriptions and
-        placeholders for metric values.
+        Generates a base prompt.
 
         Returns:
             str: The base prompt string.
 
         """
+        return BASE_PROMPT
+
+    def update_metrics(self, prompt: str, metrics_filter: Optional[List[str]] = None):
+        """
+        Updates a prompt to include metric descriptions and
+        placeholders for metric values.
+
+        Returns:
+            str: The updated prompt string.
+
+        """
         metric_descriptions = []
         metric_formats = []
-        for metric in self.metric_configs:
+        metrics = []
+        if metrics_filter:
+            metrics = [
+                metric
+                for metric in self.metric_configs
+                if metric.name in metrics_filter
+            ]
+        else:
+            metrics = self.metric_configs
+        if not metrics:
+            raise ValueError(
+                f"No metrics defined for prompt: {prompt}. Cannot continue with evaluation"
+            )
+        for metric in metrics:
             metric_descriptions.append(
                 f"\t{metric.name} (Min Score: {metric.score_min}, Max Score: {metric.score_max}): {metric.desc}\n"
             )
@@ -44,7 +67,10 @@ class PromptBuilder:
         return prompt
 
     def build_full_prompt(
-        self, task_prompt: str, replacement_map: Dict[str, str]
+        self,
+        task_prompt: str,
+        replacement_map: Dict[str, str],
+        metrics_filter: Optional[List[str]] = None,
     ) -> str:
         """
         Combines the base prompt, task-specific prompt, and replaces
@@ -59,6 +85,7 @@ class PromptBuilder:
         """
 
         prompt = self.base_prompt
+        prompt = self.update_metrics(prompt, metrics_filter)
         prompt += task_prompt
         for replace_key, replace_val in replacement_map.items():
             prompt = prompt.replace(replace_key, replace_val)

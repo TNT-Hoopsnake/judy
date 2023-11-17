@@ -1,7 +1,7 @@
 - id: dim/mt_bench_en
   source: https://huggingface.co/datasets/dim/mt_bench_en
   version: null
-  tasks: 
+  tasks:
     - id: mt_q
       formatter: MTBenchFormatter
   source_type: hub
@@ -11,7 +11,7 @@
 - id: ms_marco
   source: https://huggingface.co/datasets/ms_marco
   version: v1.1
-  tasks: 
+  tasks:
     - id: st_qac
       formatter: MsMarcoFormatter
   source_type: hub
@@ -21,7 +21,7 @@
 - id: xsum
   source: https://huggingface.co/datasets/xsum
   version: null
-  tasks: 
+  tasks:
     - id: summ
       formatter: XsumFormatter
   source_type: hub
@@ -31,7 +31,7 @@
 - id: cnn_dailymail
   source: https://huggingface.co/datasets/cnn_dailymail
   version: 3.0.0
-  tasks: 
+  tasks:
     - id: summ
       formatter: CNNFormatter
   source_type: hub
@@ -41,7 +41,7 @@
 - id: squad_v2
   source: https://huggingface.co/datasets/squad_v2
   version: null
-  tasks: 
+  tasks:
     - id: st_qac
       formatter: SquadFormatter
   source_type: hub
@@ -51,7 +51,7 @@
 - id: quac
   source: https://huggingface.co/datasets/quac
   version: null
-  tasks: 
+  tasks:
     - id: mt_qac
       formatter: QuacFormatter
   source_type: hub
@@ -61,7 +61,7 @@
 - id: disinfo_reiteration
   source: https://drive.google.com/uc?export=download&id=1uVJbsgPCHFAvH43I6SVvU3Ayo8dh-y_N
   version: null
-  tasks: 
+  tasks:
     - id: disinfo_reiteration
       formatter: DisinfoReiterationFormatter
   source_type: url
@@ -71,7 +71,7 @@
 - id: disinfo_wedging
   source: https://drive.google.com/uc?export=download&id=1kWB3_F4Tobc_oVGC_T-a5DHEh-AB4GTc
   version: null
-  tasks: 
+  tasks:
     - id: disinfo_wedging
       formatter: DisinfoWedgingFormatter
   source_type: url
@@ -80,7 +80,7 @@
 
 - id: launch/open_question_type
   source: https://huggingface.co/datasets/launch/open_question_type
-  tasks: 
+  tasks:
     - id: st_q
       formatter: OpenQuestionFormatter
   source_type: hub
@@ -89,7 +89,7 @@
 
 - id: riddle_sense
   source: https://huggingface.co/datasets/riddle_sense
-  tasks: 
+  tasks:
     - id: st_qa
       formatter: RiddleSenseFormatter
   source_type: hub
@@ -98,7 +98,7 @@
 
 - id: ethics_suite
   source: https://raw.githubusercontent.com/LLM-Ethics/EthicsSuite/main/data.jsonl
-  tasks: 
+  tasks:
     - id: st_q
       formatter: EthicsSuiteFormatter
   source_type: url
@@ -108,7 +108,7 @@
 - id: gsm8k
   source: https://huggingface.co/datasets/gsm8k
   version: main
-  tasks: 
+  tasks:
     - id: st_qa
       formatter: GSM8KFormatter
     - id: st_q
@@ -117,16 +117,22 @@
   split: test
   tags: ["maths"]
 
-# - id: flask
-#   source: https://raw.githubusercontent.com/kaistAI/FLASK/main/evaluation_set/flask_evaluation.jsonl
-#   tasks: ["st_qa"]
-#   formatter: flask_formatter
-#   source_type: url
-#   split: train
+- id: flask
+  source: https://raw.githubusercontent.com/kaistAI/FLASK/main/evaluation_set/flask_evaluation.jsonl
+  tasks:
+    - id: st_qam
+      formatter: FlaskFormatter
+  source_type: url
+  split: train
+  split: test
+  tags: ["instruction_following"]
 
-# - id: flask_hard
-#   source: https://raw.githubusercontent.com/kaistAI/FLASK/main/evaluation_set/flask_hard_evaluation.jsonl
-#   tasks: ["st_qa"]
-#   formatter: flask_formatter
-#   source_type: url
-#   split: train
+- id: flask_hard
+  source: https://raw.githubusercontent.com/kaistAI/FLASK/main/evaluation_set/flask_hard_evaluation.jsonl
+  tasks:
+    - id: st_qam
+      formatter: FlaskFormatter
+  source_type: url
+  split: train
+  split: test
+  tags: ["instruction_following"]

@@ -11,6 +11,7 @@ from .data_models import (
     DisinfoReiterationFormattedData,
     DisinfoWedgingFormattedData,
     SummarizationFormattedData,
+    STQAMFormattedData,
 )
 
 
@@ -199,3 +200,15 @@ class GSM8KFormatterSTQ(BaseFormatter):
         questions = [self.dataset["question"][i] for i in self.eval_idxs]
 
         return FormattedData(questions=questions)
+
+
+class FlaskFormatter(BaseFormatter):
+    def format(self) -> STQAMFormattedData:
+        questions = []
+        answers = []
+        metrics = []
+        for i in self.eval_idxs:
+            questions.append(self.dataset["text"][i])
+            answers.append(self.dataset["answer"][i])
+            metrics.append(self.dataset["metrics"][i])
+        return STQAMFormattedData(questions=questions, answers=answers, metrics=metrics)

@@ -33,6 +33,7 @@ class TaskTypes(str, Enum):
     ST_QUESTION = "st_q"
     ST_QUESTION_ANSWER = "st_qa"
     ST_QUESTION_ANSWER_CONTEXT = "st_qac"
+    ST_QUESTION_ANSWER_METRIC = "st_qam"
     MT_QUESTION_ANSWER_CONTEXT = "mt_qac"
     DISINFO_WEDGING = "disinfo_wedging"
     DISINFO_REITERATION = "disinfo_reiteration"

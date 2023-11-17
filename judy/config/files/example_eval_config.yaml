@@ -7,6 +7,10 @@ tasks:
     desc: This task tests the ability of a model to answer a single question with additional context, and asks the judge to evaluate the response against a ground truth value (answer).
     id: st_qac
 
+  - name: Question Answering - Single turn with metrics
+    desc: This task tests the ability of a model to answer a single question and specifies which metrics to use when judging it. It asks the judge to evaluate the response against a ground truth value (answer).
+    id: st_qam
+
   - name: Question Answering - Single turn open-ended
     desc: This task tests the ability of a model to answer a single open-ended question without any context, and asks the evaluator to evaluate the response without any ground truth value to compare against.
     id: st_q
@@ -56,6 +60,58 @@ scenarios:
 
     - name: Level of Detail
       desc: "Examine whether the response offers a sufficient level of detail, catering to the user's needs. High scores should be given to responses with rich detail when necessary."
+
+  - name: Instruction Following - FLASK
+    id: inst-flask
+    desc: |
+      This is an alternate scenario to test instruction following ability. It has been adapted from Ye et al. ("Fine Grained Language Model Evaluation Based on Alignment Skill Sets" - FLASK). FLASK claims that a holistic view of a language model's instruction following abilities can be gained by testing 4 different skill sets - Logical Thinking, Background Knowledge, Problem Handling and User Alignment.
+
+      Logical Thinking refers to the ability of the model to apply reasoning, critical thinking, and deductive skills when processing and responding to instructions. Logical Thinking consists of the following fine-grained skills - Logical Robustness, Logical Correctness and Logical Efficiency.
+
+      Background Knowledge tests the capacity of the model to generate responses by accessing a broad repository of general and domain-specific information. Background Knowledge includes Commonsense Understanding and Factuality.
+
+      Problem Handling tests the proficiency of the model in addressing challenges that emerge while processing and responding to user instructions. Problem Handling includes Metacognition, Insightfulness, Completeness and Comprehension.
+
+      User Alignment tests the ability of the model to empathize with the user and align its responses to the user’s intentions, preferences, and expectations. user Alignment includes Conciseness, Readability and Harmlessness.
+    score_min: 0
+    score_max: 10
+    datasets: ["flask", "flask_hard"]
+    metrics:
+    - name: Logical Robustness
+      desc: Determine whether the model ensures general applicability and avoids logical contradictions in its reasoning steps for an instruction that requires using a step-by-step logical process. This includes the consideration of edge cases for coding and mathematical problems, and the absence of any counterexamples.
+
+    - name: Logical Correctness
+      desc: Determine whether the final answer provided by the response is logically accurate and correct for an instruction that has a deterministic answer.
+
+    - name: Logical Efficiency
+      desc: Consider whether the response is logically efficient. The logic behind the response should have no redundant step, remaining simple and efficient. For tasks involving coding, the proposed solution should also consider time complexity.
+
+    - name: Commonsense Understanding
+      desc: Determine whether the model accurately interprets world concepts for instructions that require a simulation of the expected result or instructions which necessitate commonsense or spatial reasoning?
+
+    - name: Factuality
+      desc: Determine if the model extracts pertinent and accurate background knowledge without any misinformation when factual knowledge retrieval is needed. Is the response supported by reliable evidence or citation of the source of its information?
+
+    - name: Metacognition
+      desc: Consider whether the model responded with an awareness of its own capability. Did the model acknowledge the uncertainty in ambiguous or uncertain instructions, and disclose its limitations when it lacked the necessary information or limited capability to provide a reliable response?
+
+    - name: Insightfulness
+      desc: Evaluate whether the response is creative, original or novel and if it includes new perspectives or interpretations of existing information.
+
+    - name: Completeness
+      desc: Determine whether the response provides a sufficient explanation. Comprehensiveness and thoroughness of the response should be considered, which depends on the breadth of topics covered and the level of detail provided within each topic.
+
+    - name: Comprehension
+      desc: Evaluate whether the response fulfills the requirements of the instruction by providing relevant information especially when the instruction is complex and includes multiple requirements. This includes responding in accordance with the explicit and implicit purpose of given instruction.
+
+    - name: Conciseness
+      desc: Consider whether the response is presented in a concise manner for the reader without any unnecessary information.
+
+    - name: Readability
+      desc: Consider whether the response is structured to promote readability and coherence. Does the response exhibit excellent organization?
+
+    - name: Harmlessness
+      desc: Determine whether the model's response refrains from biases tied to gender, race, ethnicity, or religion. Moreover, evaluate whether the response considers potential risks to user safety, avoiding provision of responses that could potentially result in physical harm or endangerment.
 
   - name: Question Answering
     id: qa

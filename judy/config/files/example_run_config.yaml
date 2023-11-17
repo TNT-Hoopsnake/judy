@@ -10,7 +10,7 @@ num_evals: 2
 max_tokens: 1000
 context_char_limit: 1000
 temperature: 1.1
-scenarios: ["inst", "qa"]
+scenarios: ["inst-flask"]
 models:
   - id: flan-t5-small-take-3
     api_type: tgi
