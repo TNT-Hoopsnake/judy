@@ -1,8 +1,9 @@
 - id: dim/mt_bench_en
   source: https://huggingface.co/datasets/dim/mt_bench_en
   version: null
-  tasks: [mt_q]
-  formatter: MTBenchFormatter
+  tasks: 
+    - id: mt_q
+      formatter: MTBenchFormatter
   source_type: hub
   split: train
   tags: ["instruction_following", "open_ended"]
@@ -10,8 +11,9 @@
 - id: ms_marco
   source: https://huggingface.co/datasets/ms_marco
   version: v1.1
-  tasks: [st_qac]
-  formatter: MsMarcoFormatter
+  tasks: 
+    - id: st_qac
+      formatter: MsMarcoFormatter
   source_type: hub
   split: test
   tags: ["summarization", "documents", "info_retrieval"]
@@ -19,8 +21,9 @@
 - id: xsum
   source: https://huggingface.co/datasets/xsum
   version: null
-  tasks: [summ]
-  formatter: XsumFormatter
+  tasks: 
+    - id: summ
+      formatter: XsumFormatter
   source_type: hub
   split: test
   tags: ["summarization", "documents"]
@@ -28,8 +31,9 @@
 - id: cnn_dailymail
   source: https://huggingface.co/datasets/cnn_dailymail
   version: 3.0.0
-  tasks: [summ]
-  formatter: CNNFormatter
+  tasks: 
+    - id: summ
+      formatter: CNNFormatter
   source_type: hub
   split: test
   tags: ["summarization", "documents"]
@@ -37,8 +41,9 @@
 - id: squad_v2
   source: https://huggingface.co/datasets/squad_v2
   version: null
-  tasks: [st_qac]
-  formatter: SquadFormatter
+  tasks: 
+    - id: st_qac
+      formatter: SquadFormatter
   source_type: hub
   split: validation
   tags: ["question_answering"]
@@ -46,8 +51,9 @@
 - id: quac
   source: https://huggingface.co/datasets/quac
   version: null
-  tasks: [mt_qac]
-  formatter: QuacFormatter
+  tasks: 
+    - id: mt_qac
+      formatter: QuacFormatter
   source_type: hub
   split: validation
   tags: ["question_answering"]
@@ -55,8 +61,9 @@
 - id: disinfo_reiteration
   source: https://drive.google.com/uc?export=download&id=1uVJbsgPCHFAvH43I6SVvU3Ayo8dh-y_N
   version: null
-  tasks: [disinfo_reiteration]
-  formatter: DisinfoReiterationFormatter
+  tasks: 
+    - id: disinfo_reiteration
+      formatter: DisinfoReiterationFormatter
   source_type: url
   split: train
   tags: ["harms", "disinformation"]
@@ -64,32 +71,36 @@
 - id: disinfo_wedging
   source: https://drive.google.com/uc?export=download&id=1kWB3_F4Tobc_oVGC_T-a5DHEh-AB4GTc
   version: null
-  tasks: [disinfo_wedging]
-  formatter: DisinfoWedgingFormatter
+  tasks: 
+    - id: disinfo_wedging
+      formatter: DisinfoWedgingFormatter
   source_type: url
   split: train
   tags: ["harms", "disinformation"]
 
 - id: launch/open_question_type
   source: https://huggingface.co/datasets/launch/open_question_type
-  tasks: [st_q]
-  formatter: OpenQuestionFormatter
+  tasks: 
+    - id: st_q
+      formatter: OpenQuestionFormatter
   source_type: hub
   split: test
   tags: ["question_answering", "open_ended", "reasoning", "commonsense"]
 
 - id: riddle_sense
   source: https://huggingface.co/datasets/riddle_sense
-  tasks: [st_qa]
-  formatter: RiddleSenseFormatter
+  tasks: 
+    - id: st_qa
+      formatter: RiddleSenseFormatter
   source_type: hub
   split: train
   tags: ["question_answering", "reasoning", "commonsense"]
 
 - id: ethics_suite
   source: https://raw.githubusercontent.com/LLM-Ethics/EthicsSuite/main/data.jsonl
-  tasks: [st_q]
-  formatter: EthicsSuiteFormatter
+  tasks: 
+    - id: st_q
+      formatter: EthicsSuiteFormatter
   source_type: url
   split: train
   tags: ["open_ended", "harms", "question_answering",]
@@ -97,8 +108,11 @@
 - id: gsm8k
   source: https://huggingface.co/datasets/gsm8k
   version: main
-  tasks: [st_qa]
-  formatter: GSM8KFormatter
+  tasks: 
+    - id: st_qa
+      formatter: GSM8KFormatter
+    - id: st_q
+      formatter: GSM8KFormatterSTQ
   source_type: hub
   split: test
   tags: ["maths"]

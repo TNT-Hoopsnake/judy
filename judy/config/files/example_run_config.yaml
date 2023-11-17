@@ -1,4 +1,4 @@
-judge: gpt-3.5-turbo
+judge: gpt-4-1106-preview
 judge_api_key: null
 judge_temperature: 0.6
 use_proxy: false
@@ -6,13 +6,13 @@ proxies:
   http: http://sample-proxy
   https: http://sample-proxy
 random_seed: 12345
-num_evals: 10
+num_evals: 2
 max_tokens: 1000
 context_char_limit: 1000
 temperature: 1.1
-scenarios: ["qa"]
+scenarios: ["inst", "qa"]
 models:
-  - id: flan-t5-small
+  - id: flan-t5-small-take-3
     api_type: tgi
     api_base: http://localhost:8080
     temperature: 1.5

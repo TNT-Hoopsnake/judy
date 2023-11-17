@@ -39,25 +39,23 @@ def ensure_directory_exists(dir_path: str | pathlib.Path, clear_if_exists=False)
 
 
 def save_evaluation_results(
-    model_name: str,
+    results_dir: str | pathlib.Path,
     scenario_id: str,
     task_id: str,
-    dataset_name: str,
+    dataset_id: str,
     eval_prompts: List[EvalPrompt],
     eval_results: List[EvalResponse],
-    results_dir: str,
 ):
     """
     Save evaluation results for a model to a JSON file.
 
     Args:
-        model_name (str): The name of the evaluated model.
+        results_dir (str | pathlib.Path): The directory to save the evaluation results in.
         scenario_id (str): The identifier for the evaluation scenario.
         task_id (str): The identifier for the evaluated task.
-        dataset_name (str): The name of the evaluated dataset.
+        dataset_id (str): The name of the evaluated dataset.
         eval_prompts (List[EvalPrompt]): List of evaluation prompts.
         eval_results (List[EvalResponse]): List of evaluation results.
-        results_dir (str): The directory to save the evaluation results in.
 
     The function creates a directory structure based on the model name and saves the
     evaluation results for each dataset in their own JSON file. Each entry in the JSON file corresponds to a
@@ -65,6 +63,7 @@ def save_evaluation_results(
 
     The structure of the saved JSON file is as follows:
     [{
+        "dataset_id": "dataset_id",
         "task_id": "task_id",
         "scenario_id": "scenario_id",
         "model": {
@@ -76,8 +75,7 @@ def save_evaluation_results(
         }
     }]
     """
-    model_results_dir = ensure_directory_exists(os.path.join(results_dir, model_name))
-    clean_ds_name = dataset_name.split("/")[-1]
+    clean_ds_name = dataset_id.split("/")[-1]
     data = []
     for idx, item in enumerate(eval_results):
         model = {
@@ -86,6 +84,7 @@ def save_evaluation_results(
         }
         data.append(
             {
+                "dataset_id": dataset_id,
                 "task_id": task_id,
                 "scenario_id": scenario_id,
                 "model": model,
@@ -93,15 +92,22 @@ def save_evaluation_results(
             }
         )
 
-    with open(os.path.join(model_results_dir, f"{clean_ds_name}.json"), "w+") as fn:
+    with open(
+        os.path.join(results_dir, f"{clean_ds_name}-{scenario_id}-{task_id}.json"), "w+"
+    ) as fn:
         json.dump(data, fn, indent=4)
 
 
 def dump_metadata(
-    dir_path: str, dataset_tags: List[str], task_tags: List[str], model_tags: List[str]
+    dir_path: str,
+    dataset_tags: List[str],
+    task_tags: List[str],
+    model_tags: List[str],
+    model_id: str | None = None,
 ):
     with open(dir_path / "metadata.json", "w+") as fn:
         data = {
+            "model_id": model_id,
             "dataset_tags": dataset_tags,
             "task_tags": task_tags,
             "model_tags": model_tags,
@@ -164,8 +170,6 @@ def get_output_directory(output: str | pathlib.Path, run_name: str) -> pathlib.P
         sys.exit(1)
 
     results_dir = output_dir / run_name
-    # clear any existing, duplicate runs to ensure up to date results
-    ensure_directory_exists(results_dir, clear_if_exists=True)
     log.info("Results directory: %s", results_dir)
 
-    return results_dir
+    return ensure_directory_exists(results_dir)

@@ -36,7 +36,7 @@
                 {{ model_name }}
             </button>
             <ul class="dropdown-menu" aria-labelledby="model-dropdown">
-                {% for model, model_data in raw_data.items() %}
+                {% for model in raw_data["models_used"] %}
                     <li>
                       <a class="dropdown-item" href="{{url_for('judy.raw_results', run_name=run_name, model=model)}}">{{ model }}</a>
                     </li>
@@ -45,20 +45,51 @@
         </div>
     </div>
     <div class="col raw-result-filter-group raw-result-filter-item">
+      <h5>Scenario:</h5>
+      <div class="dropdown">
+          <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" id="dataset-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+              {{ scenario_name }}
+          </button>
+          <ul class="dropdown-menu" aria-labelledby="dataset-dropdown">
+              {% for scenario in scenarios_used %}
+                  <li>
+                      <a class="dropdown-item" href="{{url_for('judy.raw_results', run_name=run_name, model=model_name, scenario=scenario)}}">{{ scenario }}</a>
+                  </li>
+              {% endfor %}
+          </ul>
+      </div>
+  </div>
+    <div class="col raw-result-filter-group raw-result-filter-item">
         <h5>Dataset:</h5>
         <div class="dropdown">
             <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" id="dataset-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
                 {{ dataset_name }}
             </button>
             <ul class="dropdown-menu" aria-labelledby="dataset-dropdown">
-                {% for dataset, dataset_data in raw_data[model_name].items() %}
+                {% for dataset in datasets_used %}
                     <li>
-                        <a class="dropdown-item" href="{{url_for('judy.raw_results', run_name=run_name, model=model_name, dataset=dataset)}}">{{ dataset }}</a>
+                        <a class="dropdown-item" href="{{url_for('judy.raw_results', run_name=run_name, model=model_name, scenario=scenario_name, dataset=dataset)}}">{{ dataset }}</a>
                     </li>
                 {% endfor %}
             </ul>
         </div>
     </div>
+
+    <div class="col raw-result-filter-group raw-result-filter-item">
+      <h5>Task:</h5>
+      <div class="dropdown">
+          <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" id="dataset-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+              {{ task_name }}
+          </button>
+          <ul class="dropdown-menu" aria-labelledby="dataset-dropdown">
+              {% for task in tasks_used %}
+                  <li>
+                      <a class="dropdown-item" href="{{url_for('judy.raw_results', run_name=run_name, model=model_name, scenario=scenario_name, dataset=dataset_name, task=task)}}">{{ task }}</a>
+                  </li>
+              {% endfor %}
+          </ul>
+      </div>
+  </div>
 
     <div class="col raw-result-filter-group raw-result-filter-item" id="eval-buttons">
       <label for="eval-btn-0">
@@ -86,11 +117,15 @@
                     </h2>
                     <div id="collapseContext" class="accordion-collapse collapse show" aria-labelledby="headingContext" data-bs-parent="#response-accordion">
                       <div class="accordion-body">
-                        {% if result['model']['question'] %}
+                        {% if result['model'].get('question') %}
                         <strong>Question: </strong>{{result['model']['question']}}
                         <hr>
                         {% endif %}
                         <strong>Model Response: </strong>{{result['model']['response']}}
+                        {% if result['model'].get('answer') %}
+                        <hr>
+                        <strong>Correct Answer: </strong>{{result['model']['answer']}}
+                        {% endif %}
                       </div>
                     </div>
                   </div>

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "table_macro.html" import table %}
+{% from "heatmap_macro.html" import heatmap %}
 {% block title %}{{context['run']}}{% endblock %}
 
 
@@ -24,28 +25,24 @@
     <hr>
 
 
-    <div class="row mt-2">
-        <div class="col side-menu">
+    <div class="d-flex">
+        <div>
             <h4>Run Configuration</h4>
             <ul>
                 {% for config_key, config_val in context['run_configs'].items() %}
                 <li>{{config_key}}: <strong>{{config_val}}</strong></li>
                 {% endfor %}
             </ul>
+        </div>
+        <div>
             <h4>Models</h4>
             <ul>
                 {% for model_id, model in context['models'].items() %}
                 <li><a href="{{url_for('judy.models', item=model.id)}}">{{model.name or model.id}}</a></li>
                 {% endfor %}
             </ul>
-
-            <h4>Tasks</h4>
-            <ul>
-                {% for task_id, task in context['tasks'].items() %}
-                <li><a href="{{url_for('judy.tasks', item=task.id)}}">{{task.name or task.id}}</a></li>
-                {% endfor %}
-            </ul>
-
+        </div>
+        <div>
             <h4>Datasets</h4>
             <ul>
                 {% for dataset_id, dataset in context['datasets'].items() %}
@@ -53,12 +50,21 @@
                 {% endfor %}
             </ul>
         </div>
-        <div class="col-9">
-            <div class="row">
-                {{ table(context['table_data'], context )}}
-            </div>
+        <div>
+            <h4>Tasks</h4>
+            <ul>
+                {% for task_id, task in context['tasks'].items() %}
+                <li><a href="{{url_for('judy.tasks', item=task.id)}}">{{task.name or task.id}}</a></li>
+                {% endfor %}
+            </ul>
         </div>
     </div>
+
+    <div class="row">
+        {{ heatmap(context['table_data'], context)}}
+    </div>
+
+
 </div>
 
 

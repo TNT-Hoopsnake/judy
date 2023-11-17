@@ -2,6 +2,7 @@
     {% set groupby = context["groupby"] %}
     {% set context_key = groupby + 's' %}
     {% for title, data in table_data.items() %}
+    {% if context[context_key].get(title) %}
     <div class="table-container">
         <h4>{{ context[context_key][title].name or context[context_key][title].id }}</h4>
         <table class="table table-bordered results-table">
@@ -27,5 +28,6 @@
             {% endfor %}
         </table>
     </div>
+    {% endif %}
     {% endfor %}
 {% endmacro %}

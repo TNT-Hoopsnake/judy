@@ -99,12 +99,16 @@ class EvaluationConfig(BaseModel):
     scenarios: conlist(ScenarioConfig, min_length=1)
 
 
+class DatasetTask(BaseModel):
+    id: TaskTypes
+    formatter: str
+
+
 class DatasetConfig(BaseModel):
     id: str
     name: Optional[str] = Field(default=None)
     source: HttpUrl
-    tasks: conlist(TaskTypes, min_length=1)
-    formatter: str
+    tasks: conlist(DatasetTask, min_length=1)
     source_type: Optional[SourceTypes] = SourceTypes.HUGGINGFACE_HUB
     version: Optional[str] = Field(default=None)
     split: DatasetSplits = DatasetSplits.TRAIN

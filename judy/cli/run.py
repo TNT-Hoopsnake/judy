@@ -17,6 +17,7 @@ from judy.utils import (
     get_output_directory,
 )
 from judy.config.logging import logger as log
+from judy.utils.utils import ensure_directory_exists
 from judy.web_app.main import run_webapp
 
 
@@ -128,11 +129,6 @@ def run(
     task_tag = task
 
     # Create output directory
-    results_dir = get_output_directory(output, name)
-    # dump configurations and metadata settings so they can be used in the web app
-    dump_configs(results_dir, configs)
-    dump_metadata(results_dir, dataset_tag, task_tag, model_tag)
-
     manager = EvalManager([eval_config_path, run_config_path], clear_cache)
     # Collect evaluations to run
     evaluations_to_run, scenarios_to_run, config_cache = manager.collect_evaluations(
@@ -164,6 +160,11 @@ def run(
     if not confirm_run():
         return
 
+    results_dir = get_output_directory(output, name)
+    # always dump the latest version of the run config and metadata
+    dump_configs(results_dir, configs)
+    dump_metadata(results_dir, dataset_tag, task_tag, model_tag)
+
     with tqdm(total=len(models_to_run) * num_evaluations) as pbar:
         for eval_model in models_to_run:
             log.info("Evaluation started for model: %s", eval_model.id)
@@ -173,6 +174,23 @@ def run(
             eval_model.context_char_limit = (
                 eval_model.context_char_limit or run_config.context_char_limit
             )
+
+            # create a subdirectory to save the results for the model currently being evaluated
+            # clear any existing results saved for this model
+            model_results_dir = ensure_directory_exists(
+                results_dir / eval_model.id, clear_if_exists=True
+            )
+            # dump configurations and metadata settings per eval model
+            # this allows cumulative results with different configs, under the same run name, but with different models
+            dump_configs(model_results_dir, configs)
+            dump_metadata(
+                model_results_dir, dataset_tag, task_tag, model_tag, eval_model.id
+            )
+
+            model_dataset_results_dir = ensure_directory_exists(
+                model_results_dir / "datasets"
+            )
+
             for scenario_id, dataset_id, task_id in evaluations_to_run:
                 pbar.set_description(f"Processing: {eval_model.id} - {dataset_id}")
                 ds_config = config_cache["datasets"].get(dataset_id)
@@ -209,13 +227,12 @@ def run(
                 )
 
                 save_evaluation_results(
-                    eval_model.id,
+                    model_dataset_results_dir,
                     scenario_id,
                     task_id,
                     dataset_id,
                     eval_prompts,
                     evaluation_results,
-                    results_dir,
                 )
                 # advance progress bar when an eval has been completed
                 pbar.update(1)

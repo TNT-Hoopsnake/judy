@@ -60,7 +60,7 @@ class GSM8KFormatter(BaseFormatter):
 ```
 
 5. **Scenario Addition in `run_config.yaml`:**
-- Ensure your `run_config.yaml` file to include the scenario that uses the new dataset:
+- Update your `run_config.yaml` file to include the scenario that uses the new dataset:
 - You can edit this file manually or run `judy config`
 
 ```yaml

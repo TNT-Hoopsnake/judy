@@ -1,0 +1,108 @@
+{% macro heatmap(table_data, context) %}
+    {% set groupby = context["groupby"] %}
+    {% set context_key = groupby + 's' %}
+    {% for title, data in table_data.items() %}
+    {% if context[context_key].get(title) %}
+    <div class="heatmap-container">
+        <h4>{{ context[context_key][title].name or context[context_key][title].id }}</h4>
+        {% set title = title.replace('/', '_') %}
+        <div id="{{ title }}_heatmap" style="width:100%"></div>
+        <script>
+            // Prepare data for ECharts heatmap
+            var modelNames_{{ title }} = {{ data["model_names"]|tojson }};
+            var metricNames_{{ title }} = {{ data["metric_names"]|tojson }};
+            var heatmapData_{{ title }} = {{ data["heatmap_data"]|tojson }};
+            var numRows_{{ title }} = {{ data["model_names"]| length }};
+            var chartHeight_{{ title }} = Math.max(300, numRows_{{ title }} * 100); // Adjust the multiplier as needed
+        
+            // Arrange rows based on the highest average score across columns
+            var sortedRows_{{ title }} = modelNames_{{ title }}.slice().sort(function(a, b) {
+                var avgA = calculateAverageScore(a, heatmapData_{{ title }});
+                var avgB = calculateAverageScore(b, heatmapData_{{ title }});
+                return avgB - avgA;
+            });
+            sortedRows_{{ title }}.reverse()
+            // Initialize ECharts
+            var chart_{{ title }} = echarts.init(document.getElementById('{{ title }}_heatmap'));
+        
+            // Set up heatmap options
+            var option_{{ title }} = {
+                tooltip: {
+                    position: 'top',
+                },
+                xAxis: {
+                    type: 'category',
+                    data: metricNames_{{ title }},
+                    splitArea: {
+                        show: true
+                    }
+                },
+                yAxis: {
+                    type: 'category',
+                    data: sortedRows_{{ title }},
+                },
+                visualMap: {
+                    min: 0,
+                    max: 10,
+                    calculable: true,
+                    orient: 'horizontal',
+                    left: 'center',
+                    bottom: '0%', // Adjust the bottom margin as needed
+                    inRange: {
+                        color: ["white", "green"]
+                    }
+                },
+                series: [{
+                    type: 'heatmap',
+                    data: arrangeHeatmapData(sortedRows_{{ title }}, heatmapData_{{ title }}),
+                    label: {
+                        show: true
+                    },
+                    emphasis: {
+                        itemStyle: {
+                            shadowBlur: 10,
+                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                        }
+                    }
+                }]
+            };
+        
+            // Set option and render the chart
+            chart_{{ title }}.setOption(option_{{ title }}, true);
+            chart_{{ title }}.resize({ height: chartHeight_{{ title }} });
+        
+            // Function to calculate the average score for a given model
+            function calculateAverageScore(model, heatmapData) {
+                var scores = heatmapData.filter(function(item) {
+                    return item[0] === model;
+                }).map(function(item) {
+                    return item[2];
+                });
+        
+                var sum = scores.reduce(function(acc, score) {
+                    return acc + score;
+                }, 0);
+        
+                return scores.length > 0 ? sum / scores.length : 0;
+            }
+        
+            // Function to arrange the heatmap data based on sorted rows
+            function arrangeHeatmapData(sortedRows, heatmapData) {
+                var arrangedData = [];
+                sortedRows.forEach(function(model) {
+                    metricNames_{{ title }}.forEach(function(metric) {
+                        heatmapData.forEach(function(item) {
+                            if (item[0] === metric && item[1] === model) {
+                                arrangedData.push(item);
+                            }
+                        });
+                    });
+                });
+                return arrangedData;
+            }
+        </script>
+        
+    </div>
+    {% endif %}
+    {% endfor %}
+{% endmacro %}

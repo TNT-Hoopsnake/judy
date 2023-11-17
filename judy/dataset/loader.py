@@ -2,6 +2,7 @@ import os
 
 import numpy as np
 from datasets import load_dataset, load_from_disk, Dataset, DatasetDict
+from judy.config.settings import TaskTypes
 from judy.utils import Retry
 from judy.dataset import formatters
 from judy.config import DATASETS_DIR, DatasetConfig, SourceTypes
@@ -13,6 +14,7 @@ def load_formatted_data(
     ds_config: DatasetConfig,
     num_idxs: int,
     random_seed: int,
+    task_type: TaskTypes,
     ignore_cache: bool = False,
 ):
     """
@@ -40,7 +42,13 @@ def load_formatted_data(
                 f"Invalid split ({ds_config.split}) set for dataset ({ds_config.id})"
             )
     try:
-        format_class = getattr(formatters, ds_config.formatter)
+        dataset_task = next(
+            filter(
+                lambda task: task.id == task_type,  # pylint: disable=cell-var-from-loop
+                ds_config.tasks,
+            )
+        )
+        format_class = getattr(formatters, dataset_task.formatter)
     except AttributeError as exc:
         raise ValueError(
             f"Unable to map dataset ({ds_config.id}) to formatter class"

@@ -106,6 +106,7 @@ class EvalManager:
         cache_key: str,
         ds_config: DatasetConfig,
         run_config: RunConfig,
+        task_type: TaskTypes,
         ignore_cache: bool,
     ) -> BaseFormattedData:
         """
@@ -139,6 +140,7 @@ class EvalManager:
                     ds_config,
                     run_config.num_evals,
                     run_config.random_seed,
+                    task_type,
                     ignore_cache,
                 )
                 self.cache.set(cache_key, "data", data)
@@ -196,7 +198,7 @@ class EvalManager:
                 IgnoreCacheTypes.DATASET,
             ]
             data = self.get_formatted_data(
-                cache_key, ds_config, run_config, ignore_dataset_cache
+                cache_key, ds_config, run_config, task_type, ignore_dataset_cache
             )
 
             responder_cls = get_responder_class_map().get(task_type)
@@ -256,8 +258,8 @@ class EvalManager:
             for dataset_id in eval_scenario.datasets:
                 dataset = get_dataset_config(dataset_id, dataset_config_list)
                 if matches_tag(dataset, dataset_tag):
-                    for task_id in dataset.tasks:
-                        task = get_task_config(task_id, eval_config)
+                    for ds_task in dataset.tasks:
+                        task = get_task_config(ds_task.id, eval_config)
                         if matches_tag(task, task_tag):
                             evaluations_to_run.append(
                                 (eval_scenario.id, dataset.id, task.id)
