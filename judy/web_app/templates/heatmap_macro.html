@@ -103,7 +103,7 @@
     }
 
     async function initializeCharts() {
-        const runName = "{{ context.run }}"; 
+        const runName = "{{ context.run }}";
         const groupBy = "{{ context.groupby }}";
 
         try {
@@ -124,7 +124,7 @@
     {% for title in table_keys %}
         {% if context[context_key].get(title) %}
             <div class="heatmap-container">
-                <h4>{{ context[context_key][title].name or context[context_key][title].id }}</h4>
+                <h4 class="heatmap-title">{{ context[context_key][title].name or context[context_key][title].id }}</h4>
                 <div id="{{ title }}_heatmap" style="width:100%"></div>
             </div>
         {% endif %}

@@ -323,9 +323,14 @@ def get_heatmap_data(df, group_by_field):
         heatmap_data = []
         for model_name in model_names:
             for metric in metric_names:
-                heatmap_data.append(
-                    [metric, model_name, pivoted_data.loc[model_name, metric]]
-                )
+                val = pivoted_data.loc[model_name, metric]
+                # Convert numpy types to python types to enable json serialization
+                # Metrics can only be number types
+                if hasattr(val, "dtype") and val.dtype.name.startswith("int"):
+                    val = int(val)
+                elif hasattr(val, "dtype") and val.dtype.name.startswith("float"):
+                    val = float(val)
+                heatmap_data.append([metric, model_name, val])
 
         grouped_data[model] = {
             "model_names": model_names,

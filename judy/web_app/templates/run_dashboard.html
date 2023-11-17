@@ -71,8 +71,8 @@
   </table>
   <div class="container mt-5">
     <div class="row pb-3">
-        <div class="col-md-6">
-            <label for="scenarioDropdown" class="form-label">Select Scenario:</label>
+        <div class="col-md-12">
+            <label for="scenarioDropdown" class="form-label chart-label">Select Scenario:</label>
             <div class="styled-select">
                 <select id="scenarioDropdown" class="form-select">
                 {% for scenario_id, scenario in context["scenarios"].items() %}
@@ -80,9 +80,7 @@
                 {% endfor %}
                 </select>
             </div>
-        </div>
-        <div class="col-md-6">
-            <label for="chartTypeDropdown" class="form-label">Select Chart:</label>
+            <label for="chartTypeDropdown" class="form-label chart-label">Select Chart:</label>
             <div class="styled-select">
                 <select id="chartTypeDropdown" class="form-select">
                     <option value="bar">Bar</option>
@@ -125,7 +123,7 @@ var currentChartType = 'bar'; // Initial chart type
 function updateChart(selectedScenario, chartType) {
     // Filter data based on the selected scenario
     var filteredData = metricsData.filter(item => item.scenario === selectedScenario);
- 
+
     var allMetrics = Array.from(new Set(filteredData.map(item => item.metric)));
     var uniqueModels = Array.from(new Set(filteredData.map(item => item.model)));
     var averageScores = {};
@@ -145,9 +143,6 @@ function updateChart(selectedScenario, chartType) {
     var option;
     if(currentChartType === "bar") {
         option = {
-            title: {
-                text: `Model Metrics Bar Chart`,
-            },
             tooltip: {
                 trigger: 'axis',
                 axisPointer: {
@@ -178,9 +173,6 @@ function updateChart(selectedScenario, chartType) {
         };
     } else if (chartType === "radar") {
         option = {
-            title: {
-                text: 'Model Metrics Radar Chart',
-            },
             tooltip: {},
             legend: {
                 data: uniqueModels,

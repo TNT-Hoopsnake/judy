@@ -39,7 +39,7 @@ def runs_dashboard():
     context = {
         "data": all_data["runs"],
         "combined": combined_run,
-        "dataframe": df.to_json(orient='records'),
+        "dataframe": df.to_json(orient="records"),
         "scenarios": all_data["data_index"]["scenarios"],
     }
     return render_template("run_dashboard.html", context=context)
@@ -141,7 +141,7 @@ def run_page(run_name):
     # but need to use the keys from the data so we can build out the necessary structure for our heatmaps
     context = {
         "run": run_name,
-        "table_keys": data.keys(), 
+        "table_keys": data.keys(),
         "groupby": groupby,
         "groupby_options": groupby_options,
         "run_configs": run_configs,
