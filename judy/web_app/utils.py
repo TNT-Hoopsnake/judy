@@ -331,7 +331,6 @@ def get_heatmap_data(df, group_by_field):
             "model_names": model_names,
             "metric_names": metric_names,
             "heatmap_data": heatmap_data,
-            "pivoted_data": pivoted_data.to_dict(),  # if you need the pivoted_data itself
         }
 
     return grouped_data

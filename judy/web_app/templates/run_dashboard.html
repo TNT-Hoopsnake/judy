@@ -99,7 +99,7 @@
     </div>
 </div>
 <script>
-var metricsData = {{ context['dataframe'].to_json(orient='records') | safe }};
+var metricsData = JSON.parse(`{{ context['dataframe'] | safe }}`);
 var uniqueScenarios = Array.from(new Set(metricsData.map(item => item.scenario)));
 var scenarioDropdown = document.getElementById('scenarioDropdown');
 

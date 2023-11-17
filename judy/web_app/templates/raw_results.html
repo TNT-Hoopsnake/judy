@@ -109,71 +109,90 @@
             <div class="row">
               <div class="col">
                 <div class="accordion" id="response-accordion">
+
+                  {% if result['model'].get('prompt') %}
+                  <div class="accordion-item">
+                    <h2 class="accordion-header" id="modelPrompt">
+                      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseModelPrompt" aria-expanded="true" aria-controls="collapseModelPrompt">
+                        <strong>Model Prompt</strong>
+                      </button>
+                    </h2>
+                    <div id="collapseModelPrompt" class="accordion-collapse collapse show" aria-labelledby="modelPrompt" data-bs-parent="#response-accordion">
+                      <div class="accordion-body">
+                        {{result['model']['prompt']}}
+                      </div>
+                    </div>
+                  </div>
+                  {% endif %}
+                
                   <div class="accordion-item">
                     <h2 class="accordion-header" id="headingContext">
-                      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseContext" aria-expanded="true" aria-controls="collapseContext">
-                        Model Response
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseContext" aria-expanded="false" aria-controls="collapseContext">
+                        <strong>Model Response</strong>
                       </button>
                     </h2>
-                    <div id="collapseContext" class="accordion-collapse collapse show" aria-labelledby="headingContext" data-bs-parent="#response-accordion">
+                    <div id="collapseContext" class="accordion-collapse collapse" aria-labelledby="headingContext" data-bs-parent="#response-accordion">
                       <div class="accordion-body">
-                        {% if result['model'].get('question') %}
-                        <strong>Question: </strong>{{result['model']['question']}}
-                        <hr>
-                        {% endif %}
-                        <strong>Model Response: </strong>{{result['model']['response']}}
+                        <strong>Response: </strong>{{result['model']['response']}}
                         {% if result['model'].get('answer') %}
                         <hr>
-                        <strong>Correct Answer: </strong>{{result['model']['answer']}}
+                        <strong>Ground Truth: </strong>{{result['model']['answer']}}
                         {% endif %}
                       </div>
                     </div>
                   </div>
-                  <div class="accordion-item">
-                    <h2 class="accordion-header" id="headingPrompt">
-                      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePrompt" aria-expanded="false" aria-controls="collapsePrompt">
-                        Evaluation Prompt
-                      </button>
-                    </h2>
-                    <div id="collapsePrompt" class="accordion-collapse collapse" aria-labelledby="headingPrompt" data-bs-parent="#response-accordion">
-                      <div class="accordion-body" style="white-space: pre-line;">
-                        {{result['evaluator']['prompt']}}
-                      </div>
-                    </div>
-                  </div>
+                
                 </div>
+                
               </div>
               <div class="col">
                 <div class="accordion" id="results-accordion">
+
                   <div class="accordion-item">
                     <h2 class="accordion-header" id="headingScores">
                       <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseScores" aria-expanded="true" aria-controls="collapseScores">
-                        Model Metrics
+                        <strong>Evaluation Metrics</strong>
                       </button>
                     </h2>
                     <div id="collapseScores" class="accordion-collapse collapse show" aria-labelledby="headingScores" data-bs-parent="#results-accordion">
                       <div class="accordion-body">
                         <ul>
-                        {% for metric_score in result['evaluator']['scores'] %}
-                          <li><strong>{{metric_score['name']}}: </strong>{{metric_score['score']}}</li>
-                        {% endfor %}
+                          {% for metric_score in result['evaluator']['scores'] %}
+                            <li><strong>{{metric_score['name']}}: </strong>{{metric_score['score']}}</li>
+                          {% endfor %}
                         </ul>
                       </div>
                     </div>
                   </div>
+                
                   <div class="accordion-item">
                     <h2 class="accordion-header" id="headingResults">
-                      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseResponse" aria-expanded="false" aria-controls="collapseResponse">
-                        Evaluation Results
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseResponse" aria-expanded="false" aria-controls="collapseResponse">
+                      <strong>Evaluation Results</strong>
                       </button>
                     </h2>
-                    <div id="collapseResponse" class="accordion-collapse collapse" aria-labelledby="headingResults" data-bs-parent="#results-accordion">
+                    <div id="collapseResponse" class="accordion-collapse collapse" aria-labelledby="headingResults" aria-expanded="false" data-bs-parent="#results-accordion">
                       <div class="accordion-body" style="white-space: pre-line;">
                         {{result['evaluator']['response']}}
                       </div>
                     </div>
                   </div>
+                
+                  <div class="accordion-item">
+                    <h2 class="accordion-header" id="headingPrompt">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePrompt" aria-expanded="false" aria-controls="collapsePrompt">
+                      <strong>Evaluation Prompt</strong>
+                      </button>
+                    </h2>
+                    <div id="collapsePrompt" class="accordion-collapse collapse" aria-labelledby="headingPrompt" data-bs-parent="#results-accordion">
+                      <div class="accordion-body" style="white-space: pre-line;">
+                        {{result['evaluator']['prompt']}}
+                      </div>
+                    </div>
+                  </div>
+                
                 </div>
+                
               </div>
             </div>
           </div>
