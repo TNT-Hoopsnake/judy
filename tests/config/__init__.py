@@ -12,14 +12,7 @@ VALID_SCENARIOS = [
     }
 ]
 
-VALID_TASKS = [
-    {
-        "name": "QA",
-        "id": "st_qa",
-        "desc": "Question Answering",
-        "datasets": ["riddle_sense"],
-    }
-]
+VALID_TASKS = [{"name": "QA", "id": "st_qa", "desc": "Question Answering"}]
 
 VALID_RUN_CONFIG = {
     "judge": "gpt-3.5-turbo",

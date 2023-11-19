@@ -1,8 +1,8 @@
 import os
 import json
-
 from pathlib import Path
 from datetime import datetime
+from collections.abc import MutableMapping as Map
 import pandas as pd
 import numpy as np
 from judy.config import (
@@ -18,7 +18,6 @@ CONFIG_CLASS_MAP = {
     "datasets": DatasetConfig,
     "run": RunConfig,
 }
-from collections.abc import MutableMapping as Map
 
 
 def nested_update(d, v):
