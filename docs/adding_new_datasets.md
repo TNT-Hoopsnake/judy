@@ -16,6 +16,7 @@
   formatter: GSM8KFormatter
   split: test
   tags: [maths]
+  source_type: hub
 ```
 
 Breakdown of key fields:
@@ -45,9 +46,8 @@ class GSM8KFormatter(BaseFormatter):
                 )
 ```
 
-4. **Scenario Update in `eval_config.yaml`:**
-- In the `eval_config.yaml` file, update the relevant scenario (Question Answering in our case) to include the new dataset:
-- You can edit this file manually or run `judy config`
+4. **Add Dataset to Scenario in `eval_config.yaml`:**
+- Your new dataset can be used with any scenario of your choice. Add the dataset to one or more scenarios in the `eval_config.yaml` file. For our example, we will add the `gsm8k` dataset to the `Question Answering` scenario:
 
 ```yaml
 - name: Question Answering
@@ -59,8 +59,8 @@ class GSM8KFormatter(BaseFormatter):
 ...
 ```
 
-5. **Scenario Addition in `run_config.yaml`:**
-- Ensure your `run_config.yaml` file to include the scenario that uses the new dataset:
+5. **Add Scenario to `run_config.yaml`:**
+- Update your `run_config.yaml` file to include the scenario that uses the new dataset:
 - You can edit this file manually or run `judy config`
 
 ```yaml
