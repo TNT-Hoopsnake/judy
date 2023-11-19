@@ -73,11 +73,12 @@ judy serve -r ./results
 - [ ] Add perturbations - the ability to modify input datasets - with typos, synonymns etc.
 - [ ] Add adaptations - the ability to use different prompting techniques - such as Chain of Thought etc.
 
-### 2.2 Datasets / Tasks
+### 2.2 Scenarios
 
-- [ ] [FLASK](https://arxiv.org/abs/2307.10928)
-- [ ] [RED-INSTRUCT](https://arxiv.org/abs/2308.09662)
+- [x] [FLASK](https://arxiv.org/abs/2307.10928)
 - [ ] [Code Comprehension](https://arxiv.org/abs/2308.01240)
+- [ ] [Emotional Intelligence](https://arxiv.org/abs/2307.09042)
+- [ ] [RED-INSTRUCT](https://arxiv.org/abs/2308.09662)
 
 ## 3. Contributing
 
