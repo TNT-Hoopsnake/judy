@@ -2,6 +2,27 @@
 {% block title %}Runs | Judy{% endblock %}
 
 {% block content %}
+
+<style>
+    /* Additional styling for the scenario select */
+    .styled-select {
+        display: inline-block;
+        position: relative;
+    }
+
+    .styled-select select {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        padding: 8px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        cursor: pointer;
+        margin-right:20px;
+    }
+</style>
+
+
 <div class="page-title text-center my-3">
   <h1>Evaluation Runs</h1>
   <p>A list of all evaluations you have run using judy.</p>
@@ -29,7 +50,7 @@
             <td>{{run_data['scenarios_used'] | length}}</td>
             <td>{{run_data['tasks_used'] | length}}</td>
             <td>{{run_data['datasets_used'] | length}}</td>
-            <td>{{run_data['config']['run'].num_evals}}</td>
+            <td>{{run_data['total_evaluations'] }}</td>
             <td>{{run_data['config']['run'].judge.value}}</td>
             <td>{{run_data['metadata']['timestamp'] | timestamp}}</td>
         </tr>
@@ -48,5 +69,133 @@
     </tr>
     </tfoot>
   </table>
+  <div class="container mt-5">
+    <div class="row pb-3">
+        <div class="col-md-12">
+            <label for="scenarioDropdown" class="form-label chart-label">Select Scenario:</label>
+            <div class="styled-select">
+                <select id="scenarioDropdown" class="form-select">
+                {% for scenario_id, scenario in context["scenarios"].items() %}
+                    <option value="{{scenario_id}}">{{scenario.name}}</option>
+                {% endfor %}
+                </select>
+            </div>
+            <label for="chartTypeDropdown" class="form-label chart-label">Select Chart:</label>
+            <div class="styled-select">
+                <select id="chartTypeDropdown" class="form-select">
+                    <option value="bar">Bar</option>
+                    <option value="radar">Radar</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-md-12">
+            <div id="chart" style="height: 400px;"></div>
+        </div>
+    </div>
 </div>
+<script>
+var metricsData = JSON.parse(`{{ context['dataframe'] | safe }}`);
+var uniqueScenarios = Array.from(new Set(metricsData.map(item => item.scenario)));
+var scenarioDropdown = document.getElementById('scenarioDropdown');
+
+// Add event listener to scenario dropdown
+scenarioDropdown.addEventListener('change', function() {
+    selectedScenario = scenarioDropdown.value;
+    updateChart(selectedScenario, currentChartType);
+});
+
+
+var chartTypeDropdown = document.getElementById('chartTypeDropdown')
+chartTypeDropdown.addEventListener('change', function() {
+    currentChartType = chartTypeDropdown.value;
+    updateChart(selectedScenario, currentChartType)
+});
+
+// Initial values
+var selectedScenario = uniqueScenarios[0];
+var currentChartType = 'bar'; // Initial chart type
+
+
+
+function updateChart(selectedScenario, chartType) {
+    // Filter data based on the selected scenario
+    var filteredData = metricsData.filter(item => item.scenario === selectedScenario);
+
+    var allMetrics = Array.from(new Set(filteredData.map(item => item.metric)));
+    var uniqueModels = Array.from(new Set(filteredData.map(item => item.model)));
+    var averageScores = {};
+    uniqueModels.forEach(model => {
+        averageScores[model] = {};
+        allMetrics.forEach(metric => {
+            var scores = filteredData
+                .filter(item => item.model === model && item.metric === metric)
+                .map(item => item.score);
+
+            var averageScore = scores.length > 0 ? scores.reduce((sum, score) => sum + score, 0) / scores.length : null;
+            averageScores[model][metric] = averageScore.toFixed(2);
+        });
+    });
+
+
+    var option;
+    if(currentChartType === "bar") {
+        option = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow',
+                },
+            },
+            legend: {
+                data: uniqueModels,
+            },
+            xAxis: {
+                type: 'category',
+                data: allMetrics, // Use the complete list of metrics
+                axisLabel: {
+                    interval: 0,
+                    rotate: 45,
+                },
+            },
+            yAxis: {
+                type: 'value',
+                name: 'Score',
+                max: 10
+            },
+            series: uniqueModels.map(model => ({
+                name: model,
+                type: 'bar',
+                data: allMetrics.map(metric => averageScores[model][metric]),
+            })),
+        };
+    } else if (chartType === "radar") {
+        option = {
+            tooltip: {},
+            legend: {
+                data: uniqueModels,
+            },
+            radar: {
+                indicator: allMetrics.map(metric => ({ name: metric, max: 10 })),
+            },
+            series: uniqueModels.map(model => ({
+                name: model,
+                type: 'radar',
+                data: [{
+                    value: allMetrics.map(metric => averageScores[model][metric]),
+                    name: model,
+                }],
+            })),
+        };
+    }
+
+    var chart = echarts.init(document.getElementById('chart'));
+    chart.setOption(option, true);
+
+  }
+  updateChart(selectedScenario, currentChartType);
+
+</script>
 {% endblock %}

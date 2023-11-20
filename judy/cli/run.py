@@ -17,6 +17,7 @@ from judy.utils import (
     get_output_directory,
 )
 from judy.config.logging import logger as log
+from judy.utils.utils import ensure_directory_exists
 from judy.web_app.main import run_webapp
 
 
@@ -53,10 +54,10 @@ def summarise_run(num_evaluations, models_to_run, scenarios_to_run, datasets_to_
 
 @judy_cli.command()
 @click.option(
-    "-t", "--dataset", default=None, help="Only run datasets matching this tag"
+    "-dt", "--dataset", default=None, help="Only run datasets matching this tag"
 )
-@click.option("-s", "--task", default=None, help="Only run tasks matching this tag")
-@click.option("-m", "--model", default=None, help="Only run models matching this tag")
+@click.option("-tt", "--task", default=None, help="Only run tasks matching this tag")
+@click.option("-mt", "--model", default=None, help="Only run models matching this tag")
 @click.option(
     "-n",
     "--name",
@@ -127,15 +128,11 @@ def run(
     dataset_tag = dataset
     task_tag = task
 
-    results_dir = get_output_directory(output, name)
-
-    dump_configs(results_dir, configs)
-    dump_metadata(results_dir, dataset_tag, task_tag, model_tag)
-
+    # Create output directory
     manager = EvalManager([eval_config_path, run_config_path], clear_cache)
     # Collect evaluations to run
     evaluations_to_run, scenarios_to_run, config_cache = manager.collect_evaluations(
-        run_config, eval_config, dataset_config
+        run_config, eval_config, dataset_config, dataset_tag, task_tag
     )
     models_to_run = manager.get_models_to_run(run_config, model_tag)
     datasets_to_run = list(set({eval[1] for eval in evaluations_to_run}))
@@ -163,7 +160,12 @@ def run(
     if not confirm_run():
         return
 
-    with tqdm(total=len(models_to_run) * len(evaluations_to_run)) as pbar:
+    results_dir = get_output_directory(output, name)
+    # always dump the latest version of the run config and metadata
+    dump_configs(results_dir, configs)
+    dump_metadata(results_dir, dataset_tag, task_tag, model_tag)
+
+    with tqdm(total=len(models_to_run) * num_evaluations) as pbar:
         for eval_model in models_to_run:
             log.info("Evaluation started for model: %s", eval_model.id)
             # Model-specific parameters override general run config parameters
@@ -172,6 +174,23 @@ def run(
             eval_model.context_char_limit = (
                 eval_model.context_char_limit or run_config.context_char_limit
             )
+
+            # create a subdirectory to save the results for the model currently being evaluated
+            # clear any existing results saved for this model
+            model_results_dir = ensure_directory_exists(
+                results_dir / eval_model.id, clear_if_exists=True
+            )
+            # dump configurations and metadata settings per eval model
+            # this allows cumulative results with different configs, under the same run name, but with different models
+            dump_configs(model_results_dir, configs)
+            dump_metadata(
+                model_results_dir, dataset_tag, task_tag, model_tag, eval_model.id
+            )
+
+            model_dataset_results_dir = ensure_directory_exists(
+                model_results_dir / "datasets"
+            )
+
             for scenario_id, dataset_id, task_id in evaluations_to_run:
                 pbar.set_description(f"Processing: {eval_model.id} - {dataset_id}")
                 ds_config = config_cache["datasets"].get(dataset_id)
@@ -204,16 +223,16 @@ def run(
                     run_config,
                     scenario_metrics,
                     ignore_cache,
+                    pbar,
                 )
 
                 save_evaluation_results(
-                    eval_model.id,
+                    model_dataset_results_dir,
                     scenario_id,
                     task_id,
                     dataset_id,
                     eval_prompts,
                     evaluation_results,
-                    results_dir,
                 )
                 # advance progress bar when an eval has been completed
                 pbar.update(1)

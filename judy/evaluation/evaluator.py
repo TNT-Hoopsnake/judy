@@ -20,6 +20,18 @@ from judy.config.logging import logger as log
 
 class Evaluator:
     def __init__(self, run_config: RunConfig, metrics: List[MetricConfig]):
+        """
+        Initialize the Evaluator with the provided run configuration and metrics.
+
+        Args:
+            run_config (RunConfig): Configuration for the evaluation run.
+            metrics (List[MetricConfig]): List of metrics to be used for evaluation.
+
+        This class is responsible for interacting with the OpenAI API for model evaluations.
+        It is initialized with the necessary configuration, including API key, model details,
+        and evaluation parameters.
+        """
+
         openai.api_key = run_config.judge_api_key or os.getenv("OPENAI_KEY")
         # ensure the openai api_base points to the correct address
         # this can be updated by responders so it is necessary to set it here
@@ -40,14 +52,14 @@ class Evaluator:
     @Retry()
     def get_evaluation_response(self, prompt: str) -> str:
         """
-        Get an evaluation from a chatbot model using a given text prompt.
+        Sends a request to the OpenAI API to obtain an evaluation response
+        based on the provided prompt and model details.
 
         Args:
             prompt (str): The text prompt to be used for generating an evaluation.
 
         Returns:
             str: The generated evaluation response.
-
         """
 
         # Create a chat completion using the specified model and prompt
@@ -74,7 +86,8 @@ class Evaluator:
 
     def parse_result(self, result: str) -> Tuple[int]:
         """
-        Parse a result string containing metrics and extract scores based on the criteria dictionary.
+        Extracts metric scores from the evaluation result string and returns
+        a tuple of scores based on the defined metrics.
 
         Args:
             result (str): The input string containing metric scores.
@@ -112,6 +125,16 @@ class Evaluator:
         return tuple(scores)
 
     def get_evaluation_results(self, prompt: str) -> EvalResponse:
+        """
+        Generates evaluation results for a single prompt, including the prompt,
+        generated response, and associated metric scores.
+
+        Args:
+            prompt (str): The text prompt for evaluation.
+
+        Returns:
+            EvalResponse: Evaluation response containing prompt, generated response, and metric scores.
+        """
         eval_result = self.get_evaluation_response(prompt)
 
         # Parse the evaluation metrics from the result using the criteria dictionary
@@ -123,11 +146,26 @@ class Evaluator:
 
         return EvalResponse(prompt=prompt, response=eval_result, scores=scores)
 
-    def run_evaluation(self, prompts: List[EvalPrompt]) -> List[EvalResponse]:
+    def run_evaluation(
+        self, prompts: List[EvalPrompt], progress_bar
+    ) -> List[EvalResponse]:
+        """
+        Runs evaluations for a list of prompts and returns a list of evaluation responses,
+        including prompts, generated responses, and associated metric scores.
+
+        Args:
+            prompts (List[EvalPrompt]): List of prompts for evaluation.
+            progress_bar (tdqm): Instance of tqdm progress bar, used to display updates on run state to the user
+
+        Returns:
+            List[EvalResponse]: List of evaluation responses.
+        """
         model_results = []
         for prompt in prompts:
             results = self.get_evaluation_results(prompt.prompt)
             model_results.append(results)
+            # update the cli progress bar when an evaluation result is completed
+            progress_bar.update(1)
 
         est_cost = get_est_token_cost(
             self.evaluator, sum(self.eval_input_tokens), sum(self.eval_output_tokens)

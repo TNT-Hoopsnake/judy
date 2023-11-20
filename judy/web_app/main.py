@@ -10,7 +10,7 @@ app.static_folder = "static"
 @app.before_request
 def before_request():
     g.all_data = app.config.get("all_data")
-    g.used_data = app.config.get("used_data")
+    g.runs_df = app.config.get("runs_df")
 
 
 @app.template_filter("timestamp")
@@ -21,9 +21,10 @@ def timestamp_filter(timestamp):
 def run_webapp(host, port, data_directory):
     with app.app_context():
         app.register_blueprint(app_bp)
-        all_data, used_data = load_all_data(data_directory)
+        all_data, runs_df = load_all_data(data_directory)
         app.config["all_data"] = all_data
-        app.config["used_data"] = used_data
+        app.config["runs_df"] = runs_df
+
         app.run(host, port, debug=True)
 
 

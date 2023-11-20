@@ -87,6 +87,8 @@ Your role is to assess how effectively the Assistant's responses address the Use
 In your evaluation, consider the following:
     Evaluate the degree to which the Assistant's responses directly and accurately answer the User's questions.
     Be stringent in your evaluation of responses that fail to adequately address the question; simply repeating the User's request is considered a poor response.
+    If the Assistant appears to be copying from the User's questions rather than answering with new content of its own, this is not an acceptable response.
+    Even if response accurately reflects aspects of the User's queries, you must judge the specifics of the response and whether the Assistant's response actually answers the User's question.
 
 Question: "[QUESTION]"
 

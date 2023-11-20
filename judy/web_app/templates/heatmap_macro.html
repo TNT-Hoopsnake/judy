@@ -1,0 +1,132 @@
+{% macro heatmap(table_keys, context) %}
+<script>
+    async function fetchData(runName, groupBy) {
+        const response = await fetch(`/api/heatmap_data/${runName}/${groupBy}`);
+        const data = await response.json();
+        return data;
+    }
+
+    function drawChart(title, data) {
+        // Prepare data for ECharts heatmap
+        var modelNames = data.model_names;
+        var metricNames = data.metric_names;
+        var heatmapData = data.heatmap_data;
+        var numRows = modelNames.length;
+        var chartHeight = Math.max(300, numRows * 100); // Adjust the multiplier as needed
+
+        // Arrange rows based on the highest average score across columns
+        var sortedRows = modelNames.slice().sort(function (a, b) {
+            var avgA = calculateAverageScore(a, heatmapData);
+            var avgB = calculateAverageScore(b, heatmapData);
+            return avgB - avgA;
+        });
+        sortedRows.reverse();
+
+        // Initialize ECharts
+        var chart = echarts.init(document.getElementById(title + '_heatmap'));
+
+        // Set up heatmap options
+        var option = {
+            tooltip: {
+                position: 'top',
+            },
+            xAxis: {
+                type: 'category',
+                data: metricNames,
+                splitArea: {
+                    show: true
+                }
+            },
+            yAxis: {
+                type: 'category',
+                data: sortedRows,
+            },
+            visualMap: {
+                min: 0,
+                max: 10,
+                calculable: true,
+                orient: 'horizontal',
+                left: 'center',
+                bottom: '0%',
+                inRange: {
+                    color: ["white", "green"]
+                }
+            },
+            series: [{
+                type: 'heatmap',
+                data: arrangeHeatmapData(sortedRows, heatmapData),
+                label: {
+                    show: true
+                },
+                emphasis: {
+                    itemStyle: {
+                        shadowBlur: 10,
+                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                    }
+                }
+            }]
+        };
+
+        // Set option and render the chart
+        chart.setOption(option, true);
+        chart.resize({ height: chartHeight });
+
+        // Function to calculate the average score for a given model
+        function calculateAverageScore(model, heatmapData) {
+            var scores = heatmapData.filter(function (item) {
+                return item[0] === model;
+            }).map(function (item) {
+                return item[2];
+            });
+
+            var sum = scores.reduce(function (acc, score) {
+                return acc + score;
+            }, 0);
+
+            return scores.length > 0 ? sum / scores.length : 0;
+        }
+
+        // Function to arrange the heatmap data based on sorted rows
+        function arrangeHeatmapData(sortedRows, heatmapData) {
+            var arrangedData = [];
+            sortedRows.forEach(function (model) {
+                metricNames.forEach(function (metric) {
+                    heatmapData.forEach(function (item) {
+                        if (item[0] === metric && item[1] === model) {
+                            arrangedData.push(item);
+                        }
+                    });
+                });
+            });
+            return arrangedData;
+        }
+    }
+
+    async function initializeCharts() {
+        const runName = "{{ context.run }}";
+        const groupBy = "{{ context.groupby }}";
+
+        try {
+            const responseData = await fetchData(runName, groupBy);
+            // Iterate over the keys of the responseData dictionary
+            Object.keys(responseData).forEach(title => {
+                const data = responseData[title];
+                drawChart(title, data);
+            });
+        } catch (error) {
+            console.error('Error fetching or drawing charts:', error);
+        }
+    }
+    initializeCharts();
+</script>
+    {% set groupby = context["groupby"] %}
+    {% set context_key = groupby + 's' %}
+    {% for title in table_keys %}
+        {% if context[context_key].get(title) %}
+            <div class="heatmap-container">
+                <h4 class="heatmap-title">{{ context[context_key][title].name or context[context_key][title].id }}</h4>
+                <div id="{{ title }}_heatmap" style="width:100%"></div>
+            </div>
+        {% endif %}
+    {% endfor %}
+{% endmacro %}

@@ -123,3 +123,11 @@ footer {
     bottom:0;
     width: 100%;
 }
+
+.chart-label {
+    padding-left: 2%;
+}
+
+.heatmap-title {
+    text-align: center;
+}

@@ -33,6 +33,7 @@ class TaskTypes(str, Enum):
     ST_QUESTION = "st_q"
     ST_QUESTION_ANSWER = "st_qa"
     ST_QUESTION_ANSWER_CONTEXT = "st_qac"
+    ST_QUESTION_ANSWER_METRIC = "st_qam"
     MT_QUESTION_ANSWER_CONTEXT = "mt_qac"
     DISINFO_WEDGING = "disinfo_wedging"
     DISINFO_REITERATION = "disinfo_reiteration"
@@ -69,13 +70,16 @@ class ModelFamilyTypes(str, Enum):
 class JudgeModels(str, Enum):
     GPT4 = "gpt-4"
     GPT35 = "gpt-3.5-turbo"
+    GPT4TURBO = "gpt-4-1106-preview"
 
 
 class InputTokenCost(float, Enum):
     GPT4 = 0.01 / 1000.0
     GPT35 = 0.001 / 1000.0
+    GPT4TURBO = 0.01 / 1000.0
 
 
 class OutputTokenCost(float, Enum):
     GPT4 = 0.03 / 1000.0
     GPT35 = 0.002 / 1000.0
+    GPT4TURBO = 0.03 / 1000.0

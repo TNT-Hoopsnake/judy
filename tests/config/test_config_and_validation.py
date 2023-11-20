@@ -48,8 +48,7 @@ def test_invalid_dataset_eval_config():
                         "name": "MS MARCO",
                         "source": "https://huggingface.co/datasets/ms_marco",
                         "version": "v1.1",
-                        "tasks": ["st_qa"],
-                        "formatter": "msmarco_formatter",
+                        "tasks": [{"id": "st_qa", "formatter": "msmarco_formatter"}],
                     }
                 ),
             ],

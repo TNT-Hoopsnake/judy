@@ -45,19 +45,16 @@ def get_config_definitions(
         {
             "cls": EvaluationConfig,
             "path": eval_config or EVAL_CONFIG_PATH,
-            "is_list": False,
             "key": "eval",
         },
         {
             "cls": DatasetConfig,
             "path": dataset_config or DATASET_CONFIG_PATH,
-            "is_list": True,
             "key": "datasets",
         },
         {
             "cls": RunConfig,
             "path": run_config or RUN_CONFIG_PATH,
-            "is_list": False,
             "key": "run",
         },
     ]
@@ -107,7 +104,7 @@ def get_task_config(task_id: str, eval_config: EvaluationConfig):
         matching_task = None
     if not matching_task:
         raise ValueError(
-            f"Dataset {task_id} is undefined. Create an entry for it in the dataset config"
+            f"Task {task_id} is undefined. Create an entry for it in the eval config"
         )
     return matching_task
 
@@ -125,7 +122,7 @@ def get_scenario_config(scenario_id: str, eval_config: EvaluationConfig):
         matching_scenario = None
     if not matching_scenario:
         raise ValueError(
-            f"Dataset {scenario_id} is undefined. Create an entry for it in the dataset config"
+            f"Scenario {scenario_id} is undefined. Create an entry for it in the eval config"
         )
     return matching_scenario
 

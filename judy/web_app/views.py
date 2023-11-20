@@ -1,28 +1,47 @@
-from flask import render_template, request, abort, g, Blueprint
+from flask import render_template, request, abort, g, Blueprint, jsonify
 from judy.web_app.utils import (
-    format_data,
-    get_grouped_df,
+    get_heatmap_data,
     get_readable_timestamp,
 )
 
 app_bp = Blueprint("judy", __name__)
 
 
+@app_bp.route("/api/heatmap_data/<run_name>/<groupby>", methods=["GET"])
+def fetch_heatmap_data(run_name, groupby):
+    df = g.runs_df
+
+    if run_name in df["run"].values:
+        filtered_df = df[df["run"] == run_name]
+    elif run_name == "all":
+        filtered_df = df
+    else:
+        abort(404)
+
+    data = get_heatmap_data(filtered_df, groupby)
+
+    return jsonify(data)
+
+
 @app_bp.route("/")
 def runs_dashboard():
-    run_data = g.all_data
-    df = format_data(run_data)
+    all_data = g.all_data
+    df = g.runs_df
 
-    all_evaluations = sum(data["config"]["run"].num_evals for data in run_data.values())
     combined_run = {
         "name": "All",
         "models": df["model"].nunique(),
         "tasks": df["task"].nunique(),
         "datasets": df["dataset"].nunique(),
         "scenarios": df["scenario"].nunique(),
-        "total_eval_num": all_evaluations,
+        "total_eval_num": all_data["total_evaluations"],
     }
-    context = {"data": run_data, "combined": combined_run}
+    context = {
+        "data": all_data["runs"],
+        "combined": combined_run,
+        "dataframe": df.to_json(orient="records"),
+        "scenarios": all_data["data_index"]["scenarios"],
+    }
     return render_template("run_dashboard.html", context=context)
 
 
@@ -66,18 +85,29 @@ def about():
 #         'groupby_options':groupby_options
 #     }
 
+
 #     return render_template('model_page.html', context=context)
+def get_all_items_dict(run_data, data_index):
+    item_keys = ["models", "scenarios", "tasks", "datasets"]
+    items_dict = {}
+
+    for key in item_keys:
+        items_used = f"{key}_used"
+        for item_id in run_data[items_used]:
+            item_dict = items_dict.get(key, {})
+            item_dict[item_id] = data_index[key].get(item_id)
+            items_dict[key] = item_dict
+
+    return items_dict
 
 
 @app_bp.route("/runs/<run_name>", methods=["GET", "POST"])
 def run_page(run_name):
     all_data = g.all_data
-    used_data = g.used_data
-    df = format_data(all_data)
+    df = g.runs_df
 
     groupby_options = {
         "scenario": "Scenario",
-        "model": "Model",
         "task": "Task",
         "dataset": "Dataset",
     }
@@ -88,48 +118,34 @@ def run_page(run_name):
 
     if run_name in df["run"].values:
         filtered_df = df[df["run"] == run_name]
-        run_data = all_data.get(run_name)
+        run_data = all_data["runs"].get(run_name)
+
         run_config = run_data["config"]["run"]
         run_configs = {
             "Timestamp": get_readable_timestamp(run_data["metadata"]["timestamp"]),
             "Judge Model": run_config.judge.value,
             "Judge Temperature": run_config.judge_temperature,
             "Random Seed": run_config.random_seed,
-            "Number of Evaluations": run_config.num_evals,
+            "Total Evaluations": run_data["total_evaluations"],
         }
     elif run_name == "all":
+        run_data = all_data
         filtered_df = df
-        run_data = []
-        run_config = []
         run_configs = {}
     else:
         abort(404)
 
-    data = get_grouped_df(filtered_df, groupby)
-
-    models_dict = {}
-    for item_id in filtered_df["model"].unique():
-        models_dict[item_id] = used_data["models"].get(item_id)
-    tasks_dict = {}
-    for item_id in filtered_df["task"].unique():
-        tasks_dict[item_id] = used_data["tasks"].get(item_id)
-    datasets_dict = {}
-    for item_id in filtered_df["dataset"].unique():
-        datasets_dict[item_id] = used_data["datasets"].get(item_id)
-    scenarios_dict = {}
-    for item_id in filtered_df["scenario"].unique():
-        scenarios_dict[item_id] = used_data["scenarios"].get(item_id)
-
+    items_dict = get_all_items_dict(run_data, all_data["data_index"])
+    data = get_heatmap_data(filtered_df, groupby)
+    # we dont actually use the data here (loaded via api)
+    # but need to use the keys from the data so we can build out the necessary structure for our heatmaps
     context = {
         "run": run_name,
-        "models": models_dict,
-        "datasets": datasets_dict,
-        "scenarios": scenarios_dict,
-        "tasks": tasks_dict,
-        "table_data": data,
+        "table_keys": data.keys(),
         "groupby": groupby,
         "groupby_options": groupby_options,
         "run_configs": run_configs,
+        **items_dict,
     }
 
     return render_template("run_page.html", context=context)
@@ -142,18 +158,17 @@ def scenarios():
     item_filter = request.args.get("item")
     seen_scenarios = set()
     scenario_data = []
-    for run_data in all_data.values():
-        for scenario in run_data["scenarios_used"]:
-            if scenario.id not in seen_scenarios:
-                if not item_filter or (item_filter and scenario.id == item_filter):
-                    seen_scenarios.add(scenario.id)
-                    scenario_data.append(
-                        {
-                            "title": scenario.name,
-                            "desc": scenario.desc,
-                            "links": {"datasets": scenario.datasets},
-                        }
-                    )
+    for scenario in all_data["data_index"]["scenarios"].values():
+        if scenario.id not in seen_scenarios:
+            if not item_filter or (item_filter and scenario.id == item_filter):
+                seen_scenarios.add(scenario.id)
+                scenario_data.append(
+                    {
+                        "title": scenario.name,
+                        "desc": scenario.desc,
+                        "links": {"datasets": scenario.datasets},
+                    }
+                )
 
     return render_template(
         "card_page.html",
@@ -172,18 +187,17 @@ def tasks():
     item_filter = request.args.get("item")
     seen_tasks = set()
     task_data = []
-    for run_data in all_data.values():
-        for task in run_data["tasks_used"]:
-            if task.id not in seen_tasks:
-                if not item_filter or (item_filter and task.id == item_filter):
-                    seen_tasks.add(task.id)
-                    task_data.append(
-                        {
-                            "title": task.name,
-                            "desc": task.desc,
-                            "links": {"tags": task.tags},
-                        }
-                    )
+    for task in all_data["data_index"]["tasks"].values():
+        if task.id not in seen_tasks:
+            if not item_filter or (item_filter and task.id == item_filter):
+                seen_tasks.add(task.id)
+                task_data.append(
+                    {
+                        "title": task.name,
+                        "desc": task.desc,
+                        "links": {"tags": task.tags},
+                    }
+                )
 
     return render_template(
         "card_page.html",
@@ -203,22 +217,21 @@ def datasets():
 
     seen_datasets = set()
     dataset_data = []
-    for run_data in all_data.values():
-        for dataset in run_data["datasets_used"]:
-            if dataset.id not in seen_datasets:
-                if not item_filter or (item_filter and dataset.id == item_filter):
-                    seen_datasets.add(dataset.id)
-                    dataset_data.append(
-                        {
-                            "title": dataset.id,
-                            "desc": None,
-                            "data": {
-                                "Source": dataset.source,
-                                "Tags": ", ".join(dataset.tags),
-                            },
-                            "links": {"tasks": dataset.tasks},
-                        }
-                    )
+    for dataset in all_data["data_index"]["datasets"].values():
+        if dataset.id not in seen_datasets:
+            if not item_filter or (item_filter and dataset.id == item_filter):
+                seen_datasets.add(dataset.id)
+                dataset_data.append(
+                    {
+                        "title": dataset.id,
+                        "desc": None,
+                        "data": {
+                            "Source": dataset.source,
+                            "Tags": ", ".join(dataset.tags),
+                        },
+                        "links": {"tasks": [t.id.value for t in dataset.tasks]},
+                    }
+                )
 
     return render_template(
         "card_page.html",
@@ -237,23 +250,21 @@ def models():
     seen_models = set()
     model_data = []
     item_filter = request.args.get("item")
-
-    for run_data in all_data.values():
-        for model in run_data["models_used"]:
-            if model.id not in seen_models:
-                if not item_filter or (item_filter and model.id == item_filter):
-                    seen_models.add(model.id)
-                    model_data.append(
-                        {
-                            "title": model.id,
-                            "desc": None,
-                            "data": {
-                                "API Type": model.api_type,
-                                "Api Base": model.api_base,
-                            },
-                            "links": {},
-                        }
-                    )
+    for model in all_data["data_index"]["models"].values():
+        if model.id not in seen_models:
+            if not item_filter or (item_filter and model.id == item_filter):
+                seen_models.add(model.id)
+                model_data.append(
+                    {
+                        "title": model.id,
+                        "desc": None,
+                        "data": {
+                            "API Type": model.api_type,
+                            "Api Base": model.api_base,
+                        },
+                        "links": {},
+                    }
+                )
 
     return render_template(
         "card_page.html",
@@ -269,28 +280,52 @@ def models():
 @app_bp.route("/raw/<run_name>")
 def raw_results(run_name=None):
     all_data = g.all_data
-    df = format_data(all_data)
+    df = g.runs_df
 
     model_filter = request.args.get("model")
     dataset_filter = request.args.get("dataset")
+    task_filter = request.args.get("task")
+    scenario_filter = request.args.get("scenario")
 
     run_list = df["run"].unique()
     if not run_name:
         run_name = run_list[0]
 
-    run_data = all_data.get(run_name).get("data")
+    run_data = all_data["runs"].get(run_name)
+    run_df = df[df["run"] == run_name]
+
     if not model_filter:
-        model_filter = df[df["run"] == run_name]["model"].iloc[0]
+        model_filter = run_df["model"].iloc[0]
+
+    if not scenario_filter:
+        scenario_filter = run_df["scenario"].iloc[0]
 
     if not dataset_filter:
-        dataset_filter = df[df["run"] == run_name]["dataset"].iloc[0]
+        dataset_filter = run_df[run_df["scenario"] == scenario_filter]["dataset"].iloc[
+            0
+        ]
 
-    filtered_data = run_data
-    if model_filter in filtered_data:
-        filtered_data = filtered_data[model_filter]
+    if not task_filter:
+        task_filter = run_df[run_df["dataset"] == dataset_filter]["task"].iloc[0]
 
-    if dataset_filter in filtered_data:
-        filtered_data = filtered_data[dataset_filter]
+    results_data = run_data.get("results")
+    model_data = results_data.get(model_filter, {})
+    if not model_data:
+        abort(404)
+
+    scenarios_used = model_data["data"].keys()
+    scenario_data = model_data["data"].get(scenario_filter, {})
+    datasets_used = scenario_data.keys()
+
+    dataset_data = scenario_data.get(dataset_filter, {})
+    dataset = run_data["data_index"]["datasets"].get(dataset_filter, None)
+    if not dataset:
+        abort(404)
+
+    tasks_used = [ds_task.id.value for ds_task in dataset.tasks]
+    filtered_data = dataset_data.get(task_filter, {})
+    if not filtered_data:
+        abort(404)
 
     return render_template(
         "raw_results.html",
@@ -298,6 +333,11 @@ def raw_results(run_name=None):
         run_name=run_name,
         model_name=model_filter,
         dataset_name=dataset_filter,
+        scenario_name=scenario_filter,
+        task_name=task_filter,
         raw_data=run_data,
+        tasks_used=tasks_used,
+        datasets_used=datasets_used,
+        scenarios_used=scenarios_used,
         filtered_data=filtered_data,
     )
