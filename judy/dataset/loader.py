@@ -25,6 +25,7 @@ def load_formatted_data(
         ds_config (DatasetConfig): Configuration for the dataset.
         num_idxs (int): Number of indices to evaluate.
         random_seed (int): Seed for the random number generator.
+        task_type (TaskTypes): ID of the task that will use the formatted data
         ignore_cache (bool, optional): Flag to ignore the cache and force data reload.
 
     Returns:

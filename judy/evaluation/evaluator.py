@@ -155,6 +155,7 @@ class Evaluator:
 
         Args:
             prompts (List[EvalPrompt]): List of prompts for evaluation.
+            progress_bar (tdqm): Instance of tqdm progress bar, used to display updates on run state to the user
 
         Returns:
             List[EvalResponse]: List of evaluation responses.

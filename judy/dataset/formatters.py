@@ -195,7 +195,7 @@ class GSM8KFormatter(BaseFormatter):
 
 
 class GSM8KFormatterSTQ(BaseFormatter):
-    def format(self) -> STQAFormattedData:
+    def format(self) -> FormattedData:
         # available splits: train, test
         questions = [self.dataset["question"][i] for i in self.eval_idxs]
 

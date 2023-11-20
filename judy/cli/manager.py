@@ -73,6 +73,8 @@ class EvalManager:
             run_config (RunConfig): Run configuration.
             metrics (List[MetricConfig]): List of metric configurations.
             ignore_cache_type (IgnoreCacheTypes):` Type of cache to ignore.
+            progress_bar (tdqm): Instance of tqdm progress bar, used to display updates on run state to the user
+
 
         Returns:
             Any: Evaluation results.
@@ -118,6 +120,7 @@ class EvalManager:
             cache_key (str): Cache key for storing/retrieving data.
             ds_config (DatasetConfig): Dataset configuration.
             run_config (RunConfig): Run configuration.
+            task_type (TaskTypes): ID of the task that will use the formatted data
             ignore_cache (bool): Flag to ignore cache.
 
         Returns:
