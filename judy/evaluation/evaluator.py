@@ -32,7 +32,7 @@ class Evaluator:
         and evaluation parameters.
         """
 
-        openai.api_key = run_config.judge_api_key or os.getenv("OPENAI_KEY")
+        openai.api_key = run_config.judge_api_key or os.getenv("OPENAI_API_KEY")
         # ensure the openai api_base points to the correct address
         # this can be updated by responders so it is necessary to set it here
         openai.api_base = DEFAULT_OPENAI_API_BASE

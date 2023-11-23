@@ -3,7 +3,6 @@ from typing import List, Optional
 from dotenv import load_dotenv
 
 from judy.cache import SqliteCache
-from judy.cli.install import setup_user_dir
 from judy.config import (
     get_dataset_config,
     get_task_config,
@@ -40,7 +39,6 @@ class EvalManager:
             clear_cache (bool, optional): Flag to clear the cache. Defaults to False.
         """
         load_dotenv()
-        setup_user_dir()
         self.cache = SqliteCache(config_paths, clear_cache)
 
     def sizeof_current_run_cache(self):

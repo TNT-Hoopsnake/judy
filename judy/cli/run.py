@@ -1,6 +1,7 @@
 import pathlib
 import click
 from tqdm import tqdm
+from judy.cli.install import setup_user_dir
 
 from judy.cli.manager import EvalManager
 from judy.config import (
@@ -24,6 +25,7 @@ from judy.web_app.main import run_webapp
 @click.group()
 def judy_cli():
     click.secho("\n\t\t Welcome to Judy! \n\n", bold=True)
+    setup_user_dir()
 
 
 def confirm_run():
@@ -119,6 +121,8 @@ def run(
     clear_cache,
 ):
     """Run evaluations for models using a judge model."""
+    setup_user_dir()
+    
     configs = load_configs(eval_config_path, dataset_config_path, run_config_path)
     eval_config = configs["eval"]
     dataset_config = configs["datasets"]
