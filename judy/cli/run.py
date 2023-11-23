@@ -122,7 +122,7 @@ def run(
 ):
     """Run evaluations for models using a judge model."""
     setup_user_dir()
-    
+
     configs = load_configs(eval_config_path, dataset_config_path, run_config_path)
     eval_config = configs["eval"]
     dataset_config = configs["datasets"]
