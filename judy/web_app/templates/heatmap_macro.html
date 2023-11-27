@@ -22,13 +22,21 @@
         });
         sortedRows.reverse();
 
+
+        var heatmapElement = document.getElementById(title + '_heatmap');
+        var fullTitle = heatmapElement.getAttribute('data-title')
         // Initialize ECharts
-        var chart = echarts.init(document.getElementById(title + '_heatmap'));
+        var chart = echarts.init(heatmapElement);
 
         // Set up heatmap options
         var option = {
+            title: {
+                top: 30,
+                left: 'center',
+                text: fullTitle
+            },
             tooltip: {
-                position: 'top',
+                position: 'bottom',
             },
             xAxis: {
                 type: 'category',
@@ -42,6 +50,7 @@
                 data: sortedRows,
             },
             visualMap: {
+                show: false,
                 min: 0,
                 max: 10,
                 calculable: true,
@@ -63,7 +72,7 @@
                         shadowBlur: 10,
                         shadowColor: 'rgba(0, 0, 0, 0.5)'
                     }
-                }
+                },
             }]
         };
 
@@ -124,8 +133,7 @@
     {% for title in table_keys %}
         {% if context[context_key].get(title) %}
             <div class="heatmap-container">
-                <h4 class="heatmap-title">{{ context[context_key][title].name or context[context_key][title].id }}</h4>
-                <div id="{{ title }}_heatmap" style="width:100%"></div>
+                <div id="{{ title }}_heatmap" style="width:100%" data-title="{{ context[context_key][title].name or context[context_key][title].id }}"></div>
             </div>
         {% endif %}
     {% endfor %}
