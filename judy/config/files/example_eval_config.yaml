@@ -62,7 +62,7 @@ scenarios:
       desc: "Examine whether the response offers a sufficient level of detail, catering to the user's needs. High scores should be given to responses with rich detail when necessary."
 
   - name: Instruction Following - FLASK
-    id: inst-flask
+    id: inst_flask
     desc: |
       This is an alternate scenario to test instruction following ability. It has been adapted from Ye et al. ("Fine Grained Language Model Evaluation Based on Alignment Skill Sets" - FLASK). FLASK claims that a holistic view of a language model's instruction following abilities can be gained by testing 4 different skill sets - Logical Thinking, Background Knowledge, Problem Handling and User Alignment.
 
