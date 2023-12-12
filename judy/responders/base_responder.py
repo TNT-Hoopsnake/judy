@@ -4,7 +4,6 @@ from types import ModuleType
 import sys
 
 import openai
-from easyllm.clients import huggingface
 from easyllm.prompt_utils import PROMPT_MAPPING
 from easyllm.prompt_utils.base import buildBasePrompt
 from easyllm.schema.base import ChatMessage
@@ -133,14 +132,11 @@ class BaseResponder(ABC):
     @abstractmethod
     async def build_model_prompt(self) -> ModelPrompt:
         """Build the model prompt from the data tuple."""
-        pass
 
     @abstractmethod
     async def get_model_response(self, model_prompt: ModelPrompt) -> ModelResponse:
         """Prompt the model with a single prompt and get the model response"""
-        pass
 
     @abstractmethod
     async def build_eval_prompt(self, model_response: ModelResponse) -> EvalPrompt:
         """Build the evaluation prompt from the model response."""
-        pass

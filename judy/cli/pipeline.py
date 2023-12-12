@@ -1,41 +1,19 @@
-import os
-import json
 import asyncio
 import pathlib
-from typing import List, Optional, Dict, Tuple
-from dotenv import load_dotenv
+from typing import List, Tuple
 from tqdm.asyncio import tqdm
-from pydantic import BaseModel
-import numpy as np
-
-from judy.cache import SqliteCache
-from judy.cli.install import setup_user_dir
 from judy.config import (
     dump_configs,
-    get_dataset_config,
-    get_task_config,
     DatasetConfig,
-    TaskTypes,
-    ScenarioConfig,
-    EvaluationConfig,
-    MetricConfig,
     RunConfig,
-    IgnoreCacheTypes,
 )
-from judy.config.data_models import EvaluatedModel
-from judy.dataset import BaseFormattedData
-from judy.dataset.loader import load_formatted_data, get_dataset, get_eval_idxs
-from judy.evaluation import Evaluator
 from judy.responders import (
     get_responder_class_map,
-    BaseResponder,
     EvalPrompt,
     EvalResponse,
-    ModelResponse,
 )
 from judy.utils import (
     PromptBuilder,
-    matches_tag,
     dump_metadata,
 )
 from judy.utils.utils import ensure_directory_exists
@@ -43,7 +21,7 @@ from judy.config.settings import MODEL_BATCH_SIZE, JUDGE_BATCH_SIZE
 from judy.config.logging import logger as log
 
 
-class EvaluationPipeline(object):
+class EvaluationPipeline:
     def __init__(self, manager):
         self.manager = manager
         self.stages = [

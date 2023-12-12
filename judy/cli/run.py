@@ -284,7 +284,3 @@ def config(dataset_config_path, eval_config_path, run_config_path):
                 quit_requested = True
 
         click.clear()
-
-
-if __name__ == "__main__":
-    run()

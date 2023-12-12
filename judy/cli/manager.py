@@ -93,6 +93,7 @@ class EvalManager:
         self.pipeline = EvaluationPipeline(self)
 
     async def run_pipeline(self, models_to_run, evaluations_to_run):
+        """Run the evaluation pipeline."""
         await self.pipeline.run(models_to_run, evaluations_to_run)
 
     async def generate_formatted_data(
