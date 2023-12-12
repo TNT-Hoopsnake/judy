@@ -16,55 +16,33 @@ class STQACModelPrompt(ModelPrompt):
 
 
 class STQuestionAnswerContextResponder(BaseResponder):
-    def build_model_prompts(self) -> List[STQACModelPrompt]:
+    async def build_model_prompt(self) -> List[STQACModelPrompt]:
         questions, answers, contexts = self.get_data_tuple()
 
-        model_prompts = []
         for question, answer, context in zip(questions, answers, contexts):
             context = context[: self._context_char_limit]
             append_char = ""
             if not question.endswith("?"):
                 append_char = "?"
             prompt = f"[CONTEXT]: {context}\n{SINGLE_TURN_QUESTION_ANSWER_CONTEXT_PREPROMPT}{question}{append_char}"
-            model_prompts.append(
-                STQACModelPrompt(
-                    question=question,
-                    prompt=prompt,
-                    context=context,
-                    answer=answer,
-                )
+            yield STQACModelPrompt(
+                question=question,
+                prompt=prompt,
+                context=context,
+                answer=answer,
             )
 
-        return model_prompts
+    async def get_model_response(self, model_prompt: STQACModelPrompt) -> ModelResponse:
+        response = await self.query_model(model_prompt.prompt)
+        return ModelResponse(response=response, prompt=model_prompt)
 
-    def get_model_responses(
-        self, model_prompts: List[STQACModelPrompt]
-    ) -> List[ModelResponse]:
-        model_responses = []
-        for model_prompt in model_prompts:
-            response = self.query_model(model_prompt.prompt)
-            # eventually should be linked via sql tables
-            model_responses.append(
-                ModelResponse(response=response, prompt=model_prompt)
-            )
+    async def build_eval_prompt(self, model_response: ModelResponse) -> EvalPrompt:
+        replacement_map = {
+            "[QUESTION]": model_response.prompt.question,
+            "[ANSWER]": model_response.response,
+            "[CONTEXT]": model_response.prompt.context,
+        }
 
-        return model_responses
+        eval_prompt = self.pb.build_full_prompt(ST_QAC_PROMPT, replacement_map)
 
-    def build_eval_prompts(
-        self, model_responses: List[ModelResponse]
-    ) -> List[EvalPrompt]:
-        eval_prompts = []
-        for model_response in model_responses:
-            replacement_map = {
-                "[QUESTION]": model_response.prompt.question,
-                "[ANSWER]": model_response.response,
-                "[CONTEXT]": model_response.prompt.context,
-            }
-
-            eval_prompt = self.pb.build_full_prompt(ST_QAC_PROMPT, replacement_map)
-
-            eval_prompts.append(
-                EvalPrompt(prompt=eval_prompt, response_data=model_response)
-            )
-
-        return eval_prompts
+        return EvalPrompt(prompt=eval_prompt, response_data=model_response)

@@ -24,7 +24,7 @@ class DisinfoReiterationResponder(BaseResponder):
                 thesis=thesis,
             )
 
-    async def get_model_response(self, model_prompt: DRModelPrompt) -> str:
+    async def get_model_response(self, model_prompt: DRModelPrompt) -> ModelResponse:
         response = await self.query_model(model_prompt.prompt)
         return ModelResponse(response=response, prompt=model_prompt)
 

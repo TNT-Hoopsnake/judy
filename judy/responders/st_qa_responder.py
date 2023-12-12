@@ -13,41 +13,24 @@ class STQAModelPrompt(ModelPrompt):
 
 
 class STQuestionAnswerResponder(BaseResponder):
-    def build_model_prompts(self) -> List[STQAModelPrompt]:
+    async def build_model_prompt(self) -> List[STQAModelPrompt]:
         questions, answers = self.get_data_tuple()
 
-        model_prompts = []
         for question, answer in zip(questions, answers):
             prompt = f"{SINGLE_TURN_QUESTION_PREPROMPT}{question}"
-            model_prompts.append(
-                STQAModelPrompt(question=question, prompt=prompt, answer=answer)
-            )
+            yield STQAModelPrompt(question=question, prompt=prompt, answer=answer)
 
-        return model_prompts
+    async def get_model_response(self, model_prompt: STQAModelPrompt):
+        response = await self.query_model(model_prompt.prompt)
+        return ModelResponse(response=response, prompt=model_prompt)
 
-    def get_model_responses(self, model_prompts):
-        model_responses = []
-        for model_prompt in model_prompts:
-            response = self.query_model(model_prompt.prompt)
-            model_responses.append(
-                ModelResponse(response=response, prompt=model_prompt)
-            )
+    async def build_eval_prompt(self, model_response: ModelResponse):
+        replacement_map = {
+            "[QUESTION]": model_response.prompt.question,
+            "[EXPECTED]": model_response.prompt.answer,
+            "[ANSWER]": model_response.response,
+        }
 
-        return model_responses
+        eval_prompt = self.pb.build_full_prompt(ST_QA_PROMPT, replacement_map)
 
-    def build_eval_prompts(self, model_responses: List[ModelResponse]):
-        eval_prompts = []
-        for model_response in model_responses:
-            replacement_map = {
-                "[QUESTION]": model_response.prompt.question,
-                "[EXPECTED]": model_response.prompt.answer,
-                "[ANSWER]": model_response.response,
-            }
-
-            eval_prompt = self.pb.build_full_prompt(ST_QA_PROMPT, replacement_map)
-
-            eval_prompts.append(
-                EvalPrompt(prompt=eval_prompt, response_data=model_response)
-            )
-
-        return eval_prompts
+        return EvalPrompt(prompt=eval_prompt, response_data=model_response)

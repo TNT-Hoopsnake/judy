@@ -9,50 +9,33 @@ class MTModelPrompt(ModelPrompt):
 
 
 class MTQuestionResponder(BaseResponder):
-    def build_model_prompts(self):
-        prompts = []
+    async def build_model_prompt(self):
         for questions_set in self.get_data_tuple():
             for questions in questions_set:
-                prompts.append(MTModelPrompt(questions=questions))
+                yield MTModelPrompt(questions=questions)
 
-        return prompts
+    async def get_model_response(self, model_prompt: MTModelPrompt) -> ModelResponse:
+        model_qa = []
+        messages = [
+            {
+                "role": "system",
+                "content": 'You are a helpful assistant that answers user questions truthfully and to the best of your ability. If you are unable to truthfully respond to a question, simply respond with "CANNOTANSWER"',
+            }
+        ]
+        # Multi-turn questions must be asked in order - so this is run sequentially
+        # within the same asyncio task
+        for turn in model_prompt.questions:
+            messages.append({"role": "user", "content": turn})
 
-    def get_model_responses(
-        self, model_prompts: List[MTModelPrompt]
-    ) -> List[ModelResponse]:
-        model_responses = []
-        for turns in model_prompts:
-            model_qa = []
-            messages = [
-                {
-                    "role": "system",
-                    "content": 'You are a helpful assistant that answers user questions truthfully and to the best of your ability. If you are unable to truthfully respond to a question, simply respond with "CANNOTANSWER"',
-                }
-            ]
-            for turn in turns.questions:
-                messages.append({"role": "user", "content": turn})
+            model_ans = await self.query_chat_model(messages)
+            messages.append({"role": "assistant", "content": model_ans})
+            model_qa.append(f"[USER QUESTION]{turn}\n[ASSISTANT RESPONSE]{model_ans}")
 
-                model_ans = self.query_chat_model(messages)
-                messages.append({"role": "assistant", "content": model_ans})
-                model_qa.append(
-                    f"[USER QUESTION]{turn}\n[ASSISTANT RESPONSE]{model_ans}"
-                )
+        return ModelResponse(response="\n".join(model_qa), prompt=model_prompt)
 
-            model_responses.append(
-                ModelResponse(response="\n".join(model_qa), prompt=turns)
-            )
+    async def build_eval_prompt(self, model_response: ModelResponse):
+        replacement_map = {"[CONTENT]": model_response.response}
 
-        return model_responses
+        eval_prompt = self.pb.build_full_prompt(MT_Q_PROMPT, replacement_map)
 
-    def build_eval_prompts(self, model_responses: List[ModelResponse]):
-        eval_prompts = []
-        for model_response in model_responses:
-            replacement_map = {"[CONTENT]": model_response.response}
-
-            eval_prompt = self.pb.build_full_prompt(MT_Q_PROMPT, replacement_map)
-
-            eval_prompts.append(
-                EvalPrompt(prompt=eval_prompt, response_data=model_response)
-            )
-
-        return eval_prompts
+        return EvalPrompt(prompt=eval_prompt, response_data=model_response)
