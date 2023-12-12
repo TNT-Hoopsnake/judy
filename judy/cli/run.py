@@ -108,6 +108,7 @@ async def run_evaluations(
         (len(evaluations_to_run) * manager.run_config.num_evals),
         len(models_to_run),
     )
+    print(manager.pipeline.results)
 
 
 @judy_cli.command()

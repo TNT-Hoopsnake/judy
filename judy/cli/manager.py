@@ -197,14 +197,27 @@ class EvalManager:
         except Exception as exc:
             await exc_queue.put(exc)
 
-    async def save_result(self, data, filename: pathlib.Path):
+    async def save_result(
+        self, data: List[dict], filename: pathlib.Path, exc_queue: asyncio.Queue
+    ):
         """Save the evaluation results to a file."""
-        with open(
-            filename,
-            "w+",
-            encoding="utf-8",
-        ) as fn:
-            json.dump(data, fn, indent=4)
+        try:
+            current_data = []
+            if filename.exists():
+                with open(
+                    filename,
+                    "r",
+                    encoding="utf-8",
+                ) as fn:
+                    try:
+                        current_data = json.load(fn)
+                    except Exception:
+                        pass
+            with open(filename, "w+", encoding="utf-8") as fn:
+                current_data.extend(data)
+                json.dump(current_data, fn, indent=4)
+        except Exception as err:
+            await exc_queue.put(err)
 
     def collect_evaluations(
         self,

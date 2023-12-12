@@ -31,6 +31,7 @@ class EvaluationPipeline:
         ]
         self.exception_queue = asyncio.Queue()
         self.cancel_event = asyncio.Event()
+        self.results = {}
 
     async def run(self, models_to_run, evaluations_to_run):
         """Run all stages in this pipeline."""
@@ -370,15 +371,22 @@ class EvaluationPipeline:
                             "evaluator": item.model_dump(mode="json"),
                         }
                     )
-                    self.manager.evaluation_results.append(
-                        asyncio.create_task(
-                            self.manager.save_result(
-                                data,
-                                pathlib.Path(results_dir)
-                                / f"{clean_ds_name}-{scenario_id}-{task_id}.json",
-                            )
+                    key = f"{clean_ds_name}-{scenario_id}-{task_id}"
+                    if key in self.results:
+                        self.results[key] = self.results[key] + 1
+                    else:
+                        self.results[key] = 1
+
+                self.manager.evaluation_results.append(
+                    asyncio.create_task(
+                        self.manager.save_result(
+                            data,
+                            pathlib.Path(results_dir)
+                            / f"{clean_ds_name}-{scenario_id}-{task_id}.json",
+                            exc_queue,
                         )
                     )
+                )
             except Exception as exc:
                 await exc_queue.put(exc)
             finally:
