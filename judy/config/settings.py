@@ -16,6 +16,8 @@ DATASET_CONFIG_PATH = USER_CONFIG_DIR / "dataset_config.yaml"
 EVAL_CONFIG_PATH = USER_CONFIG_DIR / "eval_config.yaml"
 RUN_CONFIG_PATH = USER_CONFIG_DIR / "run_config.yaml"
 
+MODEL_BATCH_SIZE = 100
+JUDGE_BATCH_SIZE = 100
 
 LOG_FILE_PATH = "app.log"
 
@@ -43,6 +45,7 @@ class IgnoreCacheTypes(str, Enum):
     ALL = "all"
     DATASET = "datasets"
     PROMPTS = "prompts"
+    EVALS = "evals"
 
 
 class SourceTypes(str, Enum):

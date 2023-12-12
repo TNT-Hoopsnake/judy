@@ -11,11 +11,10 @@ from judy.config.logging import logger as log
 
 
 def load_formatted_data(
+    dataset: Dataset | DatasetDict,
     ds_config: DatasetConfig,
-    num_idxs: int,
-    random_seed: int,
+    eval_idx: int,
     task_type: TaskTypes,
-    ignore_cache: bool = False,
 ):
     """
     Loads a dataset based on the provided configuration, formats the data
@@ -23,6 +22,7 @@ def load_formatted_data(
 
     Args:
         ds_config (DatasetConfig): Configuration for the dataset.
+        eval_idx (int): The index of the evaluation entry.
         num_idxs (int): Number of indices to evaluate.
         random_seed (int): Seed for the random number generator.
         task_type (TaskTypes): ID of the task that will use the formatted data
@@ -32,10 +32,6 @@ def load_formatted_data(
         dict: Formatted data.
 
     """
-
-    np.random.seed(random_seed)
-
-    dataset = get_dataset(ds_config, ignore_cache)
     if isinstance(dataset, DatasetDict):
         dataset = dataset.get(ds_config.split)
         if not dataset:
@@ -55,13 +51,11 @@ def load_formatted_data(
             f"Unable to map dataset ({ds_config.id}) to formatter class"
         ) from exc
 
-    eval_idxs = get_eval_idxs(num_idxs, len(dataset))
-
-    return format_class(dataset, eval_idxs).format()
+    return format_class(dataset, [eval_idx]).format()
 
 
 @Retry
-def get_dataset(
+async def get_dataset(
     ds_config: DatasetConfig, ignore_cache: bool = False
 ) -> Dataset | DatasetDict:
     """
@@ -78,6 +72,7 @@ def get_dataset(
 
 
     """
+    dataset = None
     ensure_directory_exists(DATASETS_DIR)
     ds_path = os.path.join(DATASETS_DIR, ds_config.id.split("/")[-1])
     if ignore_cache or not os.path.exists(ds_path):
