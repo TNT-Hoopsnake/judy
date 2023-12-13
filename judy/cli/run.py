@@ -108,7 +108,6 @@ async def run_evaluations(
         (len(evaluations_to_run) * manager.run_config.num_evals),
         len(models_to_run),
     )
-    print(manager.pipeline.results)
 
 
 @judy_cli.command()
@@ -229,7 +228,7 @@ def serve(host, port, results_directory):
     run_webapp(host, port, results_directory)
 
 
-@judy_cli.command()
+@judy_cli.group()
 @click.option(
     "-d",
     "--dataset-config-path",
@@ -251,37 +250,92 @@ def serve(host, port, results_directory):
     default=RUN_CONFIG_PATH,
     type=str,
 )
-def config(dataset_config_path, eval_config_path, run_config_path):
+@click.pass_context
+def config(ctx, dataset_config_path, eval_config_path, run_config_path):
     """View/Edit configuration files"""
+    ctx.ensure_object(dict)
+    ctx.obj["run_config_path"] = run_config_path
+    ctx.obj["eval_config_path"] = eval_config_path
+    ctx.obj["dataset_config_path"] = dataset_config_path
 
-    for config_path in [dataset_config_path, eval_config_path, run_config_path]:
+
+@config.command("list")
+@click.pass_context
+def config_list(ctx):
+    """List all config files"""
+    for config_path in [
+        ctx.obj["dataset_config_path"],
+        ctx.obj["eval_config_path"],
+        ctx.obj["run_config_path"],
+    ]:
         if not pathlib.Path(config_path).is_file():
             click.echo(f"Invalid path provided. No file found at {config_path}")
             return
 
-    quit_requested = False
-    while not quit_requested:
-        click.echo("\nYour config files are defined in the following locations:\n")
-        click.echo(f"\t(R)un Config: {run_config_path}")
-        click.echo(f"\t(E)valuation Config: {eval_config_path}")
-        click.echo(f"\t(D)ataset Config: {dataset_config_path}")
-        click.echo(
-            "\nPlease input R, E or D (case-insensitive) to choose which config file you would like to open.\nPress any other key to quit: ",
-            nl=False,
-        )
-        c = click.getchar().lower()
-        match c:
-            case "r":
-                click.echo("\nOpening Run config file")
-                click.edit(filename=run_config_path)
-            case "e":
-                click.echo("\nOpening Evaluation config file")
-                click.edit(filename=eval_config_path)
-            case "d":
-                click.echo("\nOpening Dataset config file")
-                click.edit(filename=dataset_config_path)
-            case _:
-                click.echo("\nQuitting...")
-                quit_requested = True
+    click.echo("\nYour config files are defined in the following locations:\n")
+    click.echo(f"\t(R)un Config: {ctx.obj['run_config_path']}")
+    click.echo(f"\t(E)valuation Config: {ctx.obj['eval_config_path']}")
+    click.echo(f"\t(D)ataset Config: {ctx.obj['dataset_config_path']}")
 
-        click.clear()
+
+@config.command("run")
+@click.pass_context
+def run_config(ctx):
+    """Edit the run config file"""
+    click.echo("Opening Run config file")
+    click.edit(filename=ctx.obj["run_config_path"])
+
+
+@config.command("dataset")
+@click.pass_context
+def dataset_config(ctx):
+    """Edit the dataset config file"""
+    click.echo("Opening Dataset config file")
+    click.edit(filename=ctx.obj["dataset_config_path"])
+
+
+@config.command("eval")
+@click.pass_context
+def evaluation_config(ctx):
+    """Edit the evaluation config file"""
+    click.echo("Opening Evaluation config file")
+    click.edit(filename=ctx.obj["eval_config_path"])
+
+
+@click.option(
+    "-d",
+    "--dataset-config-path",
+    help="The path to the dataset config file.",
+    default=DATASET_CONFIG_PATH,
+    type=str,
+)
+@click.option(
+    "-e",
+    "--eval-config-path",
+    help="The path to the eval config file.",
+    default=EVAL_CONFIG_PATH,
+    type=str,
+)
+@click.option(
+    "-r",
+    "--run-config-path",
+    help="The path to the run config file.",
+    default=RUN_CONFIG_PATH,
+    type=str,
+)
+@judy_cli.group()
+@click.pass_context
+def cache(ctx, dataset_config_path, eval_config_path, run_config_path):
+    """View/Edit the cache"""
+    ctx.ensure_object(dict)
+    ctx.obj["run_config_path"] = run_config_path
+    ctx.obj["eval_config_path"] = eval_config_path
+    ctx.obj["dataset_config_path"] = dataset_config_path
+
+
+@cache.command("clear")
+@click.pass_context
+def clear(ctx):
+    """Clear the cache"""
+    EvalManager.clear_cache([ctx.obj["eval_config_path"], ctx.obj["run_config_path"]])
+    click.echo("Cache successfully cleared")

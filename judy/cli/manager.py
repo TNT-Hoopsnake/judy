@@ -365,3 +365,8 @@ class EvalManager:
     def update_progress(progress_bar, num_items=1):
         """Update a progress bar."""
         progress_bar.update(num_items)
+
+    @staticmethod
+    def clear_cache(config_paths):
+        """Clear the cache"""
+        SqliteCache(config_paths, clear_cache=True)
