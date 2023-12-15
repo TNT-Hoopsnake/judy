@@ -3,7 +3,6 @@ import asyncio
 import pathlib
 from typing import List, Optional, Dict
 from dotenv import load_dotenv
-from tqdm.asyncio import tqdm
 from pydantic import BaseModel
 import numpy as np
 

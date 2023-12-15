@@ -21,8 +21,6 @@ JUDGE_BATCH_SIZE = 100
 
 LOG_FILE_PATH = "app.log"
 
-DEFAULT_OPENAI_API_BASE = "https://api.openai.com/v1"
-
 
 class ApiTypes(str, Enum):
     OPENAI = "openai"

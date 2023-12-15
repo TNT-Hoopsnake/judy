@@ -22,7 +22,6 @@ from .settings import (
     REQUEST_RETRY_BACKOFF,
     REQUEST_RETRY_MAX_ATTEMPTS,
     REQUEST_RETRY_WAIT_TIME,
-    DEFAULT_OPENAI_API_BASE,
     USAGE_COSTS,
     ApiTypes,
     JudgeModels,
@@ -131,8 +130,7 @@ def get_scenario_config(scenario_id: str, eval_config: EvaluationConfig):
 def get_usage_costs(model_name: str, api_type: ApiTypes):
     if api_type == ApiTypes.OPENAI:
         return USAGE_COSTS.get(model_name, 0)
-    else:
-        return None
+    return None
 
 
 def get_est_token_cost(

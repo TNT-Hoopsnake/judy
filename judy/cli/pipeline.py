@@ -262,6 +262,7 @@ class EvaluationPipeline:
                 if model_response:
                     log.info("Model response retrieved from cache")
                     data = model_response
+                    progress_bar.update(len(data))
                 else:
                     log.info("Model response not present in cache")
                     model_task = asyncio.create_task(

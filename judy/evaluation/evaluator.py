@@ -1,11 +1,8 @@
-import os
 import re
 from typing import List, Tuple
-from openai import AsyncOpenAI
-from easyllm.prompt_utils.base import buildBasePrompt
 from judy.utils import Retry, LLM, LLMModel
 from judy.evaluation.prompts import SYSTEM_PROMPT
-from judy.config import RunConfig, MetricConfig, DEFAULT_OPENAI_API_BASE
+from judy.config import RunConfig, MetricConfig
 from judy.responders import (
     MetricScore,
     EvalResponse,
