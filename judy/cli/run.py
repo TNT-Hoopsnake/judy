@@ -108,6 +108,7 @@ async def run_evaluations(
         (len(evaluations_to_run) * manager.run_config.num_evals),
         len(models_to_run),
     )
+    click.echo(f"Estimated cost of run: ${manager.llm.get_total_cost()}")
 
 
 @judy_cli.command()

@@ -12,8 +12,8 @@ from judy.responders import (
     EvalPrompt,
     EvalResponse,
 )
+from judy.evaluation import PromptBuilder
 from judy.utils import (
-    PromptBuilder,
     dump_metadata,
 )
 from judy.utils.utils import ensure_directory_exists
@@ -32,9 +32,19 @@ class EvaluationPipeline:
         self.exception_queue = asyncio.Queue()
         self.cancel_event = asyncio.Event()
         self.results = {}
+        self.pbar_data_loading = None
+        self.pbar_model_prompting = None
+        self.pbar_judge_prompting = None
 
-    async def run(self, models_to_run, evaluations_to_run):
+    async def run(self, models_to_run, evaluations_to_run, num_evals):
         """Run all stages in this pipeline."""
+        self.pbar_data_loading = tqdm(total=num_evals, position=0, desc="Loading data")
+        self.pbar_model_prompting = tqdm(
+            total=num_evals, position=1, desc="Prompting models"
+        )
+        self.pbar_judge_prompting = tqdm(
+            total=num_evals, position=2, desc="Evaluating Model Responses"
+        )
         # Load data from datasets to construct prompts
         data_load_tasks = self.load_data_stage(
             self.stages[0], models_to_run, evaluations_to_run
@@ -47,7 +57,7 @@ class EvaluationPipeline:
                 self.stages[1],
                 self.exception_queue,
                 self.cancel_event,
-                self.manager.pbar_model_prompting,
+                self.pbar_model_prompting,
             )
         )
 
@@ -58,7 +68,7 @@ class EvaluationPipeline:
                 self.stages[2],
                 self.exception_queue,
                 self.cancel_event,
-                self.manager.pbar_judge_prompting,
+                self.pbar_judge_prompting,
             )
         )
 
@@ -77,23 +87,24 @@ class EvaluationPipeline:
         # Wait for all data to be loaded
         for task in asyncio.as_completed(data_load_tasks):
             await task
-        self.manager.pbar_data_loading.close()
 
         # Wait for all stages to complete
         for stage in self.stages:
             await stage.join()
         await self.exception_queue.join()
+        self.pbar_data_loading.close()
 
         # Cancel tasks blocked waiting on empty queues
         self.cancel_event.set()
         for task in [prompt_task, evaluation_task, collect_exceptions, save_task]:
             task.cancel()
-        self.manager.pbar_model_prompting.close()
-        self.manager.pbar_judge_prompting.close()
 
         # Wait for evaluation results to be saved
         for task in asyncio.as_completed(self.manager.evaluation_results):
             await task
+
+        self.pbar_model_prompting.close()
+        self.pbar_judge_prompting.close()
 
     async def collect_exceptions(
         self,
@@ -170,7 +181,7 @@ class EvaluationPipeline:
                         ds_config,
                         self.manager.run_config,
                         eval_id,
-                        self.manager.pbar_data_loading,
+                        self.pbar_data_loading,
                     )
                 )
                 data_load_tasks.append(format_data_task)
@@ -213,6 +224,7 @@ class EvaluationPipeline:
             cache_key, ds_config, run_config, task_id
         ):
             responder = responder_cls(
+                llm=self.manager.llm,
                 data=item,
                 prompt_builder=prompt_builder,
                 model_config=model,
@@ -270,6 +282,7 @@ class EvaluationPipeline:
                 )
             except Exception as exc:
                 await exc_queue.put(exc)
+                progress_bar.update(1)
             finally:
                 in_queue.task_done()
 
@@ -309,6 +322,7 @@ class EvaluationPipeline:
                 )
             except Exception as exc:
                 await exc_queue.put(exc)
+                progress_bar.update(1)
             finally:
                 in_queue.task_done()
 

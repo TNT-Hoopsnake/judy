@@ -76,13 +76,17 @@ class JudgeModels(str, Enum):
     GPT4TURBO = "gpt-4-1106-preview"
 
 
-class InputTokenCost(float, Enum):
-    GPT4 = 0.01 / 1000.0
-    GPT35 = 0.001 / 1000.0
-    GPT4TURBO = 0.01 / 1000.0
-
-
-class OutputTokenCost(float, Enum):
-    GPT4 = 0.03 / 1000.0
-    GPT35 = 0.002 / 1000.0
-    GPT4TURBO = 0.03 / 1000.0
+USAGE_COSTS = {
+    JudgeModels.GPT4: {
+        "input": 0.01 / 1000.0,
+        "output": 0.03 / 1000.0,
+    },
+    JudgeModels.GPT35: {
+        "input": 0.001 / 1000.0,
+        "output": 0.002 / 1000.0,
+    },
+    JudgeModels.GPT4TURBO: {
+        "input": 0.01 / 1000.0,
+        "output": 0.03 / 1000.0,
+    },
+}

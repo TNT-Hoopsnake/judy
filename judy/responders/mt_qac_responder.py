@@ -1,5 +1,5 @@
 from typing import List
-from judy.utils.prompts import MT_QAC_PROMPT
+from judy.evaluation.prompts import MT_QAC_PROMPT
 from judy.responders import ModelPrompt, ModelResponse, EvalPrompt
 from .base_responder import BaseResponder
 
@@ -48,7 +48,7 @@ class MTQuestionAnswerContextResponder(BaseResponder):
         ):
             messages.append({"role": "user", "content": question})
 
-            model_ans = await self.query_chat_model(messages)
+            model_ans = await self.query_model_with_history(messages)
             messages.append({"role": "assistant", "content": model_ans})
             model_qa.append(
                 f"[USER QUESTION]{question}\n[ASSISTANT RESPONSE]{model_ans}"

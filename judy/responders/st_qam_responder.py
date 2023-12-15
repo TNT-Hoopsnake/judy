@@ -1,5 +1,5 @@
 from typing import List
-from judy.utils.prompts import ST_QA_PROMPT
+from judy.evaluation.prompts import ST_QA_PROMPT
 from judy.responders import (
     STQuestionAnswerResponder,
     ModelResponse,

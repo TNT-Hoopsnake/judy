@@ -1,5 +1,5 @@
 from typing import List
-from judy.utils.prompts import MT_Q_PROMPT
+from judy.evaluation.prompts import MT_Q_PROMPT
 from judy.responders import ModelPrompt, ModelResponse, EvalPrompt
 from .base_responder import BaseResponder
 
@@ -27,7 +27,7 @@ class MTQuestionResponder(BaseResponder):
         for turn in model_prompt.questions:
             messages.append({"role": "user", "content": turn})
 
-            model_ans = await self.query_chat_model(messages)
+            model_ans = await self.query_model_with_history(messages)
             messages.append({"role": "assistant", "content": model_ans})
             model_qa.append(f"[USER QUESTION]{turn}\n[ASSISTANT RESPONSE]{model_ans}")
 

@@ -1,5 +1,5 @@
-from .prompt_builder import PromptBuilder
 from .request_retry import Retry
+from .llm import LLM, LLMModel
 from .utils import (
     ensure_directory_exists,
     dump_metadata,

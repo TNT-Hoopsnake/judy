@@ -1,5 +1,5 @@
 from typing import List
-from judy.utils.prompts import ST_Q_PROMPT
+from judy.evaluation.prompts import ST_Q_PROMPT
 from judy.responders import ModelPrompt, ModelResponse, EvalPrompt
 from .base_responder import BaseResponder
 
@@ -23,7 +23,7 @@ class STQuestionResponder(BaseResponder):
             )
 
     async def get_model_response(self, model_prompt: STModelPrompt) -> ModelResponse:
-        response = await self.query_model(model_prompt.prompt)
+        response = await self.query_chat_model(model_prompt.prompt)
         return ModelResponse(response=response, prompt=model_prompt)
 
     async def build_eval_prompt(self, model_response: ModelResponse) -> EvalPrompt:

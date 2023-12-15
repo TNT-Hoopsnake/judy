@@ -28,9 +28,7 @@ from judy.responders import (
     BaseResponder,
     ModelResponse,
 )
-from judy.utils import (
-    matches_tag,
-)
+from judy.utils import matches_tag, LLM
 
 from judy.config.logging import logger as log
 
@@ -70,10 +68,6 @@ class EvalManager:
             "datasets": {},
         }
 
-        self.pbar_data_loading = None
-        self.pbar_model_prompting = None
-        self.pbar_judge_prompting = None
-
         self.ignore_cache = ignore_cache
         self.ignore_dataset_cache: bool = self.ignore_cache in [
             IgnoreCacheTypes.ALL,
@@ -92,9 +86,13 @@ class EvalManager:
 
         self.pipeline = EvaluationPipeline(self)
 
+        self.llm = LLM()
+
     async def run_pipeline(self, models_to_run, evaluations_to_run):
         """Run the evaluation pipeline."""
-        await self.pipeline.run(models_to_run, evaluations_to_run)
+        num_evaluations = len(evaluations_to_run) * self.run_config.num_evals
+        num_evals = len(models_to_run) * num_evaluations
+        await self.pipeline.run(models_to_run, evaluations_to_run, num_evals)
 
     async def generate_formatted_data(
         self,
@@ -187,7 +185,9 @@ class EvalManager:
                 else:
                     eval_results = []
                     evaluator = Evaluator(
-                        run_config=self.run_config, metrics=responder.pb.metric_configs
+                        llm=self.llm,
+                        run_config=self.run_config,
+                        metrics=responder.pb.metric_configs,
                     )
                     eval_results.append(
                         await evaluator.run_evaluation(eval_prompt, progress_bar)
@@ -353,13 +353,6 @@ class EvalManager:
 
     def initialize_progress_bars(self, num_evals):
         """Initialize progress bars for data loading, model prompting, and evaluation."""
-        self.pbar_data_loading = tqdm(total=num_evals, position=0, desc="Loading data")
-        self.pbar_model_prompting = tqdm(
-            total=num_evals, position=1, desc="Prompting models"
-        )
-        self.pbar_judge_prompting = tqdm(
-            total=num_evals, position=2, desc="Evaluating Model Responses"
-        )
 
     @staticmethod
     def update_progress(progress_bar, num_items=1):

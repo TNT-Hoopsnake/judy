@@ -123,8 +123,8 @@ def run_page(run_name):
         run_config = run_data["config"]["run"]
         run_configs = {
             "Timestamp": get_readable_timestamp(run_data["metadata"]["timestamp"]),
-            "Judge Model": run_config.judge.value,
-            "Judge Temperature": run_config.judge_temperature,
+            "Judge Model": run_config.judge.name,
+            "Judge Temperature": run_config.judge.temperature,
             "Random Seed": run_config.random_seed,
             "Total Evaluations": run_data["total_evaluations"],
         }
