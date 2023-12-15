@@ -15,15 +15,19 @@ VALID_SCENARIOS = [
 VALID_TASKS = [{"name": "QA", "id": "st_qa", "desc": "Question Answering"}]
 
 VALID_RUN_CONFIG = {
-    "judge": "gpt-3.5-turbo",
-    "judge_temperature": 0.3,
-    "use_proxy": False,
-    "proxies": {"http": "http://notarealurl", "https": "http://notarealurl"},
     "random_seed": 123,
     "num_evals": 2,
     "max_tokens": 2048,
     "context_char_limit": 1024,
     "temperature": 0.5,
+    "judge": {
+        "name": "gpt-3.5-turbo",
+        "api_key": "test",
+        "api_type": "openai",
+        "temperature": 0.3,
+        "use_proxy": False,
+        "proxies": {"http": "http://notarealurl", "https": "http://notarealurl"},
+    },
     "models": [
         {
             "id": "flan-t5-small",
