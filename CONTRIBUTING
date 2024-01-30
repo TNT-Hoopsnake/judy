@@ -1,0 +1,35 @@
+# Contributing to Judy
+
+We want Judy to grow and be useful to the community. You can help by:
+
+- Reporting a bug
+- Contibuting fixes to issues
+- Proposing new features
+
+## Code of Conduct
+
+If you want to contribute to the project, make sure you abide by the [Contributor Covenant Code of Conduct](https://www.contributor-covenant.org/).
+
+## Our Development Process
+We use github to host code, to track issues and feature requests, as well as accept pull requests.
+
+## Report a Bug or Submit a Feature Request
+We use GitHub issues to track bugs and feature requests. You can open a new issue [here](https://github.com/TNT-Hoopsnake/judy/issues/new).
+
+## Submitting a Pull Request
+
+Judy uses [Github Flow](https://guides.github.com/introduction/flow/index.html) for all code changes. We welcome your pull requests for an existing issue:
+
+1. Make sure that a github issue exists for the pull request you are making
+2. Clone the repo and create your branch from `main`.
+    - Bugfix branches should be named `bugfix-<issue number>`
+    - Feature branches should be named `feature-<issue number>`
+    - Security patches and high severity fixes should be named `patch-<issue-number>`
+3. Ensure that relevant tests are added to `/tests`. Integration tests are preferred to unit tests.
+4. Push your code to the remote branch you created.
+4. Ensure the github CI pipeline passes.
+6. Create a pull request to merge your branch into `main`.
+
+## License
+
+Any contributions you make will be under the GPLv3 License. When you submit code changes, your submissions are understood to be under the same [GPLv3](https://choosealicense.com/licenses/gpl-3.0//) that covers the project. Feel free to contact the maintainers if that's a concern.
