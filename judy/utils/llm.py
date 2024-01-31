@@ -30,8 +30,9 @@ class LLM:
                 return lib
             match model.api_type:
                 case ApiTypes.OPENAI:
-                    lib = openai.AsyncOpenAI()
-                    openai.api_key = model.api_key or os.getenv("OPENAI_API_KEY")
+                    lib = openai.AsyncOpenAI(
+                        api_key=model.api_key or os.getenv("OPENAI_API_KEY")
+                    )
                     lib.api_base = str(model.api_base)
                     if model.use_proxy and model.proxies:
                         lib.proxy = {

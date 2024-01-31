@@ -32,6 +32,8 @@ class Evaluator:
             api_base=run_config.judge.api_base,
             api_key=run_config.judge.api_key,
             name=run_config.judge.name,
+            use_proxy=run_config.judge.use_proxy,
+            proxies=run_config.judge.proxies,
         )
 
     async def query_model(self, prompt: str):
