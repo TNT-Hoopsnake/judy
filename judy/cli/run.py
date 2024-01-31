@@ -1,6 +1,8 @@
+import os
 import asyncio
 import pathlib
 import click
+from pydantic import ValidationError
 
 from judy.cli.manager import EvalManager
 from judy.cli.install import setup_user_dir
@@ -9,6 +11,7 @@ from judy.config import (
     DATASET_CONFIG_PATH,
     EVAL_CONFIG_PATH,
     RUN_CONFIG_PATH,
+    ApiTypes,
 )
 from judy.utils import (
     dump_metadata,
@@ -55,6 +58,25 @@ async def run_evaluations(
     manager: EvalManager,
     yes: bool = False,
 ):
+    # Ensure judge API key is set
+    if manager.run_config.judge.api_type in [ApiTypes.OPENAI] and not (
+        os.environ.get("OPENAI_API_KEY") or manager.run_config.judge.api_key
+    ):
+        click.echo(
+            "\nYou must provide OPENAI_API_KEY as an environment variable or in judge.api_key in the run config"
+        )
+        return
+    # Ensure model API key is set
+    if [
+        x.api_type
+        for x in manager.run_config.models
+        if x.api_type in [ApiTypes.OPENAI] and not x.api_key
+    ]:
+        click.echo(
+            "\nYou must provide OPENAI_API_KEY as an environment variable or in models[x].api_key in the run config"
+        )
+        return
+
     # Collect evaluations to run
     evaluations_to_run, scenarios_to_run = manager.collect_evaluations()
     models_to_run = manager.get_models_to_run(manager.run_config, manager.model_tag)
@@ -187,8 +209,12 @@ def run(
 ):
     """Run evaluations for models using a judge model."""
 
-    configs = load_configs(eval_config_path, dataset_config_path, run_config_path)
-
+    try:
+        configs = load_configs(eval_config_path, dataset_config_path, run_config_path)
+    except ValidationError:
+        click.echo(
+            "There are issues with one of your config files. Fix them before running again."
+        )
     # Create output directory
     tags = {"model": model, "dataset": dataset, "task": task}
     results_dir = get_output_directory(output, name)
