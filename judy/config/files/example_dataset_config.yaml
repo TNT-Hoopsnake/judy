@@ -97,7 +97,7 @@
   tags: ["question_answering", "reasoning", "commonsense"]
 
 - id: ethics_suite
-  source: https://raw.githubusercontent.com/LLM-Ethics/EthicsSuite/main/data.jsonl
+  source: https://raw.githubusercontent.com/LLM-Ethics/EthicsSuite/901b747c726dd95a2e0814b6cf57d73a7e486f8a/data.jsonl
   tasks:
     - id: st_q
       formatter: EthicsSuiteFormatter
@@ -118,7 +118,7 @@
   tags: ["maths"]
 
 - id: flask
-  source: https://raw.githubusercontent.com/kaistAI/FLASK/main/evaluation_set/flask_evaluation.jsonl
+  source: https://raw.githubusercontent.com/kaistAI/FLASK/612d031327d241e2223a6bf9eca768ed33c9210f/evaluation_set/flask_evaluation.jsonl
   tasks:
     - id: st_qam
       formatter: FlaskFormatter
@@ -128,7 +128,7 @@
   tags: ["instruction_following"]
 
 - id: flask_hard
-  source: https://raw.githubusercontent.com/kaistAI/FLASK/main/evaluation_set/flask_hard_evaluation.jsonl
+  source: https://raw.githubusercontent.com/kaistAI/FLASK/612d031327d241e2223a6bf9eca768ed33c9210f/evaluation_set/flask_hard_evaluation.jsonl
   tasks:
     - id: st_qam
       formatter: FlaskFormatter

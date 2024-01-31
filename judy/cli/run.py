@@ -119,11 +119,15 @@ async def run_evaluations(
 
     # Print any exceptions that were raised
     if manager.exceptions:
-        log.error("The following exceptions were raised during evaluation:")
+        log.error(
+            "Run completed with %s errors. See errors.log for details.",
+            len(manager.exceptions),
+        )
         import traceback
 
-        for exc in manager.exceptions:
-            traceback.print_exception(type(exc), exc, exc.__traceback__)
+        with open("errors.log", "w") as f:
+            for exc in manager.exceptions:
+                traceback.print_exception(type(exc), exc, exc.__traceback__, file=f)
 
     log.info(
         "Successfully ran %d evaluations on %d models",
