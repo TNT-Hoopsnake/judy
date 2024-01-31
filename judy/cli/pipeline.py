@@ -368,6 +368,9 @@ class EvaluationPipeline:
                 results_dir = self.manager.get_model_dataset_dir(model_id)
                 scenario_id, dataset_id, task_id = eval_ids
                 eval_data = await eval_task
+                if not eval_data:
+                    # There has been an upstream error, abort
+                    continue
                 eval_prompts: List[EvalPrompt] = eval_data[0]
                 eval_results: List[EvalResponse] = eval_data[1]
                 clean_ds_name = dataset_id.split("/")[-1]
