@@ -1,24 +1,24 @@
+import os
+import asyncio
 import pathlib
 import click
-from tqdm import tqdm
-from judy.cli.install import setup_user_dir
+from pydantic import ValidationError
 
 from judy.cli.manager import EvalManager
+from judy.cli.install import setup_user_dir
 from judy.config import (
     dump_configs,
     DATASET_CONFIG_PATH,
     EVAL_CONFIG_PATH,
     RUN_CONFIG_PATH,
+    ApiTypes,
 )
 from judy.utils import (
-    PromptBuilder,
-    save_evaluation_results,
     dump_metadata,
     load_configs,
     get_output_directory,
 )
 from judy.config.logging import logger as log
-from judy.utils.utils import ensure_directory_exists
 from judy.web_app.main import run_webapp
 
 
@@ -52,6 +52,89 @@ def summarise_run(num_evaluations, models_to_run, scenarios_to_run, datasets_to_
 
     click.secho(f"\t{len(datasets_to_run)} datasets:", bold=True)
     click.echo("\n".join([f"\t\t{ds}" for ds in datasets_to_run]))
+
+
+async def run_evaluations(
+    manager: EvalManager,
+    yes: bool = False,
+):
+    # Ensure judge API key is set
+    if manager.run_config.judge.api_type in [ApiTypes.OPENAI] and not (
+        os.environ.get("OPENAI_API_KEY") or manager.run_config.judge.api_key
+    ):
+        click.echo(
+            "\nYou must provide OPENAI_API_KEY as an environment variable or in judge.api_key in the run config"
+        )
+        return
+    # Ensure model API key is set
+    if [
+        x.api_type
+        for x in manager.run_config.models
+        if x.api_type in [ApiTypes.OPENAI] and not x.api_key
+    ]:
+        click.echo(
+            "\nYou must provide OPENAI_API_KEY as an environment variable or in models[x].api_key in the run config"
+        )
+        return
+
+    # Collect evaluations to run
+    evaluations_to_run, scenarios_to_run = manager.collect_evaluations()
+    models_to_run = manager.get_models_to_run(manager.run_config, manager.model_tag)
+    datasets_to_run = list(set({eval[1] for eval in evaluations_to_run}))
+    num_evaluations = len(evaluations_to_run) * manager.run_config.num_evals
+
+    log.info(
+        "Running a total of %d evaluations on %d models",
+        num_evaluations,
+        len(models_to_run),
+    )
+
+    summarise_run(num_evaluations, models_to_run, scenarios_to_run, datasets_to_run)
+
+    num_cache_items = manager.sizeof_current_run_cache()
+    if not manager.ignore_cache:
+        if num_cache_items > 0:
+            click.echo(f"\nThis run will use {num_cache_items} values from the cache")
+        else:
+            click.echo("\nNo values have been cached for this run")
+    else:
+        click.echo(
+            f"\n{str(manager.ignore_cache).rstrip('s').title()} cache values will be ignored"
+        )
+
+    # Handle automatic and manual user confirmation
+    if not yes and not confirm_run():
+        return
+
+    # always dump the latest version of the run config and metadata
+    dump_configs(manager.results_dir, manager.configs)
+    dump_metadata(
+        manager.results_dir, manager.dataset_tag, manager.task_tag, manager.model_tag
+    )
+    num_evals = len(models_to_run) * num_evaluations
+    manager.initialize_progress_bars(num_evals)
+
+    # Run the async evaluation pipeline
+    await manager.run_pipeline(models_to_run, evaluations_to_run)
+
+    # Print any exceptions that were raised
+    if manager.exceptions:
+        log.error(
+            "Run completed with %s errors. See errors.log for details.",
+            len(manager.exceptions),
+        )
+        import traceback
+
+        with open("errors.log", "w") as f:
+            for exc in manager.exceptions:
+                traceback.print_exception(type(exc), exc, exc.__traceback__, file=f)
+
+    log.info(
+        "Successfully ran %d evaluations on %d models",
+        (len(evaluations_to_run) * manager.run_config.num_evals),
+        len(models_to_run),
+    )
+    click.echo(f"Estimated cost of run: ${manager.llm.get_total_cost()}")
 
 
 @judy_cli.command()
@@ -108,6 +191,13 @@ def summarise_run(num_evaluations, models_to_run, scenarios_to_run, datasets_to_
     default=False,
     help="Destroy all data contained within the cache DB",
 )
+@click.option(
+    "-y",
+    "--yes",
+    is_flag=True,
+    default=False,
+    help="Run all evaluations without confirmation",
+)
 def run(
     task,
     model,
@@ -119,132 +209,31 @@ def run(
     run_config_path,
     ignore_cache,
     clear_cache,
+    yes,
 ):
     """Run evaluations for models using a judge model."""
-    setup_user_dir()
 
-    configs = load_configs(eval_config_path, dataset_config_path, run_config_path)
-    eval_config = configs["eval"]
-    dataset_config = configs["datasets"]
-    run_config = configs["run"]
-
-    model_tag = model
-    dataset_tag = dataset
-    task_tag = task
-
-    # Create output directory
-    manager = EvalManager([eval_config_path, run_config_path], clear_cache)
-    # Collect evaluations to run
-    evaluations_to_run, scenarios_to_run, config_cache = manager.collect_evaluations(
-        run_config, eval_config, dataset_config, dataset_tag, task_tag
-    )
-    models_to_run = manager.get_models_to_run(run_config, model_tag)
-    datasets_to_run = list(set({eval[1] for eval in evaluations_to_run}))
-    num_evaluations = len(evaluations_to_run) * run_config.num_evals
-
-    log.info(
-        "Running a total of %d evaluations on %d models",
-        num_evaluations,
-        len(models_to_run),
-    )
-
-    summarise_run(num_evaluations, models_to_run, scenarios_to_run, datasets_to_run)
-
-    num_cache_items = manager.sizeof_current_run_cache()
-    if not ignore_cache:
-        if num_cache_items > 0:
-            click.echo(f"\nThis run will use {num_cache_items} values from the cache")
-        else:
-            click.echo("\nNo values have been cached for this run")
-    else:
+    try:
+        configs = load_configs(eval_config_path, dataset_config_path, run_config_path)
+    except ValidationError:
         click.echo(
-            f"\n{str(ignore_cache).rstrip('s').title()} cache values will be ignored"
+            "There are issues with one of your config files. Fix them before running again."
         )
-
-    if not confirm_run():
-        return
-
+    # Create output directory
+    tags = {"model": model, "dataset": dataset, "task": task}
     results_dir = get_output_directory(output, name)
-    # always dump the latest version of the run config and metadata
-    dump_configs(results_dir, configs)
-    dump_metadata(results_dir, dataset_tag, task_tag, model_tag)
+    manager = EvalManager(
+        tags,
+        configs,
+        results_dir,
+        [eval_config_path, run_config_path],
+        clear_cache,
+        ignore_cache,
+    )
 
-    with tqdm(total=len(models_to_run) * num_evaluations) as pbar:
-        for eval_model in models_to_run:
-            log.info("Evaluation started for model: %s", eval_model.id)
-            # Model-specific parameters override general run config parameters
-            eval_model.temperature = eval_model.temperature or run_config.temperature
-            eval_model.max_tokens = eval_model.max_tokens or run_config.max_tokens
-            eval_model.context_char_limit = (
-                eval_model.context_char_limit or run_config.context_char_limit
-            )
-
-            # create a subdirectory to save the results for the model currently being evaluated
-            # clear any existing results saved for this model
-            model_results_dir = ensure_directory_exists(
-                results_dir / eval_model.id, clear_if_exists=True
-            )
-            # dump configurations and metadata settings per eval model
-            # this allows cumulative results with different configs, under the same run name, but with different models
-            dump_configs(model_results_dir, configs)
-            dump_metadata(
-                model_results_dir, dataset_tag, task_tag, model_tag, eval_model.id
-            )
-
-            model_dataset_results_dir = ensure_directory_exists(
-                model_results_dir / "datasets"
-            )
-
-            for scenario_id, dataset_id, task_id in evaluations_to_run:
-                pbar.set_description(f"Processing: {eval_model.id} - {dataset_id}")
-                ds_config = config_cache["datasets"].get(dataset_id)
-                scenario_metrics = config_cache["scenario_metrics"].get(scenario_id)
-                prompt_builder = PromptBuilder(task_id, scenario_metrics)
-
-                cache_key = manager.cache.build_cache_key(dataset_id, task_id)
-
-                log.info(
-                    "Running scenario: %s, dataset: %s, task: %s",
-                    scenario_id,
-                    dataset_id,
-                    task_id,
-                )
-
-                eval_prompts = manager.get_evaluation_prompts(
-                    cache_key,
-                    eval_model,
-                    prompt_builder,
-                    ds_config,
-                    run_config,
-                    task_id,
-                    ignore_cache,
-                )
-
-                evaluation_results = manager.get_evaluation_results(
-                    eval_prompts,
-                    cache_key,
-                    eval_model,
-                    run_config,
-                    scenario_metrics,
-                    ignore_cache,
-                    pbar,
-                )
-
-                save_evaluation_results(
-                    model_dataset_results_dir,
-                    scenario_id,
-                    task_id,
-                    dataset_id,
-                    eval_prompts,
-                    evaluation_results,
-                )
-                # advance progress bar when an eval has been completed
-                pbar.update(1)
-
-    log.info(
-        "Successfully ran %d evaluations on %d models",
-        (len(evaluations_to_run) * run_config.num_evals),
-        len(models_to_run),
+    asyncio.run(
+        run_evaluations(manager, yes),
+        debug=True,
     )
 
 
@@ -270,7 +259,7 @@ def serve(host, port, results_directory):
     run_webapp(host, port, results_directory)
 
 
-@judy_cli.command()
+@judy_cli.group()
 @click.option(
     "-d",
     "--dataset-config-path",
@@ -292,37 +281,92 @@ def serve(host, port, results_directory):
     default=RUN_CONFIG_PATH,
     type=str,
 )
-def config(dataset_config_path, eval_config_path, run_config_path):
+@click.pass_context
+def config(ctx, dataset_config_path, eval_config_path, run_config_path):
     """View/Edit configuration files"""
+    ctx.ensure_object(dict)
+    ctx.obj["run_config_path"] = run_config_path
+    ctx.obj["eval_config_path"] = eval_config_path
+    ctx.obj["dataset_config_path"] = dataset_config_path
 
-    for config_path in [dataset_config_path, eval_config_path, run_config_path]:
+
+@config.command("list")
+@click.pass_context
+def config_list(ctx):
+    """List all config files"""
+    for config_path in [
+        ctx.obj["dataset_config_path"],
+        ctx.obj["eval_config_path"],
+        ctx.obj["run_config_path"],
+    ]:
         if not pathlib.Path(config_path).is_file():
             click.echo(f"Invalid path provided. No file found at {config_path}")
             return
 
-    quit_requested = False
-    while not quit_requested:
-        click.echo("\nYour config files are defined in the following locations:\n")
-        click.echo(f"\t(R)un Config: {run_config_path}")
-        click.echo(f"\t(E)valuation Config: {eval_config_path}")
-        click.echo(f"\t(D)ataset Config: {dataset_config_path}")
-        click.echo(
-            "\nPlease input R, E or D (case-insensitive) to choose which config file you would like to open.\nPress any other key to quit: ",
-            nl=False,
-        )
-        c = click.getchar().lower()
-        match c:
-            case "r":
-                click.echo("\nOpening Run config file")
-                click.edit(filename=run_config_path)
-            case "e":
-                click.echo("\nOpening Evaluation config file")
-                click.edit(filename=eval_config_path)
-            case "d":
-                click.echo("\nOpening Dataset config file")
-                click.edit(filename=dataset_config_path)
-            case _:
-                click.echo("\nQuitting...")
-                quit_requested = True
+    click.echo("\nYour config files are defined in the following locations:\n")
+    click.echo(f"\t(R)un Config: {ctx.obj['run_config_path']}")
+    click.echo(f"\t(E)valuation Config: {ctx.obj['eval_config_path']}")
+    click.echo(f"\t(D)ataset Config: {ctx.obj['dataset_config_path']}")
 
-        click.clear()
+
+@config.command("run")
+@click.pass_context
+def run_config(ctx):
+    """Edit the run config file"""
+    click.echo("Opening Run config file")
+    click.edit(filename=ctx.obj["run_config_path"])
+
+
+@config.command("dataset")
+@click.pass_context
+def dataset_config(ctx):
+    """Edit the dataset config file"""
+    click.echo("Opening Dataset config file")
+    click.edit(filename=ctx.obj["dataset_config_path"])
+
+
+@config.command("eval")
+@click.pass_context
+def evaluation_config(ctx):
+    """Edit the evaluation config file"""
+    click.echo("Opening Evaluation config file")
+    click.edit(filename=ctx.obj["eval_config_path"])
+
+
+@click.option(
+    "-d",
+    "--dataset-config-path",
+    help="The path to the dataset config file.",
+    default=DATASET_CONFIG_PATH,
+    type=str,
+)
+@click.option(
+    "-e",
+    "--eval-config-path",
+    help="The path to the eval config file.",
+    default=EVAL_CONFIG_PATH,
+    type=str,
+)
+@click.option(
+    "-r",
+    "--run-config-path",
+    help="The path to the run config file.",
+    default=RUN_CONFIG_PATH,
+    type=str,
+)
+@judy_cli.group()
+@click.pass_context
+def cache(ctx, dataset_config_path, eval_config_path, run_config_path):
+    """View/Edit the cache"""
+    ctx.ensure_object(dict)
+    ctx.obj["run_config_path"] = run_config_path
+    ctx.obj["eval_config_path"] = eval_config_path
+    ctx.obj["dataset_config_path"] = dataset_config_path
+
+
+@cache.command("clear")
+@click.pass_context
+def clear(ctx):
+    """Clear the cache"""
+    EvalManager.clear_cache([ctx.obj["eval_config_path"], ctx.obj["run_config_path"]])
+    click.echo("Cache successfully cleared")

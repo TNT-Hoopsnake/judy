@@ -10,6 +10,8 @@ from .data_models import (
     TaskConfig,
     MetricConfig,
     RunConfig,
+    LLMModel,
+    AuthenticatedLLMModel,
 )
 from .settings import (
     DATASET_CONFIG_PATH,
@@ -20,15 +22,13 @@ from .settings import (
     REQUEST_RETRY_BACKOFF,
     REQUEST_RETRY_MAX_ATTEMPTS,
     REQUEST_RETRY_WAIT_TIME,
-    DEFAULT_OPENAI_API_BASE,
+    USAGE_COSTS,
     ApiTypes,
     JudgeModels,
     ModelFamilyTypes,
     TaskTypes,
     SourceTypes,
     IgnoreCacheTypes,
-    InputTokenCost,
-    OutputTokenCost,
 )
 from .validator import (
     load_and_validate_configs,
@@ -127,17 +127,18 @@ def get_scenario_config(scenario_id: str, eval_config: EvaluationConfig):
     return matching_scenario
 
 
-def get_est_token_cost(
-    eval_model: JudgeModels, num_input_tokens: int, num_output_tokens
-) -> float:
-    match eval_model:
-        case JudgeModels.GPT4:
-            input_cost = InputTokenCost.GPT4
-            output_cost = OutputTokenCost.GPT4
-        case JudgeModels.GPT35:
-            input_cost = InputTokenCost.GPT35
-            output_cost = InputTokenCost.GPT35
-        case _:
-            input_cost = output_cost = 0
+def get_usage_costs(model_name: str, api_type: ApiTypes):
+    if api_type == ApiTypes.OPENAI:
+        return USAGE_COSTS.get(model_name, 0)
+    return None
 
+
+def get_est_token_cost(
+    model_name: str, api_type: ApiTypes, num_input_tokens: int, num_output_tokens
+) -> float:
+    costs = get_usage_costs(model_name, api_type)
+    if not costs:
+        return 0
+    input_cost = costs.get("input", 0)
+    output_cost = costs.get("output", 0)
     return round((num_input_tokens * input_cost) + (num_output_tokens * output_cost), 5)

@@ -17,7 +17,7 @@ Judy has been inspired by techniques used in research including HELM [1] and LLM
 * [2] Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena - https://arxiv.org/abs/2306.05685
 
 
-## 1. Installation
+## Installation
 
 Use the package manager [pip](https://pip.pypa.io/en/stable/) to install Judy.
 
@@ -25,9 +25,9 @@ Use the package manager [pip](https://pip.pypa.io/en/stable/) to install Judy.
 pip install git+https://github.com/TNT-Hoopsnake/judy
 ```
 
-## 2. Getting Started
+## Getting Started
 
-### 2.1 Setup configs
+### Setup configs
 
 Judy uses 3 configuration files during evaluation. Only the run config is strictly necessary to begin with:
 
@@ -35,7 +35,7 @@ Judy uses 3 configuration files during evaluation. Only the run config is strict
 - `Evaluation Config`: Defines all of the tasks and the metrics used to evaluate them. It also restricts which datasets and metrics can be used for each task. **You don't have to worry about specifying this config unless you plan on adding new tasks or metrics**. `Judy` will automatically use the example eval config [here](./judy/config/files/example_eval_config.yaml) unless you specify an alternate one using `--eval-config`.
 - `Run Config`: Defines all of the settings to use for your evaluation run. The evaluation results for your run will store a copy (with sensitive details redacted) of these settings as metadata. An example run config is provided [here](./judy/config/files/example_run_config.yaml)
 
-#### 2. Setup model(s) to evaluate
+#### Setup model(s) to evaluate
 
 Ensure you have API access to the models you wish to evaluate. We currently support two types of API formats:
 
@@ -44,7 +44,7 @@ Ensure you have API access to the models you wish to evaluate. We currently supp
 
 If you are hosting models locally you can use a package like [LocalAI](https://github.com/mudler/LocalAI) to get an OpenAI compatible REST API which can be used by `Judy`.
 
-#### 3. Judy Commands
+#### Judy Commands
 
 A CLI interface is provided for viewing and editing Judy config files.
 
@@ -64,26 +64,35 @@ After running an evaluation, you can serve a web app for viewing the results:
 judy serve -r ./results
 ```
 
-## 2. Roadmap
+## Web App Screenshots
 
-### 2.1 Features
+The web app allows you to view your evaluation results.
+
+|   |   |
+|---|---|
+![Overview](<assets/app_home.png>) |  ![App Runs](<assets/app_runs.png>)
+![Raw Results](<assets/app_raw.png>)
+
+## Roadmap
+
+### Features
 
 - [x] Core framework
 - [x] Web app - to view evaluation results
 - [ ] Add perturbations - the ability to modify input datasets - with typos, synonymns etc.
 - [ ] Add adaptations - the ability to use different prompting techniques - such as Chain of Thought etc.
 
-### 2.2 Scenarios
+### Scenarios
 
 - [x] [FLASK](https://arxiv.org/abs/2307.10928)
 - [ ] [Code Comprehension](https://arxiv.org/abs/2308.01240)
 - [ ] [Emotional Intelligence](https://arxiv.org/abs/2307.09042)
 - [ ] [RED-INSTRUCT](https://arxiv.org/abs/2308.09662)
 
-## 3. Contributing
+## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. Please make sure to update tests as appropriate.
 
-## 4. License
+## License
 
 [MIT](https://choosealicense.com/licenses/mit/)

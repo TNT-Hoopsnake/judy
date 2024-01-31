@@ -5,30 +5,42 @@ VALID_RUN_PARAMS = [
         "define proxies and use them",
         {
             **VALID_RUN_CONFIG,
-            "judge": "gpt-3.5-turbo",
-            "judge_api_key": None,
-            "judge_temperature": 1,
-            "use_proxy": True,
-            "proxies": {"http": "http://sample-proxy", "https": "http://sample-proxy"},
+            "judge": {
+                "name": "gpt-3.5-turbo",
+                "api_key": None,
+                "api_type": "openai",
+                "temperature": 1,
+                "use_proxy": True,
+                "proxies": {
+                    "http": "http://sample-proxy",
+                    "https": "http://sample-proxy",
+                },
+            },
         },
     ),
     (
         "no proxies and disabled proxy use",
         {
             **VALID_RUN_CONFIG,
-            "judge": "gpt-4",
-            "judge_api_key": "hf-whatever",
-            "judge_temperature": 0.2,
-            "use_proxy": False,
+            "judge": {
+                "name": "gpt-4",
+                "api_type": "openai",
+                "api_key": "hf-whatever",
+                "temperature": 0.2,
+                "use_proxy": False,
+            },
         },
     ),
     (
         "no judge api key",
         {
             **VALID_RUN_CONFIG,
-            "judge": "gpt-4",
-            "judge_temperature": 1.9,
-            "use_proxy": False,
+            "judge": {
+                "name": "gpt-4",
+                "api_type": "openai",
+                "temperature": 1.9,
+                "use_proxy": False,
+            },
         },
     ),
     (
@@ -73,28 +85,39 @@ INVALID_RUN_PARAMS = [
         "proxies must exist when use_proxy is true",
         {
             **{k: v for k, v in VALID_RUN_CONFIG.items() if k != "proxies"},
-            "judge": "gpt-3.5-turbo",
-            "judge_api_key": None,
-            "judge_temperature": 1,
-            "use_proxy": True,
+            "judge": {
+                "name": "gpt-3.5-turbo",
+                "api_type": "openai",
+                "api_key": None,
+                "temperature": 0.2,
+                "use_proxy": True,
+                "proxies": {},
+            },
         },
     ),
     (
         "judge temperature must be between 0 and 2",
         {
             **VALID_RUN_CONFIG,
-            "judge": "gpt-4",
-            "judge_api_key": "hf-whatever",
-            "judge_temperature": 3.0,
-            "use_proxy": False,
+            "judge": {
+                "name": "gpt-3.5-turbo",
+                "api_type": "openai",
+                "api_key": "hf-whatever",
+                "temperature": 3,
+                "use_proxy": False,
+            },
         },
     ),
     (
         "use_proxy field must exist",
         {
             **{k: v for k, v in VALID_RUN_CONFIG.items() if k != "use_proxy"},
-            "judge": "gpt-4",
-            "judge_temperature": 1.9,
+            "judge": {
+                "name": "gpt-4",
+                "api_type": "openai",
+                "api_key": "hf-whatever",
+                "temperature": 3,
+            },
         },
     ),
     (

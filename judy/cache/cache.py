@@ -21,15 +21,14 @@ class SqliteCache:
         of these files. If any of the configuration files defined in `config_paths` are changed,
         the hash will be updated, and a new cache table will be created.
         """
-        cache_path = USER_CACHE_DIR / "cache.db"
-        if clear_cache and Path(cache_path).is_file():
-            log.info("Destroyed cache at path: %s", cache_path)
-            os.remove(cache_path)
+        self.cache_path = USER_CACHE_DIR / "cache.db"
+        if clear_cache:
+            self.clear()
 
         root_key = self.build_root_key(config_paths)
-        self.cache = SqliteDict(cache_path, autocommit=True, tablename=root_key)
+        self.cache = SqliteDict(self.cache_path, autocommit=True, tablename=root_key)
 
-        log.info("Loaded cache from file: %s", cache_path)
+        log.info("Loaded cache from file: %s", self.cache_path)
 
     def calculate_content_hash(self, content: Any) -> str:
         """
@@ -124,3 +123,13 @@ class SqliteCache:
         """
         root_key = self.calculate_merkle_tree_hash(config_paths)
         return root_key
+
+    def clear(self):
+        """
+        Clear the cache.
+        """
+        if Path(self.cache_path).is_file():
+            log.info("Destroyed cache at path: %s", self.cache_path)
+            os.remove(self.cache_path)
+        else:
+            log.info("No cache found at path: %s", self.cache_path)

@@ -6,6 +6,7 @@ from .data_models import (
     MetricScore,
     EvalResponse,
 )
+from .base_responder import BaseResponder
 from .disinfo_reiteration_responder import DisinfoReiterationResponder
 from .disinfo_wedging_responder import DisinfoWedgingResponder
 from .mt_q_responder import MTQuestionResponder

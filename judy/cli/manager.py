@@ -1,8 +1,13 @@
+import json
+import asyncio
 import pathlib
-from typing import List, Optional
+from typing import List, Optional, Dict
 from dotenv import load_dotenv
+from pydantic import BaseModel
+import numpy as np
 
 from judy.cache import SqliteCache
+from judy.cli.pipeline import EvaluationPipeline
 from judy.config import (
     get_dataset_config,
     get_task_config,
@@ -16,20 +21,26 @@ from judy.config import (
 )
 from judy.config.data_models import EvaluatedModel
 from judy.dataset import BaseFormattedData
-from judy.dataset.loader import load_formatted_data
+from judy.dataset.loader import load_formatted_data, get_dataset, get_eval_idxs
 from judy.evaluation import Evaluator
-from judy.responders import get_responder_class_map
-from judy.utils import (
-    PromptBuilder,
-    matches_tag,
+from judy.responders import (
+    BaseResponder,
+    ModelResponse,
 )
+from judy.utils import matches_tag, LLM
 
 from judy.config.logging import logger as log
 
 
 class EvalManager:
     def __init__(
-        self, config_paths: List[str | pathlib.Path] = None, clear_cache: bool = False
+        self,
+        tags: Dict[str, str],
+        configs: Dict[str, BaseModel],
+        results_dir: str | pathlib.Path,
+        config_paths: List[str | pathlib.Path] = None,
+        clear_cache: bool = False,
+        ignore_cache: IgnoreCacheTypes = None,
     ):
         """
         Initialize the EvalManager instance.
@@ -40,77 +51,57 @@ class EvalManager:
         """
         load_dotenv()
         self.cache = SqliteCache(config_paths, clear_cache)
+        self.results_dir = results_dir
+        self.evaluation_results = []
+        self.configs = configs
+        self.eval_config = configs["eval"]
+        self.dataset_config = configs["datasets"]
+        self.run_config = configs["run"]
 
-    def sizeof_current_run_cache(self):
-        return len(self.cache.cache)
+        self.model_tag = tags["model"]
+        self.dataset_tag = tags["dataset"]
+        self.task_tag = tags["task"]
 
-    def get_num_cached_runs(self):
-        tables = self.cache.cache.get_tablenames(self.cache.cache.filename)
-        return len(tables)
+        self.config_cache = {
+            "scenario_metrics": {},
+            "datasets": {},
+        }
 
-    def get_evaluation_results(
-        self,
-        eval_prompts: List[dict],
-        cache_key: str,
-        model: str,
-        run_config: RunConfig,
-        metrics: List[MetricConfig],
-        ignore_cache_type: IgnoreCacheTypes,
-        progress_bar,
-    ):
-        """
-        Retrieves the evaluation results for a given set of evaluation prompts.
-        It first checks the cache for existing results and, if found, returns them.
-        If not found or if caching is ignored, it runs the evaluation using the provided parameters,
-        caches the results, and returns them.
-
-        Args:
-            eval_prompts (List[dict]): List of evaluation prompts.
-            cache_key (str): Cache key for storing/retrieving results.
-            model (str): Model identifier.
-            run_config (RunConfig): Run configuration.
-            metrics (List[MetricConfig]): List of metric configurations.
-            ignore_cache_type (IgnoreCacheTypes):` Type of cache to ignore.
-            progress_bar (tdqm): Instance of tqdm progress bar, used to display updates on run state to the user
-
-
-        Returns:
-            Any: Evaluation results.
-        """
-        eval_results = None
-        eval_results_cache_key = (
-            f"{self.cache.calculate_content_hash(eval_prompts)}-{model.id}"
-        )
-        if ignore_cache_type and ignore_cache_type in [
+        self.ignore_cache = ignore_cache
+        self.ignore_dataset_cache: bool = self.ignore_cache in [
+            IgnoreCacheTypes.ALL,
+            IgnoreCacheTypes.DATASET,
+        ]
+        self.ignore_prompt_cache: bool = self.ignore_cache in [
             IgnoreCacheTypes.ALL,
             IgnoreCacheTypes.PROMPTS,
-        ]:
-            log.info("Skipped accessing cache for evaluation results")
-        else:
-            eval_results = self.cache.get(cache_key, eval_results_cache_key)
-            if not eval_results:
-                log.info("Evaluation results not present in cache")
+        ]
+        self.ignore_eval_cache: bool = self.ignore_cache in [
+            IgnoreCacheTypes.ALL,
+            IgnoreCacheTypes.EVALS,
+        ]
 
-        if eval_results:
-            progress_bar.update(len(eval_results))
-            log.info("Evaluation results retrieved from cache")
-        else:
-            evaluator = Evaluator(run_config=run_config, metrics=metrics)
-            eval_results = evaluator.run_evaluation(eval_prompts, progress_bar)
-            self.cache.set(cache_key, eval_results_cache_key, eval_results)
+        self.exceptions = []
 
-        return eval_results
+        self.pipeline = EvaluationPipeline(self)
 
-    def get_formatted_data(
+        self.llm = LLM()
+
+    async def run_pipeline(self, models_to_run, evaluations_to_run):
+        """Run the evaluation pipeline."""
+        num_evaluations = len(evaluations_to_run) * self.run_config.num_evals
+        num_evals = len(models_to_run) * num_evaluations
+        await self.pipeline.run(models_to_run, evaluations_to_run, num_evals)
+
+    async def generate_formatted_data(
         self,
         cache_key: str,
         ds_config: DatasetConfig,
         run_config: RunConfig,
         task_type: TaskTypes,
-        ignore_cache: bool,
     ) -> BaseFormattedData:
         """
-        Retrieves formatted data for a given dataset and run configuration.
+        Generates formatted data for a given dataset and run configuration.
         It first checks the cache for existing data and, if found, returns it.
         If not found or if caching is ignored, it loads the formatted data, caches it, and returns it.
 
@@ -118,14 +109,13 @@ class EvalManager:
             cache_key (str): Cache key for storing/retrieving data.
             ds_config (DatasetConfig): Dataset configuration.
             run_config (RunConfig): Run configuration.
-            task_type (TaskTypes): ID of the task that will use the formatted data
-            ignore_cache (bool): Flag to ignore cache.
+            task_type: (TaskTypes): The id of the task used to generate the data.
 
         Returns:
             BaseFormattedData: Formatted data.
         """
         data = None
-        if ignore_cache:
+        if self.ignore_dataset_cache:
             log.info("Skipped accessing cache for formatted data")
         else:
             data = self.cache.get(cache_key, "data")
@@ -134,139 +124,128 @@ class EvalManager:
 
         if data:
             log.info("Formatted data retrieved from cache")
-
+            for item in data:
+                yield item
         else:
             try:
-                data = load_formatted_data(
-                    ds_config,
-                    run_config.num_evals,
-                    run_config.random_seed,
-                    task_type,
-                    ignore_cache,
-                )
-                self.cache.set(cache_key, "data", data)
+                np.random.seed(run_config.random_seed)
+                dataset = await get_dataset(ds_config, self.ignore_dataset_cache)
+                eval_idxs = get_eval_idxs(run_config.num_evals, len(dataset))
+                cache_entry = []
+                for eval_idx in eval_idxs:
+                    data = load_formatted_data(
+                        dataset,
+                        ds_config,
+                        eval_idx,
+                        task_type,
+                    )
+                    cache_entry.append(data)
+                    yield data
+                self.cache.set(cache_key, "data", cache_entry)
             except Exception as e:
                 log.error(str(e))
-                return None
 
-        return data
-
-    def get_evaluation_prompts(
+    async def run_evaluation(
         self,
+        response: asyncio.Task | List[ModelResponse],
+        responder: BaseResponder,
         cache_key: str,
-        model: str,
-        prompt_builder: PromptBuilder,
-        ds_config: DatasetConfig,
-        run_config: RunConfig,
-        task_type: TaskTypes,
-        ignore_cache_type: IgnoreCacheTypes,
-    ) -> List[dict]:
-        """
-        Retrieves evaluation prompts for a given model, dataset, task and run configuration
-        It first checks the cache for existing prompts and, if found, returns them.
-        If not found or if caching is ignored, the relevant Responder class is used to generate the prompts using the provided parameters.
-        The generated prompts are cached before being returned
-
-        Args:
-            cache_key (str): Cache key for storing/retrieving prompts.
-            model (str): Model identifier.
-            prompt_builder (PromptBuilder): PromptBuilder instance.
-            ds_config (DatasetConfig): Dataset configuration.
-            run_config (RunConfig): Run configuration.
-            task_type (TaskTypes): Type of the task.
-            ignore_cache_type (IgnoreCacheTypes): Type of cache to ignore.
-
-        Returns:
-            List[dict]: List of evaluation prompts.
-        """
-        eval_prompts_cache_key = f"eval_prompts-{model.id}"
-        eval_prompts = None
-        if ignore_cache_type and ignore_cache_type in [
-            IgnoreCacheTypes.ALL,
-            IgnoreCacheTypes.PROMPTS,
-        ]:
-            log.info("Skipped accessing cache for evaluation prompts")
-        else:
-            eval_prompts = self.cache.get(cache_key, eval_prompts_cache_key)
-            if not eval_prompts:
-                log.info("Evaluation prompts not present in cache")
-
-        if eval_prompts:
-            log.info("Evaluation prompts retrieved from cache")
-        else:
-            ignore_dataset_cache: bool = ignore_cache_type in [
-                IgnoreCacheTypes.ALL,
-                IgnoreCacheTypes.DATASET,
-            ]
-            data = self.get_formatted_data(
-                cache_key, ds_config, run_config, task_type, ignore_dataset_cache
-            )
-
-            responder_cls = get_responder_class_map().get(task_type)
-            # sanity check
-            if not responder_cls:
-                log.error("Unable to determine responder class for task: %s", task_type)
-                raise ValueError("Unable to determine responder class")
-
-            responder = responder_cls(
-                data=data,
-                prompt_builder=prompt_builder,
-                model_config=model,
-            )
-
-            eval_prompts = responder.get_evaluation_prompts()
-
-            self.cache.set(cache_key, eval_prompts_cache_key, eval_prompts)
-
-        return eval_prompts
-
-    @staticmethod
-    def collect_evaluations(
-        run_config: RunConfig,
-        eval_config: EvaluationConfig,
-        dataset_config_list: List[DatasetConfig],
-        dataset_tag: str = None,
-        task_tag: str = None,
+        model_response_cache_key: str,
+        progress_bar,
+        exc_queue: asyncio.Queue,
     ):
         """
-        Collects evaluations to run, scenarios to run, and the metrics/datasets to be used in the evaluations,
-        based on the provided run configuration, evaluation configuration, and a list of dataset configurations.
-        It iterates through scenarios defined in the run configuration, matches them with the scenarios
-        defined in the evaluation configuration, and builds a list of evaluations to run.
+        Asynchronously retrieves the evaluation results for an evaluation prompt.
 
-        Args:
-            run_config (RunConfig): Run configuration.
-            eval_config (EvaluationConfig): Evaluation configuration.
-            dataset_config_list (List[DatasetConfig]): List of dataset configurations.
-            dataset_tag (str): An optional tag for filtering datasets included in the evaluations
-            task_tag (str): An optional tag for filtering tasks included in the evaluations
+        It first checks the cache for existing results and, if found, returns them. If not found or if caching is ignored, it runs the evaluation using the provided parameters, caches the results, and returns them.
+        """
+        try:
+            eval_results = []
+            eval_prompts = []
+            if isinstance(response, asyncio.Task):
+                model_responses = await response
+                self.cache.set(cache_key, model_response_cache_key, model_responses)
+            else:
+                model_responses = response
+            for model_response in model_responses:
+                eval_prompt = await responder.build_eval_prompt(model_response)
+                eval_prompts.append(eval_prompt)
+                eval_results_cache_key = f"eval-{self.cache.calculate_content_hash(eval_prompt)}-{responder.model_id}"
+                if self.ignore_eval_cache:
+                    log.info("Skipped accessing cache for evaluation results")
+                else:
+                    eval_results = self.cache.get(cache_key, eval_results_cache_key)
+                    if not eval_results:
+                        log.info("Evaluation results not present in cache")
 
-        Returns:
-            Tuple[List[Tuple[str, str, str]], List[ScenarioConfig], dict]: Tuple containing evaluations to run,
-            scenarios to run, and configuration cache.
+                if eval_results:
+                    progress_bar.update(1)
+                    log.info("Evaluation results retrieved from cache")
+                else:
+                    eval_results = []
+                    evaluator = Evaluator(
+                        llm=self.llm,
+                        run_config=self.run_config,
+                        metrics=responder.pb.metric_configs,
+                    )
+                    eval_results.append(
+                        await evaluator.run_evaluation(eval_prompt, progress_bar)
+                    )
+                    self.cache.set(cache_key, eval_results_cache_key, eval_results)
+            return eval_prompts, eval_results
+        except Exception as exc:
+            await exc_queue.put(exc)
+
+    async def save_result(
+        self, data: List[dict], filename: pathlib.Path, exc_queue: asyncio.Queue
+    ):
+        """Save the evaluation results to a file."""
+        try:
+            current_data = []
+            if filename.exists():
+                with open(
+                    filename,
+                    "r",
+                    encoding="utf-8",
+                ) as fn:
+                    try:
+                        current_data = json.load(fn)
+                    except Exception:
+                        pass
+            with open(filename, "w+", encoding="utf-8") as fn:
+                current_data.extend(data)
+                json.dump(current_data, fn, indent=4)
+        except Exception as err:
+            await exc_queue.put(err)
+
+    def collect_evaluations(
+        self,
+    ):
+        """
+        Collects evaluations to run, scenarios to run, and the metrics/datasets to be used in the evaluations.
+
+        Collection is based on the provided run configuration, evaluation configuration, and a list of dataset configurations. It iterates through scenarios defined in the run configuration, matches them with the scenarios defined in the evaluation configuration, and builds a list of evaluations to run.
         """
         evaluations_to_run = []
-        config_cache = {
-            "scenario_metrics": {},
-            "datasets": {},
-        }
         scenarios_to_run: List[ScenarioConfig] = EvalManager.get_scenarios_for_run(
-            run_config, eval_config
+            self.run_config, self.eval_config
         )
         for eval_scenario in scenarios_to_run:
             metrics = EvalManager.get_metrics_for_scenario(eval_scenario)
-            config_cache["scenario_metrics"].setdefault(eval_scenario.id, metrics)
+            self.config_cache["scenario_metrics"].setdefault(eval_scenario.id, metrics)
             for dataset_id in eval_scenario.datasets:
-                dataset = get_dataset_config(dataset_id, dataset_config_list)
-                if matches_tag(dataset, dataset_tag):
+                dataset = get_dataset_config(dataset_id, self.dataset_config)
+                if matches_tag(dataset, self.dataset_tag):
                     for ds_task in dataset.tasks:
-                        task = get_task_config(ds_task.id, eval_config)
-                        if matches_tag(task, task_tag):
+                        task = get_task_config(ds_task.id, self.eval_config)
+                        if matches_tag(task, self.task_tag):
                             evaluations_to_run.append(
                                 (eval_scenario.id, dataset.id, task.id)
                             )
-                            config_cache["datasets"].setdefault(dataset.id, dataset)
-        return evaluations_to_run, scenarios_to_run, config_cache
+                            self.config_cache["datasets"].setdefault(
+                                dataset.id, dataset
+                            )
+        return evaluations_to_run, scenarios_to_run
 
     @staticmethod
     def get_scenarios_for_run(
@@ -310,7 +289,7 @@ class EvalManager:
         return scenarios
 
     @staticmethod
-    def get_metrics_for_scenario(scenario: ScenarioConfig):
+    def get_metrics_for_scenario(scenario: ScenarioConfig) -> List[MetricConfig]:
         """
         Retrieves metrics for a given scenario, overriding scenario values
         with metric-specific values if they exist.
@@ -357,3 +336,29 @@ class EvalManager:
             models.append(model)
 
         return models
+
+    def get_model_dataset_dir(self, model_id: str) -> pathlib.Path:
+        """Get the directory for a model's datasets."""
+        return pathlib.Path(self.results_dir / model_id) / "datasets"
+
+    def sizeof_current_run_cache(self):
+        """Get the size of the current run cache."""
+        return len(self.cache.cache)
+
+    def get_num_cached_runs(self):
+        """Get the number of cached runs."""
+        tables = self.cache.cache.get_tablenames(self.cache.cache.filename)
+        return len(tables)
+
+    def initialize_progress_bars(self, num_evals):
+        """Initialize progress bars for data loading, model prompting, and evaluation."""
+
+    @staticmethod
+    def update_progress(progress_bar, num_items=1):
+        """Update a progress bar."""
+        progress_bar.update(num_items)
+
+    @staticmethod
+    def clear_cache(config_paths):
+        """Clear the cache"""
+        SqliteCache(config_paths, clear_cache=True)

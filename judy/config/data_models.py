@@ -13,12 +13,12 @@ from pydantic import (
 
 
 from .settings import (
-    ApiTypes,
     DatasetSplits,
     ModelFamilyTypes,
     TaskTypes,
     SourceTypes,
     JudgeModels,
+    ApiTypes,
 )
 
 # adding "= Field(default=None)" to fields in the following models
@@ -35,12 +35,46 @@ class TaskConfig(BaseModel):
     tags: Optional[List[str]] = Field(default=None)
 
 
-class EvaluatedModel(BaseModel):
+class Proxies(BaseModel):
+    http: HttpUrl
+    https: HttpUrl
+
+
+class AuthenticatedLLMModel(BaseModel):
+    api_type: ApiTypes
+    api_base: HttpUrl | None = Field(default=None)
+    api_key: str | None = Field(default=None)
+    use_proxy: bool = False
+    proxies: Optional[Proxies] = Field(default=None)
+
+    @validator("proxies", always=True)
+    def validate_proxies(cls, value, values):  # pylint: disable=no-self-argument
+        use_proxy = values.get("use_proxy", False)
+        if use_proxy and value is None:
+            raise ValueError("Proxies must be provided if use_proxy is True")
+        return value
+
+    @validator("api_base", always=True)
+    def validate_api_base(cls, v, values):  # pylint: disable=no-self-argument
+        if values["api_type"] == ApiTypes.TGI:
+            if not v:
+                raise ValueError(
+                    f"api_base must be defined for api_type: {values['api_type']}"
+                )
+        return v
+
+
+class LLMModel(AuthenticatedLLMModel):
+    name: Optional[str] = Field(default=None)
+    family: ModelFamilyTypes = ModelFamilyTypes.GENERIC
+
+    def __hash__(self):
+        return hash((self.name, self.api_type.value, self.api_base or None))
+
+
+class EvaluatedModel(AuthenticatedLLMModel):
     id: str
     name: Optional[str] = Field(default=None)
-    api_type: ApiTypes
-    api_base: HttpUrl
-
     max_tokens: Optional[PositiveInt] = Field(default=None)
     context_char_limit: Optional[PositiveInt] = Field(default=None)
     temperature: Optional[confloat(ge=0.0, le=2.0)] = Field(default=None)
@@ -50,31 +84,21 @@ class EvaluatedModel(BaseModel):
     model_config = ConfigDict(use_enum_values=True)
 
 
-class Proxies(BaseModel):
-    http: HttpUrl
-    https: HttpUrl
+class JudgeModel(AuthenticatedLLMModel):
+    name: JudgeModels
+    max_tokens: Optional[PositiveInt] = Field(default=None)
+    temperature: Optional[confloat(ge=0.0, le=2.0)] = Field(default=None)
 
 
 class RunConfig(BaseModel):
-    judge: JudgeModels
-    judge_temperature: confloat(ge=0.0, le=2.0)
-    judge_api_key: Optional[str] = Field(default=None)
-    use_proxy: bool
-    proxies: Optional[Proxies] = Field(default=None)
     random_seed: Optional[int]
     num_evals: PositiveInt
     max_tokens: PositiveInt
     context_char_limit: PositiveInt
     temperature: confloat(ge=0.0, le=2.0)
+    judge: JudgeModel
     models: conlist(EvaluatedModel, min_length=1)
     scenarios: conlist(str, min_length=1)
-
-    @validator("proxies", always=True)
-    def validate_proxies(cls, value, values):  # pylint: disable=no-self-argument
-        use_proxy = values.get("use_proxy", False)
-        if use_proxy and value is None:
-            raise ValueError("Proxies must be provided if use_proxy is True")
-        return value
 
 
 class MetricConfig(BaseModel):

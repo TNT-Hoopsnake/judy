@@ -102,6 +102,6 @@ def load_and_validate_configs(config_definitions):
             configs[config_def["key"]] = validated_data
         except Exception as e:
             log.error("Failed to validate config for %s - %s", config_def["key"], e)
-            sys.exit(1)
+            raise e
 
     return configs

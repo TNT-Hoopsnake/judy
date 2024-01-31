@@ -16,10 +16,10 @@ DATASET_CONFIG_PATH = USER_CONFIG_DIR / "dataset_config.yaml"
 EVAL_CONFIG_PATH = USER_CONFIG_DIR / "eval_config.yaml"
 RUN_CONFIG_PATH = USER_CONFIG_DIR / "run_config.yaml"
 
+MODEL_BATCH_SIZE = 100
+JUDGE_BATCH_SIZE = 100
 
 LOG_FILE_PATH = "app.log"
-
-DEFAULT_OPENAI_API_BASE = "https://api.openai.com/v1"
 
 
 class ApiTypes(str, Enum):
@@ -43,6 +43,7 @@ class IgnoreCacheTypes(str, Enum):
     ALL = "all"
     DATASET = "datasets"
     PROMPTS = "prompts"
+    EVALS = "evals"
 
 
 class SourceTypes(str, Enum):
@@ -73,13 +74,17 @@ class JudgeModels(str, Enum):
     GPT4TURBO = "gpt-4-1106-preview"
 
 
-class InputTokenCost(float, Enum):
-    GPT4 = 0.01 / 1000.0
-    GPT35 = 0.001 / 1000.0
-    GPT4TURBO = 0.01 / 1000.0
-
-
-class OutputTokenCost(float, Enum):
-    GPT4 = 0.03 / 1000.0
-    GPT35 = 0.002 / 1000.0
-    GPT4TURBO = 0.03 / 1000.0
+USAGE_COSTS = {
+    JudgeModels.GPT4: {
+        "input": 0.01 / 1000.0,
+        "output": 0.03 / 1000.0,
+    },
+    JudgeModels.GPT35: {
+        "input": 0.001 / 1000.0,
+        "output": 0.002 / 1000.0,
+    },
+    JudgeModels.GPT4TURBO: {
+        "input": 0.01 / 1000.0,
+        "output": 0.03 / 1000.0,
+    },
+}

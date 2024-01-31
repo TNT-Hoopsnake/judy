@@ -1,15 +1,8 @@
-import os
 import re
 from typing import List, Tuple
-import openai
-from judy.utils import Retry
-from judy.utils.prompts import SYSTEM_PROMPT
-from judy.config import (
-    RunConfig,
-    MetricConfig,
-    DEFAULT_OPENAI_API_BASE,
-    get_est_token_cost,
-)
+from judy.utils import Retry, LLM, LLMModel
+from judy.evaluation.prompts import SYSTEM_PROMPT
+from judy.config import RunConfig, MetricConfig
 from judy.responders import (
     MetricScore,
     EvalResponse,
@@ -19,7 +12,7 @@ from judy.config.logging import logger as log
 
 
 class Evaluator:
-    def __init__(self, run_config: RunConfig, metrics: List[MetricConfig]):
+    def __init__(self, llm: LLM, run_config: RunConfig, metrics: List[MetricConfig]):
         """
         Initialize the Evaluator with the provided run configuration and metrics.
 
@@ -31,26 +24,24 @@ class Evaluator:
         It is initialized with the necessary configuration, including API key, model details,
         and evaluation parameters.
         """
-
-        openai.api_key = run_config.judge_api_key or os.getenv("OPENAI_API_KEY")
-        # ensure the openai api_base points to the correct address
-        # this can be updated by responders so it is necessary to set it here
-        openai.api_base = DEFAULT_OPENAI_API_BASE
-        if run_config.use_proxy and run_config.proxies:
-            openai.proxy = {
-                "http": str(run_config.proxies.http),
-                "https": str(run_config.proxies.https),
-            }
-            log.debug("Proxy will be used for accessing openai API")
-
         self.metrics = metrics
-        self.evaluator = run_config.judge
-        self.evaluator_temperature = run_config.judge_temperature
-        self.eval_input_tokens: List[int] = []
-        self.eval_output_tokens: List[int] = []
+        self.evaluator_temperature = run_config.judge.temperature
+        self.llm = llm
+        self.llm_model = LLMModel(
+            api_type=run_config.judge.api_type,
+            api_base=run_config.judge.api_base,
+            api_key=run_config.judge.api_key,
+            name=run_config.judge.name,
+            use_proxy=run_config.judge.use_proxy,
+            proxies=run_config.judge.proxies,
+        )
+
+    async def query_model(self, prompt: str):
+        """Query the model with the given prompt."""
+        return await self.llm.query_chat_model(self.llm_model, prompt)
 
     @Retry()
-    def get_evaluation_response(self, prompt: str) -> str:
+    async def get_evaluation_response(self, prompt: str) -> str:
         """
         Sends a request to the OpenAI API to obtain an evaluation response
         based on the provided prompt and model details.
@@ -62,27 +53,14 @@ class Evaluator:
             str: The generated evaluation response.
         """
 
-        # Create a chat completion using the specified model and prompt
-        completion = openai.ChatCompletion.create(
-            model=self.evaluator,
-            messages=[
+        return await self.llm.complete(
+            self.llm_model,
+            [
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": prompt},
             ],
             temperature=self.evaluator_temperature,
         )
-        log.info(
-            "Estimated cost for single request to openai API: $%f",
-            get_est_token_cost(
-                self.evaluator,
-                completion.usage.prompt_tokens,
-                completion.usage.completion_tokens,
-            ),
-        )
-        self.eval_input_tokens.append(completion.usage.prompt_tokens)
-        self.eval_output_tokens.append(completion.usage.completion_tokens)
-        # Extract and return the content of the generated evaluation response
-        return completion.choices[0].message.content
 
     def parse_result(self, result: str) -> Tuple[int]:
         """
@@ -124,7 +102,7 @@ class Evaluator:
 
         return tuple(scores)
 
-    def get_evaluation_results(self, prompt: str) -> EvalResponse:
+    async def get_evaluation_results(self, prompt: str) -> EvalResponse:
         """
         Generates evaluation results for a single prompt, including the prompt,
         generated response, and associated metric scores.
@@ -135,7 +113,7 @@ class Evaluator:
         Returns:
             EvalResponse: Evaluation response containing prompt, generated response, and metric scores.
         """
-        eval_result = self.get_evaluation_response(prompt)
+        eval_result = await self.get_evaluation_response(prompt)
 
         # Parse the evaluation metrics from the result using the criteria dictionary
         metric_scores = self.parse_result(eval_result)
@@ -146,9 +124,7 @@ class Evaluator:
 
         return EvalResponse(prompt=prompt, response=eval_result, scores=scores)
 
-    def run_evaluation(
-        self, prompts: List[EvalPrompt], progress_bar
-    ) -> List[EvalResponse]:
+    async def run_evaluation(self, prompt: EvalPrompt, progress_bar) -> EvalResponse:
         """
         Runs evaluations for a list of prompts and returns a list of evaluation responses,
         including prompts, generated responses, and associated metric scores.
@@ -160,16 +136,7 @@ class Evaluator:
         Returns:
             List[EvalResponse]: List of evaluation responses.
         """
-        model_results = []
-        for prompt in prompts:
-            results = self.get_evaluation_results(prompt.prompt)
-            model_results.append(results)
-            # update the cli progress bar when an evaluation result is completed
-            progress_bar.update(1)
+        results = await self.get_evaluation_results(prompt.prompt)
 
-        est_cost = get_est_token_cost(
-            self.evaluator, sum(self.eval_input_tokens), sum(self.eval_output_tokens)
-        )
-        log.info("Total estimated cost of evaluation: $%f", est_cost)
-
-        return model_results
+        progress_bar.update(1)
+        return results

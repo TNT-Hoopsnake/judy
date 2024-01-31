@@ -1,16 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import List, Tuple, Any
-from types import ModuleType
-import sys
+from typing import Tuple, Any, List
 
-import openai
-from easyllm.clients import huggingface
-from easyllm.prompt_utils import PROMPT_MAPPING
-from easyllm.prompt_utils.base import buildBasePrompt
-from easyllm.schema.base import ChatMessage
-
-from judy.config import ApiTypes
-from judy.utils import PromptBuilder
+from judy.evaluation import PromptBuilder
 from judy.config import EvaluatedModel
 from judy.dataset import BaseFormattedData
 from judy.responders import (
@@ -18,104 +9,75 @@ from judy.responders import (
     ModelResponse,
     EvalPrompt,
 )
-from judy.utils import Retry
-from judy.config.logging import logger as log
+from judy.utils import LLM, LLMModel
 
 
 class BaseResponder(ABC):
     def __init__(
         self,
+        llm: LLM,
         data: BaseFormattedData,
         prompt_builder: PromptBuilder,
         model_config: EvaluatedModel,
     ):
         self.data = data
         self.pb = prompt_builder
+        self.model_id = model_config.id
         # config file values
         self._model_family = model_config.family
         self._api_type = model_config.api_type
-        self._api_base = str(model_config.api_base)
         self._temperature = model_config.temperature
         self._max_tokens = model_config.max_tokens
         self._context_char_limit = model_config.context_char_limit
+        self.llm = llm
+        self.llm_model = LLMModel(
+            api_type=self._api_type,
+            api_base=model_config.api_base,
+            api_key=model_config.api_key,
+            name=self.model_id,
+            family=self._model_family,
+        )
 
-    def query_model(self, prompt):
-        chat_history = [{"role": "user", "content": prompt}]
-
-        return self.query_chat_model(chat_history)
-
-    def get_data_tuple(self) -> Tuple[Any]:
-        return tuple(self.data.model_dump().values())
-
-    @Retry()
-    def query_chat_model(self, chat_history: List[dict]):
-        lib = self.get_completion_library()
-
-        messages = [ChatMessage(**message) for message in chat_history]
-
-        if prompt_build_func := PROMPT_MAPPING.get(self._model_family):
-            prompt = prompt_build_func(messages)
-        else:
-            prompt = buildBasePrompt(messages)
-
-        # easyllm will append the model name to the base url when using TGI completion lib
-        # this isnt wanted behaviour, so we set model name to None in those cases
-        model_name = None
-        if self._api_type == ApiTypes.OPENAI:
-            # openai lib requires a model name when using Completion
-            # we only set it when that lib is in use
-            model_name = self._model_family
-
-        completion = lib.Completion.create(
-            model=model_name,
-            prompt=prompt,
-            max_tokens=self._max_tokens,
+    async def query_model_with_history(self, history: List[dict]):
+        return await self.llm.complete(
+            self.llm_model,
+            messages=history,
+            max_new_tokens=self._max_tokens,
             temperature=self._temperature,
         )
-        output = completion["choices"][0]["text"]
 
-        return output
+    async def query_chat_model(self, prompt):
+        """Query the model with the given prompt."""
+        chat_history = [{"role": "user", "content": prompt}]
+        return await self.query_model_with_history(chat_history)
 
-    def get_evaluation_prompts(self):
-        prompts = self.build_model_prompts()
-        responses = self.get_model_responses(prompts)
-        eval_prompts = self.build_eval_prompts(responses)
-        return eval_prompts
+    def get_data_tuple(self) -> Tuple[Any]:
+        """Get the data tuple from the data model."""
+        return tuple(self.data.model_dump().values())
 
-    def get_completion_library(self) -> ModuleType:
-        try:
-            match self._api_type:
-                case ApiTypes.OPENAI:
-                    lib = openai
-                    # openai lib requires api_key to be set, even if we're not accessing the actual OAI api
-                    openai.api_key = ""
-                case ApiTypes.TGI:
-                    lib = huggingface
-                    # used to suppress annoying warning from easyllm
-                    lib.prompt_builder = lambda x: x
-                case _:
-                    raise ValueError(
-                        f"Unable to determine completion library for api type: {self._api_type}"
-                    )
+    async def get_model_prompts(self):
+        """Get model prompts for the given data tuple."""
+        prompts = []
+        async for prompt in self.build_model_prompt():
+            prompts.append(prompt)
+        return prompts
 
-            lib.api_base = self._api_base
-            return lib
-        except ValueError as e:
-            log.error(str(e))
-            sys.exit(1)
+    async def get_responses_for_prompts(self, prompts, progress_bar):
+        """Get model responses for a given list of prompts"""
+        responses = []
+        for prompt in prompts:
+            responses.append(await self.get_model_response(prompt))
+        progress_bar.update()
+        return responses
 
     @abstractmethod
-    def build_model_prompts(self) -> List[ModelPrompt]:
-        pass
+    async def build_model_prompt(self) -> ModelPrompt:
+        """Build the model prompt from the data tuple."""
 
     @abstractmethod
-    def get_model_responses(
-        self, model_prompts: List[ModelPrompt]
-    ) -> List[ModelResponse]:
-        pass
+    async def get_model_response(self, model_prompt: ModelPrompt) -> ModelResponse:
+        """Prompt the model with a single prompt and get the model response"""
 
     @abstractmethod
-    def build_eval_prompts(
-        self, model_responses: List[ModelResponse]
-    ) -> List[EvalPrompt]:
-        pass
+    async def build_eval_prompt(self, model_response: ModelResponse) -> EvalPrompt:
+        """Build the evaluation prompt from the model response."""

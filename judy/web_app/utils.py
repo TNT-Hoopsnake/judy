@@ -35,11 +35,13 @@ def nested_update(d, v):
 
 
 def check_directory_contains_subdirectories(directory):
+    """Check if a directory contains any subdirectories."""
     directory_path = Path(directory)
     return any(sub_path.is_dir() for sub_path in directory_path.iterdir())
 
 
 def load_json(path):
+    """Load JSON data from a file."""
     with open(path, "r") as fn:
         try:
             return json.load(fn)
@@ -107,6 +109,7 @@ def get_run_data_index(configs, metadata):
 
 
 def check_directory(directory: str | Path):
+    """Check if a directory exists and is a directory."""
     directory = Path(directory)
     if not directory.exists():
         return False
@@ -157,6 +160,7 @@ def get_all_data_index(data_directory):
 
 
 def load_all_data(data_directory):
+    """Load all data from a directory containing judy evaluation results."""
     all_models_used = set()
     all_tasks_used = set()
     all_scenarios_used = set()

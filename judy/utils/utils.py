@@ -1,5 +1,4 @@
 import json
-import os
 import pathlib
 import sys
 import shutil
@@ -12,7 +11,6 @@ from judy.config import (
     get_config_definitions,
 )
 from judy.config.validator import load_and_validate_configs
-from judy.responders import EvalPrompt, EvalResponse
 from judy.config.logging import logger as log
 
 
@@ -36,66 +34,6 @@ def ensure_directory_exists(dir_path: str | pathlib.Path, clear_if_exists=False)
         dir_path.mkdir()
 
     return dir_path
-
-
-def save_evaluation_results(
-    results_dir: str | pathlib.Path,
-    scenario_id: str,
-    task_id: str,
-    dataset_id: str,
-    eval_prompts: List[EvalPrompt],
-    eval_results: List[EvalResponse],
-):
-    """
-    Save evaluation results for a model to a JSON file.
-
-    Args:
-        results_dir (str | pathlib.Path): The directory to save the evaluation results in.
-        scenario_id (str): The identifier for the evaluation scenario.
-        task_id (str): The identifier for the evaluated task.
-        dataset_id (str): The name of the evaluated dataset.
-        eval_prompts (List[EvalPrompt]): List of evaluation prompts.
-        eval_results (List[EvalResponse]): List of evaluation results.
-
-    The function creates a directory structure based on the model name and saves the
-    evaluation results for each dataset in their own JSON file. Each entry in the JSON file corresponds to a
-    specific evaluation prompt and its corresponding response.
-
-    The structure of the saved JSON file is as follows:
-    [{
-        "dataset_id": "dataset_id",
-        "task_id": "task_id",
-        "scenario_id": "scenario_id",
-        "model": {
-            "response": "response",
-            "other_model_data": ...
-        },
-        "evaluator": {
-            "evaluator_data": ...
-        }
-    }]
-    """
-    clean_ds_name = dataset_id.split("/")[-1]
-    data = []
-    for idx, item in enumerate(eval_results):
-        model = {
-            "response": eval_prompts[idx].response_data.response,
-            **eval_prompts[idx].response_data.prompt.model_dump(),
-        }
-        data.append(
-            {
-                "dataset_id": dataset_id,
-                "task_id": task_id,
-                "scenario_id": scenario_id,
-                "model": model,
-                "evaluator": item.model_dump(mode="json"),
-            }
-        )
-
-    with open(
-        os.path.join(results_dir, f"{clean_ds_name}-{scenario_id}-{task_id}.json"), "w+"
-    ) as fn:
-        json.dump(data, fn, indent=4)
 
 
 def dump_metadata(

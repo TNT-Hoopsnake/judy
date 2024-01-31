@@ -38,21 +38,25 @@ def test_invalid_dataset_eval_config():
         tasks=VALID_TASKS,
     )
     with pytest.raises(ValueError):
-        EvalManager.collect_evaluations(
-            run_config=RunConfig(**VALID_RUN_CONFIG),
-            eval_config=eval_config,
-            dataset_config_list=[
+        configs = {
+            "eval": eval_config.dict(),
+            "datasets": [
                 DatasetConfig(
                     **{
                         "id": "ms_marco",
                         "name": "MS MARCO",
                         "source": "https://huggingface.co/datasets/ms_marco",
                         "version": "v1.1",
-                        "tasks": [{"id": "st_qa", "formatter": "msmarco_formatter"}],
+                        "tasks": ["st_qa"],
+                        "formatter": "msmarco_formatter",
                     }
-                ),
+                )
             ],
-        )
+            "run": RunConfig(**VALID_RUN_CONFIG),
+        }
+        tags = {"model": None, "dataset": None, "task": None}
+        manager = EvalManager(tags, configs, "/tmp/test", None, False, False)
+        manager.collect_evaluations()
 
 
 def test_invalid_task_for_dataset():
@@ -73,10 +77,9 @@ def test_invalid_task_for_dataset():
         tasks=VALID_TASKS,
     )
     with pytest.raises(ValueError):
-        EvalManager.collect_evaluations(
-            run_config=RunConfig(**VALID_RUN_CONFIG),
-            eval_config=eval_config,
-            dataset_config_list=[
+        configs = {
+            "eval": eval_config.dict(),
+            "datasets": [
                 DatasetConfig(
                     **{
                         "id": "ms_marco",
@@ -86,9 +89,13 @@ def test_invalid_task_for_dataset():
                         "tasks": ["this_doesnt_exist"],
                         "formatter": "msmarco_formatter",
                     }
-                ),
+                )
             ],
-        )
+            "run": RunConfig(**VALID_RUN_CONFIG),
+        }
+        tags = {"model": None, "dataset": None, "task": None}
+        manager = EvalManager(tags, configs, "/tmp/test", None, False, False)
+        manager.collect_evaluations()
 
 
 # Test for validating a run configuration
