@@ -19,7 +19,15 @@ Judy has been inspired by techniques used in research including HELM [1] and LLM
 
 ## Installation
 
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install Judy.
+Use the package manager [pip](https://pip.pypa.io/en/stable/) to install Judy. Note: Judy requires python >= 3.10.
+
+```bash
+pip install judyeval
+```
+
+### Alternate Installation
+
+You can also install Judy directly from this git repo:
 
 ```bash
 pip install git+https://github.com/TNT-Hoopsnake/judy
@@ -92,3 +100,16 @@ The web app allows you to view your evaluation results.
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. Please make sure to update tests as appropriate.
+
+## Citation - BibTeX
+
+```
+@software{Hutchinson_Judy_-_LLM_2024,
+  author = {Hutchinson, Linden and Raghavan, Rahul},
+  month = feb,
+  title = {{Judy - LLM Evaluator}},
+  url = {https://github.com/TNT-Hoopsnake/judy},
+  version = {2.0.0},
+  year = {2024}
+}
+```
