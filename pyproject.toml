@@ -1,9 +1,10 @@
 [tool.poetry]
-name = "judy"
+name = "judyeval"
 version = "2.0.0"
 description = "Judy is a python library and framework to evaluate the text-generation capabilities of Large Language Models (LLM) using a Judge LLM."
-authors = ["Linden Hutchinson <linden.hutchinson@tesserent.com>", "Rahul Raghavan" <rahul.raghavan@tesserent.com>]
+authors = ["Linden Hutchinson <linden.hutchinson@tesserent.com>", "Rahul Raghavan <rahul.raghavan@tesserent.com>"]
 readme = "README.md"
+packages = [{"include" = "judy"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"

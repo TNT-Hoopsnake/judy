@@ -19,7 +19,15 @@ Judy has been inspired by techniques used in research including HELM [1] and LLM
 
 ## Installation
 
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install Judy.
+Use the package manager [pip](https://pip.pypa.io/en/stable/) to install Judy. Note: Judy requires python >= 3.10.
+
+```bash
+pip install judyeval
+```
+
+### Alternate Installation
+
+You can also install Judy directly from this git repo:
 
 ```bash
 pip install git+https://github.com/TNT-Hoopsnake/judy
