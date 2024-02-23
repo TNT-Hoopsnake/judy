@@ -2,11 +2,7 @@ import asyncio
 import pathlib
 from typing import List, Tuple
 from tqdm.asyncio import tqdm
-from judy.config import (
-    dump_configs,
-    DatasetConfig,
-    RunConfig,
-)
+from judy.config import dump_configs, DatasetConfig, RunConfig, TaskConfig
 from judy.responders import (
     get_responder_class_map,
     EvalPrompt,
@@ -16,6 +12,7 @@ from judy.evaluation import PromptBuilder
 from judy.utils import (
     dump_metadata,
 )
+from judy.config import get_task_config
 from judy.utils.utils import ensure_directory_exists
 from judy.config.settings import MODEL_BATCH_SIZE, JUDGE_BATCH_SIZE
 from judy.config.logging import logger as log
@@ -180,6 +177,7 @@ class EvaluationPipeline:
                         prompt_builder,
                         ds_config,
                         self.manager.run_config,
+                        get_task_config(task_id, self.manager.eval_config),
                         eval_id,
                         self.pbar_data_loading,
                     )
@@ -195,6 +193,7 @@ class EvaluationPipeline:
         prompt_builder: PromptBuilder,
         ds_config: DatasetConfig,
         run_config: RunConfig,
+        task_config: TaskConfig,
         eval_ids: Tuple[str, str, str],
         progress_bar: tqdm,
     ):
@@ -228,6 +227,7 @@ class EvaluationPipeline:
                 data=item,
                 prompt_builder=prompt_builder,
                 model_config=model,
+                task_config=task_config,
             )
             progress_bar.update(1)
             await queue.put((responder, cache_key, eval_ids))

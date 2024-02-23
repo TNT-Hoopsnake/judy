@@ -31,8 +31,9 @@ class TaskConfig(BaseModel):
     id: TaskTypes
     name: Optional[str] = Field(default=None)
     desc: Optional[str] = Field(default=None)
-    model_config = ConfigDict(use_enum_values=True)
     tags: Optional[List[str]] = Field(default=None)
+    task_preprompt: Optional[str] = Field(default=None)
+    eval_prompt: Optional[str] = Field(default=None)
 
 
 class Proxies(BaseModel):
@@ -80,8 +81,6 @@ class EvaluatedModel(AuthenticatedLLMModel):
     temperature: Optional[confloat(ge=0.0, le=2.0)] = Field(default=None)
     family: ModelFamilyTypes = ModelFamilyTypes.GENERIC
     tags: Optional[List[str]] = Field(default=None)
-
-    model_config = ConfigDict(use_enum_values=True)
 
 
 class JudgeModel(AuthenticatedLLMModel):
@@ -136,5 +135,4 @@ class DatasetConfig(BaseModel):
     source_type: Optional[SourceTypes] = SourceTypes.HUGGINGFACE_HUB
     version: Optional[str] = Field(default=None)
     split: DatasetSplits = DatasetSplits.TRAIN
-    model_config = ConfigDict(use_enum_values=True)
     tags: Optional[List[str]] = Field(default=None)

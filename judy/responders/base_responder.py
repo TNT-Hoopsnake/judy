@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Tuple, Any, List
 
 from judy.evaluation import PromptBuilder
-from judy.config import EvaluatedModel
+from judy.config import EvaluatedModel, TaskConfig
 from judy.dataset import BaseFormattedData
 from judy.responders import (
     ModelPrompt,
@@ -19,6 +19,7 @@ class BaseResponder(ABC):
         data: BaseFormattedData,
         prompt_builder: PromptBuilder,
         model_config: EvaluatedModel,
+        task_config: TaskConfig,
     ):
         self.data = data
         self.pb = prompt_builder
@@ -37,6 +38,7 @@ class BaseResponder(ABC):
             name=self.model_id,
             family=self._model_family,
         )
+        self.task_config = task_config
 
     async def query_model_with_history(self, history: List[dict]):
         return await self.llm.complete(

@@ -33,7 +33,9 @@ class STQuestionAnswerMetricResponder(STQuestionAnswerResponder):
         }
 
         eval_prompt = self.pb.build_full_prompt(
-            ST_QA_PROMPT, replacement_map, model_response.prompt.metrics
+            self.task_config.eval_prompt or ST_QA_PROMPT,
+            replacement_map,
+            model_response.prompt.metrics,
         )
 
         return EvalPrompt(prompt=eval_prompt, response_data=model_response)

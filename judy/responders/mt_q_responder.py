@@ -36,6 +36,8 @@ class MTQuestionResponder(BaseResponder):
     async def build_eval_prompt(self, model_response: ModelResponse):
         replacement_map = {"[CONTENT]": model_response.response}
 
-        eval_prompt = self.pb.build_full_prompt(MT_Q_PROMPT, replacement_map)
+        eval_prompt = self.pb.build_full_prompt(
+            self.task_config.eval_prompt or MT_Q_PROMPT, replacement_map
+        )
 
         return EvalPrompt(prompt=eval_prompt, response_data=model_response)

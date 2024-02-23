@@ -69,6 +69,8 @@ class MTQuestionAnswerContextResponder(BaseResponder):
             "[CONTEXT]": model_response.prompt.context,
             "[CONTENT]": model_response.response,
         }
-        eval_prompt = self.pb.build_full_prompt(MT_QAC_PROMPT, replacement_map)
+        eval_prompt = self.pb.build_full_prompt(
+            self.task_config.eval_prompt or MT_QAC_PROMPT, replacement_map
+        )
 
         return EvalPrompt(prompt=eval_prompt, response_data=model_response)

@@ -15,7 +15,7 @@ class STQuestionResponder(BaseResponder):
     async def build_model_prompt(self) -> List[STModelPrompt]:
         questions = self.get_data_tuple()[0]
         for question in questions:
-            prompt = f"{SINGLE_TURN_QUESTION_PREPROMPT}{question}"
+            prompt = f"{self.task_config.task_preprompt or SINGLE_TURN_QUESTION_PREPROMPT}{question}"
 
             yield STModelPrompt(
                 question=question,
@@ -32,6 +32,8 @@ class STQuestionResponder(BaseResponder):
             "[ANSWER]": model_response.response,
         }
 
-        eval_prompt = self.pb.build_full_prompt(ST_Q_PROMPT, replacement_map)
+        eval_prompt = self.pb.build_full_prompt(
+            self.task_config.eval_prompt or ST_Q_PROMPT, replacement_map
+        )
 
         return EvalPrompt(prompt=eval_prompt, response_data=model_response)

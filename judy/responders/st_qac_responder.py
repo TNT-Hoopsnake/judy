@@ -24,7 +24,7 @@ class STQuestionAnswerContextResponder(BaseResponder):
             append_char = ""
             if not question.endswith("?"):
                 append_char = "?"
-            prompt = f"[CONTEXT]: {context}\n{SINGLE_TURN_QUESTION_ANSWER_CONTEXT_PREPROMPT}{question}{append_char}"
+            prompt = f"[CONTEXT]: {context}\n{self.task_config.task_preprompt or SINGLE_TURN_QUESTION_ANSWER_CONTEXT_PREPROMPT}{question}{append_char}"
             yield STQACModelPrompt(
                 question=question,
                 prompt=prompt,
@@ -43,6 +43,8 @@ class STQuestionAnswerContextResponder(BaseResponder):
             "[CONTEXT]": model_response.prompt.context,
         }
 
-        eval_prompt = self.pb.build_full_prompt(ST_QAC_PROMPT, replacement_map)
+        eval_prompt = self.pb.build_full_prompt(
+            self.task_config.eval_prompt or ST_QAC_PROMPT, replacement_map
+        )
 
         return EvalPrompt(prompt=eval_prompt, response_data=model_response)

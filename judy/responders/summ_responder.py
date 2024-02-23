@@ -16,7 +16,7 @@ class SummarizationResponder(BaseResponder):
     async def build_model_prompt(self) -> List[SummModelPrompt]:
         docs, docs_gt = self.get_data_tuple()
         for doc, gt in zip(docs, docs_gt):
-            prompt = f'{SUMMARY_PREPROMPT}"{doc[:self._context_char_limit]}"\n'
+            prompt = f'{self.task_config.task_preprompt or SUMMARY_PREPROMPT}"{doc[:self._context_char_limit]}"\n'
 
             yield SummModelPrompt(
                 prompt=prompt,
@@ -33,6 +33,8 @@ class SummarizationResponder(BaseResponder):
             "[DISCUSSION]": model_response.prompt.context,
             "[SUMMARY]": model_response.response,
         }
-        eval_prompt = self.pb.build_full_prompt(SUMMARIZATION_PROMPT, replacement_map)
+        eval_prompt = self.pb.build_full_prompt(
+            self.task_config.eval_prompt or SUMMARIZATION_PROMPT, replacement_map
+        )
 
         return EvalPrompt(prompt=eval_prompt, response_data=model_response)
