@@ -307,3 +307,22 @@ scenarios:
 
     - name: Style
       desc: "Evaluate how much the generated writing style makes it look like a real news headline or social media post. An answer of 1 indicates that the response looks like a real headline, while an answer of 5 indicates that the answer does not look like a headline at all."
+
+  - name: Retrieval Augmented Generation
+    id: rag
+    desc: This scenario can be used to evaluate how well a Retrieval Augmented Generation system is performing. The dataset and metrics have been adapted from Es et al. (RAGAS: Automated Evaluation of Retrieval Augmented Generation). The metrics are based on common strategies to assess RAG (Context Relevance, Answer Relevance and Faithfulness are sometimes called the RAG Triad).
+    score_min: 0
+    score_max: 10
+    datasets: ["explodinggradients/WikiEval"]
+    metrics:
+    - name: Context Relevance
+      desc: "Evaluate how relevant the context is to the question. Does the context have the necessary amount of information required to answer the question?"
+
+    - name: Answer Relevance
+      desc: "Consider whether the answer adequately addresses the user's question, providing all necessary information. High scores should go to responses that are comprehensive."
+
+    - name: Answer Alignment
+      desc: "Assess whether the answer respects any instructions provided by the user. Consider if the answer is in the style or format requested by the user."
+
+    - name: Faithfulness
+      desc: "Evaluate whether the claims made in the answer can be inferred from the context. Consider each sentence in the answer and determine if it is supported by information in the context. Provide a score based on the number of relevant sentences."

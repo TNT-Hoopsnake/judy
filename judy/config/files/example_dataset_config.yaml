@@ -124,7 +124,6 @@
       formatter: FlaskFormatter
   source_type: url
   split: train
-  split: test
   tags: ["instruction_following"]
 
 - id: flask_hard
@@ -134,5 +133,14 @@
       formatter: FlaskFormatter
   source_type: url
   split: train
-  split: test
   tags: ["instruction_following"]
+
+- id: WikiEval
+  source: https://huggingface.co/datasets/explodinggradients/WikiEval
+  version: main
+  tasks:
+    - id: st_qac
+      formatter: WikiEvalFormatter
+  source_type: hub
+  split: train
+  tags: ["rag"]
