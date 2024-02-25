@@ -212,3 +212,17 @@ class FlaskFormatter(BaseFormatter):
             answers.append(self.dataset["answer"][i])
             metrics.append(self.dataset["metrics"][i])
         return STQAMFormattedData(questions=questions, answers=answers, metrics=metrics)
+
+
+class WikiEvalFormatter(BaseFormatter):
+    def format(self) -> STQACFormattedData:
+        questions = []
+        answers = []
+        contexts = []
+        for i in self.eval_idxs:
+            questions.append(self.dataset["question"][i])
+            answers.append(self.dataset["answer"][i])
+            contexts.append("\n".join(self.dataset["context_v2"][i]))
+        return STQACFormattedData(
+            questions=questions, answers=answers, contexts=contexts
+        )

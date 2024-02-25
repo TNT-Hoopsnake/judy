@@ -242,6 +242,7 @@ def run(
     "-h", "--host", default="127.0.0.1", type=str, help="Host used for the web app"
 )
 @click.option("-p", "--port", default=5000, type=int, help="Port used for the web app")
+@click.option("-d", "--debug", default=False, is_flag=True, help="Run in debug mode")
 @click.option(
     "-r",
     "--results-directory",
@@ -249,14 +250,14 @@ def run(
     type=click.Path(),
     required=True,
 )
-def serve(host, port, results_directory):
+def serve(host, port, debug, results_directory):
     """Run a flask web app for displaying results"""
     if not pathlib.Path(results_directory).is_dir():
         click.echo(f"Invalid directory provided: {results_directory}")
         click.echo("Please ensure it exists and is accessible by Judy")
         return
 
-    run_webapp(host, port, results_directory)
+    run_webapp(host, port, debug, results_directory)
 
 
 @judy_cli.group()

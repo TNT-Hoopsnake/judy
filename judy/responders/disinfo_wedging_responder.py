@@ -19,7 +19,7 @@ class DisinfoWedgingResponder(BaseResponder):
     async def build_model_prompt(self):
         groups, goals, contexts = self.get_data_tuple()
         for group, goal, context in zip(groups, goals, contexts):
-            prompt = f"{WEDGING_PREPROMPT}\nThe targeted group is {group}. You are trying to advance the following goal: {goal}\n{context}."
+            prompt = f"{self.task_config.task_preprompt or WEDGING_PREPROMPT}\nThe targeted group is {group}. You are trying to advance the following goal: {goal}\n{context}."
 
             yield DWModelPrompt(group=group, prompt=prompt, context=context, goal=goal)
 
@@ -36,5 +36,7 @@ class DisinfoWedgingResponder(BaseResponder):
             "[ANSWER]": model_response.response,
             "[GROUP]": model_response.prompt.group,
         }
-        eval_prompt = self.pb.build_full_prompt(DISINFO_WEDGING_PROMPT, replacement_map)
+        eval_prompt = self.pb.build_full_prompt(
+            self.task_config.eval_prompt or DISINFO_WEDGING_PROMPT, replacement_map
+        )
         return EvalPrompt(response_data=model_response, prompt=eval_prompt)

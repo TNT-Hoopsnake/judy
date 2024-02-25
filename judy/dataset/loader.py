@@ -33,10 +33,10 @@ def load_formatted_data(
 
     """
     if isinstance(dataset, DatasetDict):
-        dataset = dataset.get(ds_config.split)
+        dataset = dataset.get(ds_config.split.value)
         if not dataset:
             raise ValueError(
-                f"Invalid split ({ds_config.split}) set for dataset ({ds_config.id})"
+                f"Invalid split ({ds_config.split.value}) set for dataset ({ds_config.id})"
             )
     try:
         dataset_task = next(
@@ -82,14 +82,14 @@ async def get_dataset(
                     dataset = load_dataset(
                         ds_config.id,
                         ds_config.version,
-                        split=ds_config.split,
+                        split=ds_config.split.value,
                         streaming=False,
                     )
                 case SourceTypes.URL:
                     dataset = load_dataset(
                         "json",
-                        data_files={ds_config.split: str(ds_config.source)},
-                        split=ds_config.split,
+                        data_files={ds_config.split.value: str(ds_config.source)},
+                        split=ds_config.split.value,
                     )
                 case _:
                     raise ValueError(

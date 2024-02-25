@@ -131,3 +131,31 @@ footer {
 .heatmap-title {
     text-align: center;
 }
+
+#eval-btn-first {
+    margin-left: 1rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    margin-right: .5rem;
+}
+
+#eval-btn-prev {
+    margin-left: 0rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    margin-right: 1rem;
+}
+
+#eval-btn-next {
+    margin-left: 1rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    margin-right: .5rem;
+}
+
+#eval-btn-last {
+    margin-left: 0rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    margin-right: 1rem;
+}
