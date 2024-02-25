@@ -89,18 +89,27 @@
               {% endfor %}
           </ul>
       </div>
-  </div>
-
-    <div class="col raw-result-filter-group raw-result-filter-item" id="eval-buttons">
-      <label for="eval-btn-0">
-        <h5>Evaluation: </h5>
-      </label>
-      {% for result in filtered_data %}
-        <button id="eval-btn-{{loop.index0}}" class="btn btn-sm btn-outline-primary" data-target="eval-{{loop.index0}}" {% if loop.index0 == 0%}disabled{%endif%}>{{loop.index}}</button>
-      {% endfor %}
     </div>
   </div>
   <hr>
+  <div class="row text-center">
+    <span>Total: {{ filtered_data|length }} Evals</span>
+  </div>
+  <div class="raw-result-filter-item">
+    <div class="col raw-result-filter-group raw-result-filter-item" id="eval-buttons">
+      <button id="eval-btn-first" class="btn btn-sm btn-outline-primary"><<</button>
+      <button id="eval-btn-prev" class="btn btn-sm btn-outline-primary"><</button>
+      {% for result in filtered_data %}
+        {% if loop.index0 == 0%}
+        <span id="eval-idx-{{loop.index0}}" class="current" data-target="{{loop.index0}}">{{ loop.index }}</span>
+        {% else %}
+        <span id="eval-idx-{{loop.index0}}" class="" data-target="{{loop.index0}}" style="display:none;">{{ loop.index }}</span>
+        {% endif %}
+      {% endfor %}
+      <button id="eval-btn-next" class="btn btn-sm btn-outline-primary">></button>
+      <button id="eval-btn-last" class="btn btn-sm btn-outline-primary">>></button>
+    </div>
+  </div>
   <div class="row">
       <div class="col" >
           {% for result in filtered_data %}
@@ -124,7 +133,7 @@
                     </div>
                   </div>
                   {% endif %}
-                
+
                   <div class="accordion-item">
                     <h2 class="accordion-header" id="headingContext">
                       <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseContext" aria-expanded="false" aria-controls="collapseContext">
@@ -141,9 +150,9 @@
                       </div>
                     </div>
                   </div>
-                
+
                 </div>
-                
+
               </div>
               <div class="col">
                 <div class="accordion" id="results-accordion">
@@ -164,7 +173,7 @@
                       </div>
                     </div>
                   </div>
-                
+
                   <div class="accordion-item">
                     <h2 class="accordion-header" id="headingResults">
                       <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseResponse" aria-expanded="false" aria-controls="collapseResponse">
@@ -177,7 +186,7 @@
                       </div>
                     </div>
                   </div>
-                
+
                   <div class="accordion-item">
                     <h2 class="accordion-header" id="headingPrompt">
                       <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePrompt" aria-expanded="false" aria-controls="collapsePrompt">
@@ -190,9 +199,9 @@
                       </div>
                     </div>
                   </div>
-                
+
                 </div>
-                
+
               </div>
             </div>
           </div>
@@ -208,24 +217,57 @@
   // Select all buttons within the "eval-buttons" div
   const buttonsInEval = evalButtonsDiv.querySelectorAll("button");
 
-  // Add click event listeners to each button
+  const spansInEval = evalButtonsDiv.querySelectorAll("span");
+  const totalEvals = spansInEval.length;
+
+  // Implement a basic pagination bar for evals
   buttonsInEval.forEach(button => {
       button.addEventListener('click', () => {
+          const currentTargetId = +evalButtonsDiv.querySelector("span.current").getAttribute("data-target");
+          var targetId = null;
           // Get the target div's ID from the data attribute
-          const targetId = button.getAttribute('data-target');
+          if (button.id === "eval-btn-first") {
+            targetId = 0;
+          }
+          else if (button.id === "eval-btn-prev") {
+            if (currentTargetId === 0) {
+              targetId = 0;
+            }
+            else {
+              targetId = currentTargetId - 1;
+            }
+          }
+          else if (button.id === "eval-btn-next") {
+            if (currentTargetId === totalEvals - 1) {
+              targetId = totalEvals - 1;
+            }
+            else {
+              targetId = currentTargetId + 1;
+            }
+          }
+          else if (button.id === "eval-btn-last") {
+            targetId = totalEvals - 1;
+          }
+
           // Hide all divs
           document.querySelectorAll('.eval-content').forEach(div => {
               div.style.display = 'none';
           });
 
           // Show the target div
-          document.getElementById(targetId).style.display = 'block';
+          document.getElementById("eval-" + targetId).style.display = 'block';
 
-          buttonsInEval.forEach(btn => {
-            btn.disabled = false;
+          // Show the target eval number
+          spansInEval.forEach(spn => {
+            if (spn.id === "eval-idx-" + targetId) {
+              spn.classList = ["current"]
+              spn.style.display = 'block';
+            }
+            else {
+              spn.classList = []
+              spn.style.display = 'none';
+            }
           });
-          button.disabled = true;
-
       });
   });
 </script>
